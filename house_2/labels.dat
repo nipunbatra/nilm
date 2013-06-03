@@ -1,0 +1,12 @@
+1 mains
+2 mains
+3 kitchen_outlets 775,13,0
+4 lighting         8,25,150
+5 stove             0,405
+6 microwave			3,12,1340
+7 washer_dryer		0,2
+Not to consider	
+8 kitchen_outlets    0,1055
+9 refrigerator		6,163,403
+10 dishwaser		1,1200
+11 disposal        Not to consider
