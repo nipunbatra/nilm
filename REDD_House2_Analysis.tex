@@ -1333,6 +1333,11 @@ as forward filling).
 \begin{lstlisting}
 df_appliances_minute.fillna(method='pad',inplace=True)
 times=df_appliances_minute.index.to_pydatetime()
+raw_data={}
+for key in df_appliances_minute:
+    raw_data[key]=df_appliances_minute[key].values
+    length=len(raw_data[key])
+    raw_data[key]=raw_data[key].reshape(length,1)
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
@@ -1365,8 +1370,11 @@ def plot_cluster_assignments(X,k_means_labels, k_means_cluster_centers,n_cluster
     for k, col in zip(range(n_clusters), colors):
         my_members = k_means_labels == k
         cluster_center = k_means_cluster_centers[k]    
-        plt.title('KMeans Cluster Assignment for '+appliance_name+' for K='+str(n_clusters) 
-        plt.plot(x_temp[my_members],X[my_members, 0],markers[k],markersize=10,markerfacecolor=col)    
+        plt.ylabel('Power (W)');
+        plt.plot(x_temp[my_members],X[my_members, 0],markers[k],markersize=10,markerfacecolor=col) 
+        plt.axhline(k_means_cluster_centers[k],linewidth=3,color=col)
+        print "State %d Centroid= %0.4f, Fraction of datapoints= %0.4f" %(k,cluster_center,sum(my_members)*1.0/np.size(X))
+        plt.title('KMeans Cluster Assignment for '+appliance_name+' for K='+str(n_clusters))
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
@@ -1375,10 +1383,18 @@ def plot_cluster_assignments(X,k_means_labels, k_means_cluster_centers,n_cluster
 \begin{lstlisting}
 [t_batch_stove, k_means_labels_stove, k_means_cluster_centers_stove, k_means_labels_unique_stove, inertia_stove]=\
 apply_kmeans(2,10,raw_data["stove"],"kmeans++")
-plot_cluster_assignments(raw_data["stove"],k_means_labels_stove, k_means_cluster_centers_stove,len(k_means_labels_unique_stove))
+plot_cluster_assignments(raw_data["stove"],k_means_labels_stove, k_means_cluster_centers_stove,len(k_means_labels_unique_stove),"Stove")
+print "Time taken for clustering    :     ",t_batch_stove
+print "Inertia of cluster assignment:     ",inertia_stove
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
+\begin{verbatim}
+State 0 Centroid= 0.6480, Fraction of datapoints= 0.9978
+State 1 Centroid= 374.0394, Fraction of datapoints= 0.0022
+Time taken for clustering    :      0.0534088611603
+Inertia of cluster assignment:      361045.705434
+\end{verbatim}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_30.png}
 \par
@@ -1390,10 +1406,19 @@ plot_cluster_assignments(raw_data["stove"],k_means_labels_stove, k_means_cluster
 \begin{lstlisting}
 [t_batch_kitchen, k_means_labels_kitchen, k_means_cluster_centers_kitchen, k_means_labels_unique_kitchen, inertia_kitchen]=\
 apply_kmeans(2,10,raw_data["kitchen"],"kmeans++")
-plot_cluster_assignments(raw_data["kitchen"],k_means_labels_kitchen, k_means_cluster_centers_kitchen,len(k_means_labels_unique_kitchen))
+
+plot_cluster_assignments(raw_data["kitchen"],k_means_labels_kitchen, k_means_cluster_centers_kitchen,len(k_means_labels_unique_kitchen),"Kitchen")
+print "Time taken for clustering    :     ",t_batch_kitchen
+print "Inertia of cluster assignment:     ",inertia_kitchen
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
+\begin{verbatim}
+State 0 Centroid= 4.5853, Fraction of datapoints= 0.9976
+State 1 Centroid= 671.6462, Fraction of datapoints= 0.0024
+Time taken for clustering    :      0.0851709842682
+Inertia of cluster assignment:      2529066.47693
+\end{verbatim}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_31.png}
 \par
@@ -1405,10 +1430,19 @@ plot_cluster_assignments(raw_data["kitchen"],k_means_labels_kitchen, k_means_clu
 \begin{lstlisting}
 [t_batch_kitchen_2, k_means_labels_kitchen_2, k_means_cluster_centers_kitchen_2, k_means_labels_unique_kitchen_2, inertia_kitchen_2]=\
 apply_kmeans(3,10,raw_data["kitchen_2"],"kmeans++")
-plot_cluster_assignments(raw_data["kitchen_2"],k_means_labels_kitchen_2, k_means_cluster_centers_kitchen_2,len(k_means_labels_unique_kitchen_2))
+plot_cluster_assignments(raw_data["kitchen_2"],k_means_labels_kitchen_2, k_means_cluster_centers_kitchen_2,len(k_means_labels_unique_kitchen_2),"Kitchen 2")
+print "Time taken for clustering    :     ",t_batch_kitchen_2
+print "Inertia of cluster assignment:     ",inertia_kitchen_2
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
+\begin{verbatim}
+State 0 Centroid= 1.4546, Fraction of datapoints= 0.9729
+State 1 Centroid= 1035.4956, Fraction of datapoints= 0.0042
+State 2 Centroid= 205.6050, Fraction of datapoints= 0.0229
+Time taken for clustering    :      0.0833849906921
+Inertia of cluster assignment:      2805123.96163
+\end{verbatim}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_32.png}
 \par
@@ -1418,123 +1452,111 @@ plot_cluster_assignments(raw_data["kitchen_2"],k_means_labels_kitchen_2, k_means
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-np.savetxt('stove',downsampled_stove)
-centroids,_ = kmeans(downsampled_stove,2)
-colors_index=['r','g','b']
-idx,_ = vq(downsampled_stove,centroids)
-print "Contribution of different states for stove"
-for i in range(0,2):
-    print "Power: ",centroids[i], "Percent: ",100.0*sum(idx==i)/len(idx)
-    print "Variance",np.var(downsampled_stove[np.where(idx==i)])
-clustered_stove=np.array([downsampled_stove,idx])
-np.savetxt('clustered_stove',clustered_stove)
-
-
+[t_batch_dishwasher, k_means_labels_dishwasher, k_means_cluster_centers_dishwasher, k_means_labels_unique_dishwasher, inertia_dishwasher]=\
+apply_kmeans(3,10,raw_data["dishwasher"],"kmeans++")
+plot_cluster_assignments(raw_data["dishwasher"],k_means_labels_dishwasher, k_means_cluster_centers_dishwasher,len(k_means_labels_unique_dishwasher),"Dishwasher")
+print "Time taken for clustering    :     ",t_batch_dishwasher
+print "Inertia of cluster assignment:     ",inertia_dishwasher
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+State 0 Centroid= 0.1364, Fraction of datapoints= 0.9874
+State 1 Centroid= 1186.5108, Fraction of datapoints= 0.0063
+State 2 Centroid= 249.6954, Fraction of datapoints= 0.0063
+Time taken for clustering    :      0.0637760162354
+Inertia of cluster assignment:      1339180.63283
+\end{verbatim}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_33.png}
+\par
+\end{center}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-np.savetxt('kitchen.arff',downsampled_kitchen)
-centroids,_ = kmeans(downsampled_kitchen,2)
-idx,_ = vq(downsampled_kitchen,centroids)
-print "Contribution of different states for Kitchen"
-for i in range(0,2):
-    print "Power: ",centroids[i], "Percent: ",100.0*sum(idx==i)/len(idx)
-    print "Variance",np.var(downsampled_stove[np.where(idx==i)])
-clustered_kitchen=np.array([downsampled_kitchen,idx])
-np.savetxt('clustered_kitchen',clustered_kitchen)
+[t_batch_refrigerator, k_means_labels_refrigerator, k_means_cluster_centers_refrigerator, k_means_labels_unique_refrigerator, inertia_refrigerator]=\
+apply_kmeans(3,10,raw_data["refrigerator"],"kmeans++")
+plot_cluster_assignments(raw_data["refrigerator"],k_means_labels_refrigerator, k_means_cluster_centers_refrigerator,len(k_means_labels_unique_refrigerator),"refrigerator")
+print "Time taken for clustering    :     ",t_batch_refrigerator
+print "Inertia of cluster assignment:     ",inertia_refrigerator
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+State 0 Centroid= 7.4725, Fraction of datapoints= 0.5538
+State 1 Centroid= 162.1867, Fraction of datapoints= 0.4327
+State 2 Centroid= 394.8063, Fraction of datapoints= 0.0136
+Time taken for clustering    :      0.102931022644
+Inertia of cluster assignment:      2597652.90778
+\end{verbatim}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_34.png}
+\par
+\end{center}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-np.savetxt('kitchen_2.arff',downsampled_kitchen_2)
-centroids,_ = kmeans(downsampled_kitchen_2,3)
-idx,_ = vq(downsampled_kitchen,centroids)
-print "Contribution of different states for Kitchen 2"
-for i in range(0,3):
-    print "Power: ",centroids[i], "Percent: ",100.0*sum(idx==i)/len(idx)
-    print "Variance",np.var(downsampled_stove[np.where(idx==i)])
-clustered_kitchen_2=np.array([downsampled_kitchen_2,idx])
-np.savetxt('clustered_kitchen_2',clustered_kitchen_2)
+[t_batch_microwave, k_means_labels_microwave, k_means_cluster_centers_microwave, k_means_labels_unique_microwave, inertia_microwave]=\
+apply_kmeans(3,10,raw_data["microwave"],"kmeans++")
+plot_cluster_assignments(raw_data["microwave"],k_means_labels_microwave, k_means_cluster_centers_microwave,len(k_means_labels_unique_microwave),"microwave")
+print "Time taken for clustering    :     ",t_batch_microwave
+print "Inertia of cluster assignment:     ",inertia_microwave
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+State 0 Centroid= 8.6130, Fraction of datapoints= 0.9952
+State 1 Centroid= 1677.3997, Fraction of datapoints= 0.0020
+State 2 Centroid= 852.9569, Fraction of datapoints= 0.0029
+Time taken for clustering    :      0.221184015274
+Inertia of cluster assignment:      8371412.23135
+\end{verbatim}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_35.png}
+\par
+\end{center}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-np.savetxt('dishwasher.arff',downsampled_dishwasher)
-centroids,_ = kmeans(downsampled_dishwasher,3)
-idx,_ = vq(downsampled_dishwasher,centroids)
-print "Contribution of different states for Dishwasher"
-for i in range(0,3):
-    print "Power: ",centroids[i], "Percent: ",100.0*sum(idx==i)/len(idx)
-    print "Variance",np.var(downsampled_stove[np.where(idx==i)])
-clustered_dishwasher=np.array([downsampled_dishwasher,idx])
-np.savetxt('clustered_dishwasher',clustered_dishwasher)
+[t_batch_light, k_means_labels_light, k_means_cluster_centers_light, k_means_labels_unique_light, inertia_light]=\
+apply_kmeans(3,10,raw_data["light"],"kmeans++)
+plot_cluster_assignments(raw_data["light"],k_means_labels_light, k_means_cluster_centers_light,len(k_means_labels_unique_light),"light")
+print "Time taken for clustering    :     ",t_batch_light
+print "Inertia of cluster assignment:     ",inertia_light
 \end{lstlisting}
 \end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-np.savetxt('refrigerator.arff',downsampled_refrigerator)
-centroids,_ = kmeans(downsampled_refrigerator,3)
-idx,_ = vq(downsampled_refrigerator,centroids)
-print "Contribution of different states for Refrigerator"
-for i in range(0,3):
-    print "Power: ",centroids[i], "Percent: ",100.0*sum(idx==i)/len(idx)
-    print "Variance",np.var(downsampled_stove[np.where(idx==i)])
-clustered_refrigerator=np.array([downsampled_refrigerator,idx])
-np.savetxt('clustered_refrigerator',clustered_refrigerator)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-np.savetxt('microwave.arff',downsampled_microwave)
-centroids,_ = kmeans(downsampled_microwave,3)
-idx,_ = vq(downsampled_microwave,centroids)
-print "Contribution of different states for Microwave"
-for i in range(0,3):
-    print "Power: ",centroids[i], "Percent: ",100.0*sum(idx==i)/len(idx)
-    print "Variance",np.var(downsampled_stove[np.where(idx==i)])
-clustered_microwave=np.array([downsampled_microwave,idx])
-np.savetxt('clustered_microwave',clustered_microwave)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-centroids,_ = kmeans(downsampled_lighting,3)
-idx,_ = vq(downsampled_lighting,centroids)
-
-print "Contribution of different states for Lighting"
-for i in range(0,3):
-    print "Power: ",centroids[i], "Percent: ",100.0*sum(idx==i)/len(idx)
-    print "Variance",np.var(downsampled_stove[np.where(idx==i)])
-clustered_lighting=np.array([downsampled_lighting,idx])
-np.savetxt('clustered_lighting',clustered_lighting)
-\end{lstlisting}
-\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+State 0 Centroid= 9.5566, Fraction of datapoints= 0.8668
+State 1 Centroid= 155.5247, Fraction of datapoints= 0.1033
+State 2 Centroid= 96.5077, Fraction of datapoints= 0.0299
+Time taken for clustering    :      0.0852990150452
+Inertia of cluster assignment:      508702.879442
+\end{verbatim}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_36.png}
+\par
+\end{center}
+\end{codeoutput}
 \end{codecell}
 Thus, we obtain the following states from cluster analysis.
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-kitchen=[0,19]
-lighting=[8,25,150]
-stove=[0,304]
-micro=[4,52,1220]
-kitchen_2=[1,167,992]
-ref=[7,161,992]
-dish=[0,244,1170]
+kitchen=[5,672]
+lighting=[9,96,155]
+stove=[0,374]
+micro=[8,852,1677]
+kitchen_2=[1,206,1035]
+ref=[7,162,394]
+dish=[0,250,1186]
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
@@ -1556,6 +1578,13 @@ states_combination=list(itertools.product(kitchen,stove,kitchen_2,dish))
 print "The possible different state combinations are\n Kitchen, Stove, Kitchen 2, Dishwasher\n",states_combination
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+The possible different state combinations are
+ Kitchen, Stove, Kitchen 2, Dishwasher
+[(5, 0, 1, 0), (5, 0, 1, 250), (5, 0, 1, 1186), (5, 0, 206, 0), (5, 0, 206, 250), (5, 0, 206, 1186), (5, 0, 1035, 0), (5, 0, 1035, 250), (5, 0, 1035, 1186), (5, 374, 1, 0), (5, 374, 1, 250), (5, 374, 1, 1186), (5, 374, 206, 0), (5, 374, 206, 250), (5, 374, 206, 1186), (5, 374, 1035, 0), (5, 374, 1035, 250), (5, 374, 1035, 1186), (672, 0, 1, 0), (672, 0, 1, 250), (672, 0, 1, 1186), (672, 0, 206, 0), (672, 0, 206, 250), (672, 0, 206, 1186), (672, 0, 1035, 0), (672, 0, 1035, 250), (672, 0, 1035, 1186), (672, 374, 1, 0), (672, 374, 1, 250), (672, 374, 1, 1186), (672, 374, 206, 0), (672, 374, 206, 250), (672, 374, 206, 1186), (672, 374, 1035, 0), (672, 374, 1035, 250), (672, 374, 1035, 1186)]
+\end{verbatim}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
@@ -1573,14 +1602,26 @@ ylabel('Power (W)');
 plot(b);
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_37.png}
+\par
+\end{center}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
 title('Histogram showing relative frequencies of different state combinations');
-hist(b,100);
+hist(b,20);
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_38.png}
+\par
+\end{center}
+\end{codeoutput}
 \end{codecell}
 Now we basically need to iterate over all our sample and see which of
 the possible state assignment matches closest to the overall power
