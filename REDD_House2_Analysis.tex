@@ -135,8 +135,11 @@ Changelog
 \item
   Added pie-chart breakdown by appliance analysis
 \item
-  Added dataframe capability, using Pandas whih also gives high level
+  Added dataframe capability, using Pandas which also gives high level
   overview of the data
+\item
+  Added a much quicker implementation of KMeans and also compared with
+  Mini Batch KMeans
 \end{itemize}
 
 \subsection{About the dataset}
@@ -194,6 +197,7 @@ import json
 s = json.load( open("/home/nipun/bmh_matplotlibrc.json") )
 matplotlib.rcParams.update(s)
 matplotlib.rcParams.update({'font.size': 16})
+import time
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
@@ -201,10 +205,18 @@ matplotlib.rcParams.update({'font.size': 16})
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
+start_time=time.time()
 mains_1_data=np.loadtxt('/home/nipun/study/datasets/MIT/low_freq/house_2/channel_1.dat')
 mains_2_data=np.loadtxt('/home/nipun/study/datasets/MIT/low_freq/house_2/channel_2.dat')
+end_time=time.time()
+print "Time taken to load Mains data= "+str(end_time-start_time)+" seconds"
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken to load Mains data= 23.7791380882 seconds
+\end{verbatim}
+\end{codeoutput}
 \end{codecell}
 We can observe that data is missing towards the end. As a part of the
 data cleansing process we should eliminate the last indices. Next we
@@ -251,17 +263,16 @@ Plotting overall power consumption for the two main circuits.
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.subplot(2,1,1)
-plt.plot(df_mains.index,df_mains.Mains_1_Power);
-plt.title('Power Consumption Mains 1');
-plt.ylabel('Power (W)');
-plt.subplot(2,1,2)
-plt.plot(df_mains.index,df_mains.Mains_2_Power);
-plt.ylabel('Power (W)');
-plt.title('Power Consumption Mains 2');
+start_time=time.time()
+df_mains.plot(subplots=True,title='Power consumption');
+end_time=time.time()
+print "Time taken to plot Mains data= "+str(end_time-start_time)+" seconds"
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
+\begin{verbatim}
+Time taken to plot Mains data= 12.8343689442 seconds
+\end{verbatim}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_00.png}
 \par
@@ -272,12 +283,20 @@ plt.title('Power Consumption Mains 2');
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
+start_time=time.time()
 df_1_day=df_mains.resample('1d',how='sum');
 df_1_day_energy=DataFrame(index=df_1_day.index);
 df_1_day_energy['Mains_1_Energy']=Series(df_1_day.Mains_1_Power/(1000*3600),index=df_1_day.index)
 df_1_day_energy['Mains_2_Energy']=Series(df_1_day.Mains_2_Power/(1000*3600),index=df_1_day.index)
+end_time=time.time()
+print "Time taken to resample Mains data= "+str(end_time-start_time)+" seconds"
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken to resample Mains data= 0.0693271160126 seconds
+\end{verbatim}
+\end{codeoutput}
 \end{codecell}
 Energy consumption (KWh) statistics about data.
 
@@ -526,6 +545,7 @@ highlight_weekend(weekend_indices,ax,6);
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
+start_time=time.time()
 kitchen_data=np.loadtxt('house_2/channel_3.dat')
 light_data=np.loadtxt('house_2/channel_4.dat')
 stove_data=np.loadtxt('house_2/channel_5.dat')
@@ -548,8 +568,15 @@ dishwasher_power=dishwasher_data[:,1][lower:upper]
 disposal_power=disposal_data[:,1][lower:upper]
 timestamp=kitchen_data[:,0][lower:upper]
 timestamp_appliance_date=timestamp.astype('datetime64[s]')
+end_time=time.time()
+print "Time taken to load appliance data= "+str(end_time-start_time)+" seconds"
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken to load appliance data= 28.4558880329 seconds
+\end{verbatim}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
@@ -559,7 +586,6 @@ df_appliances=DataFrame({'kitchen':kitchen_power,'light':light_power,'stove':sto
 'disposal':disposal_power},index=timestamp_appliance_date)
 pd.set_option('display.precision', 2)
 print df_appliances.describe().to_string()
-
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
@@ -576,59 +602,29 @@ max        1457.0     609.0     805.0     1119.0     289.0     1986.0        224
 \end{verbatim}
 \end{codeoutput}
 \end{codecell}
-Now we plot all the channels and desctibe their statistics
+Now we plot all the channels and describe their statistics
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-for key in df_appliances:
-    plt.figure()
-    ax=df_appliances[key].plot(title=key+" Power vs Time")
-    ax.set_ylabel("Power (W)")
+import matplotlib.pyplot as plt
+start_time=time.time()
+ax=df_appliances.plot(subplots=True,title="Appliance Power consumption",fontsize=10,figsize=(20,40))
+plt.tight_layout()
+end_time=time.time()
+print "Time taken to plot appliance data= "+str(end_time-start_time)+" seconds"
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
+\begin{verbatim}
+Time taken to plot appliance data= 16.4023768902 seconds
+\end{verbatim}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_07.png}
 \par
 \end{center}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_08.png}
-\par
-\end{center}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_09.png}
-\par
-\end{center}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_10.png}
-\par
-\end{center}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_11.png}
-\par
-\end{center}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_12.png}
-\par
-\end{center}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_13.png}
-\par
-\end{center}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_14.png}
-\par
-\end{center}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_15.png}
-\par
-\end{center}
 \end{codeoutput}
 \end{codecell}
-Similarly we load data correspding to different channels
-(appliances/circuits) and plot them.
-
 \subsection{Assigning loads to different mains circuits}
 Since there are two mains in the home we need to break down the
 individual appliance into different mains. Clearly,
@@ -718,13 +714,14 @@ out appliances.
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
+figsize(20,15)
 ax=df_mains_minute.Mains_1_Power.plot(title='1 min downsampled Power Mains 1');
 ax.set_ylabel("Power (W)");
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_16.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_08.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -777,7 +774,7 @@ min              0.0           21.4
 max           1312.0         2612.5
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_17.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_09.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -830,7 +827,7 @@ min              0.0           21.4
 max           1299.0         2612.5
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_18.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_10.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -885,7 +882,7 @@ min              0.0           21.4
 max            433.4         2612.5
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_19.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_11.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -938,7 +935,7 @@ min              0.0           21.4
 max            196.0         2612.5
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_20.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_12.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -967,7 +964,7 @@ plt.tight_layout()
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_21.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_13.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1010,7 +1007,7 @@ min              0.0            0.0
 max            196.0         2448.5
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_22.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_14.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1064,7 +1061,7 @@ min              0.0            0.0
 max            196.0         1177.5
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_23.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_15.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1122,7 +1119,7 @@ min              0.0            0.0
 max            196.0         1017.3
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_24.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_16.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1144,7 +1141,7 @@ df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro_light.boxplot();
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_25.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_17.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1170,7 +1167,7 @@ plt.pie(fracs, explode=explode, labels=labels,autopct='%1.1f%%', shadow=True);
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_26.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_18.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1192,7 +1189,7 @@ plt.pie(fracs, explode=explode, labels=labels,autopct='%1.1f%%', shadow=True);
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_27.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_19.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1214,7 +1211,7 @@ plt.pie(fracs, explode=explode, labels=labels,autopct='%1.1f%%', shadow=True);
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_28.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_20.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1283,6 +1280,7 @@ python_datetime=df_filtered_mains.index.to_pydatetime()
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
+plt.figsize(20,15)
 plt.title('Actual Disaggregated Breakdown Mains 1');
 plt.xlabel('Time');
 plt.ylabel('Power (W)');
@@ -1302,7 +1300,7 @@ legend([p,p1,p2,p3], ["Kitchen","Stove","Dishwasher","Kitchen 2"]);
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_29.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_21.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1344,6 +1342,15 @@ for key in df_appliances_minute:
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
+for key in df_appliances_minute:
+    df_appliances_minute[key].to_csv(key+".arff",index_label=False,index=False)
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+    batch_size=1000
 def apply_kmeans(n_clusters, n_init,X,init=None):
     if init is None:
         k_means = KMeans(n_clusters=n_clusters, n_init=n_init)
@@ -1355,18 +1362,32 @@ def apply_kmeans(n_clusters, n_init,X,init=None):
     k_means_labels = k_means.labels_
     k_means_cluster_centers = k_means.cluster_centers_
     k_means_labels_unique = np.unique(k_means_labels)
-    inertia=k_means.inertia_
-    return [t_batch, k_means_labels, k_means_cluster_centers, k_means_labels_unique, inertia] 
+    k_means_inertia=k_means.inertia_
+    mbk = MiniBatchKMeans(init='k-means++', n_clusters=n_clusters, batch_size=batch_size,
+                      n_init=n_init, max_no_improvement=10, verbose=0)
+    t0 = time.time()
+    mbk.fit(X)
+    t_mini_batch = time.time() - t0
+    mbk_means_labels = mbk.labels_
+    mbk_means_cluster_centers = mbk.cluster_centers_
+    mbk_means_labels_unique = np.unique(mbk_means_labels)
+    mbk_inertia=mbk.inertia_
+    return [t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,\
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia] 
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-def plot_cluster_assignments(X,k_means_labels, k_means_cluster_centers,n_clusters,appliance_name):
+def plot_cluster_assignments(X,k_means_labels, mbk_means_labels,k_means_cluster_centers,mbk_means_cluster_centers,n_clusters,appliance_name):
     colors = ['#4EACC5', '#FF9C34', '#4E9A06']
     markers=['o','*','.']
     x_temp=np.arange(len(X))
+    plt.subplot(2,2,1)
+    plt.rcParams["font.size"]=10
+    print "\nKMeans Analysis\n"
+    print "-"*80
     for k, col in zip(range(n_clusters), colors):
         my_members = k_means_labels == k
         cluster_center = k_means_cluster_centers[k]    
@@ -1375,28 +1396,61 @@ def plot_cluster_assignments(X,k_means_labels, k_means_cluster_centers,n_cluster
         plt.axhline(k_means_cluster_centers[k],linewidth=3,color=col)
         print "State %d Centroid= %0.4f, Fraction of datapoints= %0.4f" %(k,cluster_center,sum(my_members)*1.0/np.size(X))
         plt.title('KMeans Cluster Assignment for '+appliance_name+' for K='+str(n_clusters))
+    plt.subplot(2,2,2)
+    print "\nMini Batch KMeans Analysis\n"
+    print "-"*80
+    for k, col in zip(range(n_clusters), colors):
+        my_members = mbk_means_labels == k
+        cluster_center = mbk_means_cluster_centers[k]    
+        plt.ylabel('Power (W)');
+        plt.plot(x_temp[my_members],X[my_members, 0],markers[k],markersize=10,markerfacecolor=col) 
+        plt.axhline(mbk_means_cluster_centers[k],linewidth=3,color=col)
+        print "State %d Centroid= %0.4f, Fraction of datapoints= %0.4f" %(k,cluster_center,sum(my_members)*1.0/np.size(X))
+        plt.title('Mini Batch KMeans Cluster Assignment for '+appliance_name+' for K='+str(n_clusters))
+    print "-"*80
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-[t_batch_stove, k_means_labels_stove, k_means_cluster_centers_stove, k_means_labels_unique_stove, inertia_stove]=\
-apply_kmeans(2,10,raw_data["stove"],"kmeans++")
-plot_cluster_assignments(raw_data["stove"],k_means_labels_stove, k_means_cluster_centers_stove,len(k_means_labels_unique_stove),"Stove")
-print "Time taken for clustering    :     ",t_batch_stove
-print "Inertia of cluster assignment:     ",inertia_stove
+[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(2,10,raw_data["stove"],"kmeans++")
+plot_cluster_assignments(raw_data["stove"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+,2,"Stove")
+print "Time taken for Kmeans clustering    :     \n",t_batch
+print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
+KMeans Analysis
+
+--------------------------------------------------------------------------------
 State 0 Centroid= 0.6480, Fraction of datapoints= 0.9978
 State 1 Centroid= 374.0394, Fraction of datapoints= 0.0022
-Time taken for clustering    :      0.0534088611603
-Inertia of cluster assignment:      361045.705434
+
+Mini Batch KMeans Analysis
+
+--------------------------------------------------------------------------------
+State 0 Centroid= 0.6800, Fraction of datapoints= 0.9978
+State 1 Centroid= 369.7725, Fraction of datapoints= 0.0022
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :
+\end{verbatim}
+\begin{verbatim}
+0.054370880127
+Inertia of KMeans cluster assignment:     
+361045.705434
+Time taken for Mini Batch Kmeans clustering    :     
+0.0232241153717
+Inertia of Mini Batch KMeans cluster assignment:     
+361848.586124
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_30.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_22.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1404,23 +1458,43 @@ Inertia of cluster assignment:      361045.705434
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-[t_batch_kitchen, k_means_labels_kitchen, k_means_cluster_centers_kitchen, k_means_labels_unique_kitchen, inertia_kitchen]=\
-apply_kmeans(2,10,raw_data["kitchen"],"kmeans++")
-
-plot_cluster_assignments(raw_data["kitchen"],k_means_labels_kitchen, k_means_cluster_centers_kitchen,len(k_means_labels_unique_kitchen),"Kitchen")
-print "Time taken for clustering    :     ",t_batch_kitchen
-print "Inertia of cluster assignment:     ",inertia_kitchen
+[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(2,10,raw_data["kitchen"],"kmeans++")
+plot_cluster_assignments(raw_data["kitchen"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+,2,"Kitchen")
+print "Time taken for Kmeans clustering    :     \n",t_batch
+print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
+KMeans Analysis
+
+--------------------------------------------------------------------------------
 State 0 Centroid= 4.5853, Fraction of datapoints= 0.9976
 State 1 Centroid= 671.6462, Fraction of datapoints= 0.0024
-Time taken for clustering    :      0.0851709842682
-Inertia of cluster assignment:      2529066.47693
+
+Mini Batch KMeans Analysis
+
+--------------------------------------------------------------------------------
+State 0 Centroid= 4.4589, Fraction of datapoints= 0.9976
+State 1 Centroid= 669.6980, Fraction of datapoints= 0.0024
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :
+\end{verbatim}
+\begin{verbatim}
+0.0747680664062
+Inertia of KMeans cluster assignment:     
+2529066.47693
+Time taken for Mini Batch Kmeans clustering    :     
+0.0225470066071
+Inertia of Mini Batch KMeans cluster assignment:     
+2529561.55892
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_31.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_23.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1428,23 +1502,45 @@ Inertia of cluster assignment:      2529066.47693
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-[t_batch_kitchen_2, k_means_labels_kitchen_2, k_means_cluster_centers_kitchen_2, k_means_labels_unique_kitchen_2, inertia_kitchen_2]=\
-apply_kmeans(3,10,raw_data["kitchen_2"],"kmeans++")
-plot_cluster_assignments(raw_data["kitchen_2"],k_means_labels_kitchen_2, k_means_cluster_centers_kitchen_2,len(k_means_labels_unique_kitchen_2),"Kitchen 2")
-print "Time taken for clustering    :     ",t_batch_kitchen_2
-print "Inertia of cluster assignment:     ",inertia_kitchen_2
+[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["kitchen_2"],"kmeans++")
+plot_cluster_assignments(raw_data["kitchen_2"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+,3,"Kitchen 2")
+print "Time taken for Kmeans clustering    :     \n",t_batch
+print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
+KMeans Analysis
+
+--------------------------------------------------------------------------------
 State 0 Centroid= 1.4546, Fraction of datapoints= 0.9729
 State 1 Centroid= 1035.4956, Fraction of datapoints= 0.0042
 State 2 Centroid= 205.6050, Fraction of datapoints= 0.0229
-Time taken for clustering    :      0.0833849906921
-Inertia of cluster assignment:      2805123.96163
+
+Mini Batch KMeans Analysis
+
+--------------------------------------------------------------------------------
+State 0 Centroid= 1.3577, Fraction of datapoints= 0.9729
+State 1 Centroid= 1043.7727, Fraction of datapoints= 0.0042
+State 2 Centroid= 204.7535, Fraction of datapoints= 0.0229
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :
+\end{verbatim}
+\begin{verbatim}
+0.0749089717865
+Inertia of KMeans cluster assignment:     
+2805123.96163
+Time taken for Mini Batch Kmeans clustering    :     
+0.0284309387207
+Inertia of Mini Batch KMeans cluster assignment:     
+2811246.58659
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_32.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_24.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1452,23 +1548,45 @@ Inertia of cluster assignment:      2805123.96163
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-[t_batch_dishwasher, k_means_labels_dishwasher, k_means_cluster_centers_dishwasher, k_means_labels_unique_dishwasher, inertia_dishwasher]=\
-apply_kmeans(3,10,raw_data["dishwasher"],"kmeans++")
-plot_cluster_assignments(raw_data["dishwasher"],k_means_labels_dishwasher, k_means_cluster_centers_dishwasher,len(k_means_labels_unique_dishwasher),"Dishwasher")
-print "Time taken for clustering    :     ",t_batch_dishwasher
-print "Inertia of cluster assignment:     ",inertia_dishwasher
+[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["dishwasher"],"kmeans++")
+plot_cluster_assignments(raw_data["dishwasher"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+,3,"Dishwasher")
+print "Time taken for Kmeans clustering    :     \n",t_batch
+print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
+KMeans Analysis
+
+--------------------------------------------------------------------------------
 State 0 Centroid= 0.1364, Fraction of datapoints= 0.9874
 State 1 Centroid= 1186.5108, Fraction of datapoints= 0.0063
 State 2 Centroid= 249.6954, Fraction of datapoints= 0.0063
-Time taken for clustering    :      0.0637760162354
-Inertia of cluster assignment:      1339180.63283
+
+Mini Batch KMeans Analysis
+
+--------------------------------------------------------------------------------
+State 0 Centroid= 0.1670, Fraction of datapoints= 0.9874
+State 1 Centroid= 1185.8841, Fraction of datapoints= 0.0063
+State 2 Centroid= 259.9662, Fraction of datapoints= 0.0063
+\end{verbatim}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :     
+0.0705690383911
+Inertia of KMeans cluster assignment:     
+1339180.63283
+Time taken for Mini Batch Kmeans clustering    :     
+0.0283811092377
+Inertia of Mini Batch KMeans cluster assignment:     
+1352327.68731
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_33.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_25.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1476,23 +1594,45 @@ Inertia of cluster assignment:      1339180.63283
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-[t_batch_refrigerator, k_means_labels_refrigerator, k_means_cluster_centers_refrigerator, k_means_labels_unique_refrigerator, inertia_refrigerator]=\
-apply_kmeans(3,10,raw_data["refrigerator"],"kmeans++")
-plot_cluster_assignments(raw_data["refrigerator"],k_means_labels_refrigerator, k_means_cluster_centers_refrigerator,len(k_means_labels_unique_refrigerator),"refrigerator")
-print "Time taken for clustering    :     ",t_batch_refrigerator
-print "Inertia of cluster assignment:     ",inertia_refrigerator
+[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["refrigerator"],"kmeans++")
+plot_cluster_assignments(raw_data["refrigerator"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+,3,"Refrigerator")
+print "Time taken for Kmeans clustering    :     \n",t_batch
+print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
+KMeans Analysis
+
+--------------------------------------------------------------------------------
 State 0 Centroid= 7.4725, Fraction of datapoints= 0.5538
 State 1 Centroid= 162.1867, Fraction of datapoints= 0.4327
 State 2 Centroid= 394.8063, Fraction of datapoints= 0.0136
-Time taken for clustering    :      0.102931022644
-Inertia of cluster assignment:      2597652.90778
+
+Mini Batch KMeans Analysis
+
+--------------------------------------------------------------------------------
+State 0 Centroid= 7.5489, Fraction of datapoints= 0.5538
+State 1 Centroid= 162.2095, Fraction of datapoints= 0.4327
+State 2 Centroid= 395.7196, Fraction of datapoints= 0.0136
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :
+\end{verbatim}
+\begin{verbatim}
+0.0944950580597
+Inertia of KMeans cluster assignment:     
+2597652.90778
+Time taken for Mini Batch Kmeans clustering    :     
+0.048819065094
+Inertia of Mini Batch KMeans cluster assignment:     
+2597942.56915
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_34.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_26.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1500,23 +1640,45 @@ Inertia of cluster assignment:      2597652.90778
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-[t_batch_microwave, k_means_labels_microwave, k_means_cluster_centers_microwave, k_means_labels_unique_microwave, inertia_microwave]=\
-apply_kmeans(3,10,raw_data["microwave"],"kmeans++")
-plot_cluster_assignments(raw_data["microwave"],k_means_labels_microwave, k_means_cluster_centers_microwave,len(k_means_labels_unique_microwave),"microwave")
-print "Time taken for clustering    :     ",t_batch_microwave
-print "Inertia of cluster assignment:     ",inertia_microwave
+[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["microwave"],"kmeans++")
+plot_cluster_assignments(raw_data["microwave"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+,3,"Microwave")
+print "Time taken for Kmeans clustering    :     \n",t_batch
+print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
+KMeans Analysis
+
+--------------------------------------------------------------------------------
 State 0 Centroid= 8.6130, Fraction of datapoints= 0.9952
 State 1 Centroid= 1677.3997, Fraction of datapoints= 0.0020
 State 2 Centroid= 852.9569, Fraction of datapoints= 0.0029
-Time taken for clustering    :      0.221184015274
-Inertia of cluster assignment:      8371412.23135
+
+Mini Batch KMeans Analysis
+
+--------------------------------------------------------------------------------
+State 0 Centroid= 8.4798, Fraction of datapoints= 0.9951
+State 1 Centroid= 1601.1895, Fraction of datapoints= 0.0023
+State 2 Centroid= 740.9955, Fraction of datapoints= 0.0026
+\end{verbatim}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :     
+0.187880992889
+Inertia of KMeans cluster assignment:     
+8371412.23135
+Time taken for Mini Batch Kmeans clustering    :     
+0.0284819602966
+Inertia of Mini Batch KMeans cluster assignment:     
+8642849.35369
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_35.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_27.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1524,28 +1686,104 @@ Inertia of cluster assignment:      8371412.23135
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-[t_batch_light, k_means_labels_light, k_means_cluster_centers_light, k_means_labels_unique_light, inertia_light]=\
-apply_kmeans(3,10,raw_data["light"],"kmeans++)
-plot_cluster_assignments(raw_data["light"],k_means_labels_light, k_means_cluster_centers_light,len(k_means_labels_unique_light),"light")
-print "Time taken for clustering    :     ",t_batch_light
-print "Inertia of cluster assignment:     ",inertia_light
+[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["light"],"kmeans++")
+plot_cluster_assignments(raw_data["light"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+,3,"Light")
+print "Time taken for Kmeans clustering    :     \n",t_batch
+print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
+KMeans Analysis
+
+--------------------------------------------------------------------------------
 State 0 Centroid= 9.5566, Fraction of datapoints= 0.8668
 State 1 Centroid= 155.5247, Fraction of datapoints= 0.1033
 State 2 Centroid= 96.5077, Fraction of datapoints= 0.0299
-Time taken for clustering    :      0.0852990150452
-Inertia of cluster assignment:      508702.879442
+
+Mini Batch KMeans Analysis
+
+--------------------------------------------------------------------------------
+State 0 Centroid= 9.5453, Fraction of datapoints= 0.8668
+State 1 Centroid= 155.5140, Fraction of datapoints= 0.1033
+State 2 Centroid= 96.0181, Fraction of datapoints= 0.0299
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :
+\end{verbatim}
+\begin{verbatim}
+0.0899589061737
+Inertia of KMeans cluster assignment:     
+508702.879442
+Time taken for Mini Batch Kmeans clustering    :     
+0.0430018901825
+Inertia of Mini Batch KMeans cluster assignment:     
+508845.969858
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_36.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_28.png}
 \par
 \end{center}
 \end{codeoutput}
 \end{codecell}
-Thus, we obtain the following states from cluster analysis.
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+from scipy.spatial import distance
+from sklearn.cluster import DBSCAN
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+We also tried different a different distance metric like Manhattan
+distance in Weka, which led to absurd results and mostly single class
+being predicted.
+
+\textbf{Tried to do DBScan in scikit learn, but it took too much memory
+and time and hung the system}
+
+DBSCan in Weka took about 30s and resulted in all attributed being
+classified in one cluster. This may be due to the nature of the data,
+which is 1 class majority. This again may be something to look into.
+While dealing with such data we are mostly going to encounter datasets
+which are heavy in a single class. \textbf{This is again something,
+which i don't think has been talked in NILM literature before.}
+
+SOM based clustering took about 30s per appliance, but yielded much
+better results, which are shown below. EM took about 42 seconds and the
+results are not too impressive.
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+from IPython.core.display import Image 
+Image(filename='som_ref.png') 
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+<IPython.core.display.Image at 0x82ac4d0>
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+Image(filename='som_stove.png') 
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+<IPython.core.display.Image at 0x82ac810>
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+Thus, we obtain the following states from cluster analysis (results are
+from KMeans). \textbf{In the above results we also saw that most of the
+appliances are mostly in their off states most of the time. This is an
+important aspect and must be exploited.}
 
 \begin{codecell}
 \begin{codeinput}
@@ -1597,14 +1835,14 @@ b=deepcopy(sum_combination)
 b.sort()
 grid(True)
 title('Sorted possible sums of all appliances');
-xlabel('Combinations');
-ylabel('Power (W)');
-plot(b);
+plt.xlabel('Combinations');
+plt.ylabel('Power (W)');
+plt.plot(b,'go-',markersize=8,linewidth=3);
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_37.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_29.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1612,13 +1850,13 @@ plot(b);
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-title('Histogram showing relative frequencies of different state combinations');
-hist(b,20);
+plt.title('Histogram showing relative frequencies of different state combinations');
+plt.hist(b,20);
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_38.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_30.png}
 \par
 \end{center}
 \end{codeoutput}
