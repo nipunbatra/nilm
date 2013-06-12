@@ -286,6 +286,12 @@ Several classification \cite{survey1,survey2,survey3}:
 \item Supervised vs Unsupervised
 \end{itemize}
 
+Trends and work
+\begin{itemize}
+\item Additive Factorial HMM
+\item Difference HMM \cite{parson2012_aaai}
+\end{itemize}
+
 Datasets
 
 Recent datasets have spurred this field
@@ -386,24 +392,90 @@ Subsubsection text here.
 % footnotes above bottom floats. This can be corrected via the \fnbelowfloat
 % command of the stfloats package.
 
-\section{Related Work}
-
-\section{Introduction}
-
 \section{About Dataset}
+\begin{itemize}
+\item 6 home data, summer of 2011, Boston
+\item ~14 days per home
+\item Submetered information made available
+\item High Freq., Low frequency data, we chose low freq data for our analysis
+\item 
+\end{itemize}
 
 \section{Terminologies/ Notations}
+Borrow the notation used by Parson and Hart.
+\begin{itemize}
+\item Input: Aggregate power sequence$$x=\{ x_1,..,x_T\}$$
+\item Infer: Power draw by constituent appliance$$y_n=\{y_{1,n},..y_{T,n}\}$$
+\item Time slice: $$t\in {1,..T}$$
+\item Appliance: $$n\in{1,..N}$$
+\item Appliance state: $$z_n=\{z_1,..z_T\}$$
+\end{itemize}
+
+\section{Problem Formulation}
+This approach resembles subset sum problem and tries to minimize the difference of total observed power from the sum of various possible subsets coming from various combinations of appliances in different states. For each appliance we assume \textbf{K} states and at a given time, an appliance can only be in a single state. This is given as: 
+$$z_{t,n,k}\in\{0,1\} $$ and, $$\sum\limits_{k=1}^{k=K} z_{t,n,k}=1$$The power drawn by each appliance is given by:
+$$\mu_n=\{\mu_{n,1},..\mu_{n.K}\}$$ Thus, CO can be formulated as:
+$$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,n,k}\mu_{n,k}|$$
 
 \section{Algorithm}
 
+\textbf{Flowchart- TO go as image/flow diagram}
+\begin{enumerate}
+\item Data Preprocessing
+\begin{enumerate}
+\item Aligning Mains and Appliance Level data
+\item Down sampling to 1 minute resolution
+\end{enumerate}
+\item Load Assignment based on 
+\begin{enumerate}
+
+\item Appliance Periodicity
+\item Appliance Power threshold
+\item Correlation amongst different appliance usage
+
+\end{enumerate}
+\item Data Recalibration using the following
+\begin{enumerate}
+\item Step changes occurring in Mains vs Appliances
+\item Isolating single appliance usage
+\end{enumerate}
+\item Appliance states identification using clustering (Possibly talk about unbalanced data, but leave it for future work)
+\item State space creation
+\item Applying CO for different mains
+\item Find energy distribution by appliance and assign weights (To be used in results)
+
+\end{enumerate}
+
+
+
+
+
+\section{Metrics}
+\begin{itemize}
+\item Show confusion matrix and argue that accuracy can be misleading, state 0 dominates in all appliances and will most probably always be predicted correctly
+\item Hart pointed towards residual power as an evaluation metric
+\item METRIC 1: Given an appliance having $m$ states, we propose power weighted appliance accuracy, as follows
+
+$Appliance Accuracy = \frac{\sum\limits_{i=1}^{m} Accuracy(i)*Power(i)}{Power(i)} $
+\item METRIC 2: In this we also take into consideration the amount of time an appliance is in a particular state
+\item Overall Accuracy : Based on energy weights of different appliance, for instance .4* Fridge +.2*Light+...
+This is important since it shows the relative importance of larger loads 
+\item Switch continuity
+\end{itemize}
 \section{Results}
+
 
 
 \section{Conclusion}
 The conclusion goes here.
 
-
-
+\section{Future Work}
+\begin{itemize}
+\item Applying model on noisy datasets
+\item 2 D CO (when Real and Reactive Power are known)
+\item Factoring in Time of Day etc.
+\item Factoring in Appliance Correlation
+\end{itemize}
 
 % conference papers do not normally have an appendix
 
@@ -412,7 +484,7 @@ The conclusion goes here.
 \section*{Acknowledgment}
 
 
-The authors would like to thank \cite{Arjunan12}.
+The authors would like to thank TCS Research and Development for supporting the first author through PhD. fellowship. We would also like to thank NSF- DEITy for funding the project.
 
 
 

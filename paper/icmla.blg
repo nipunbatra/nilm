@@ -19,47 +19,46 @@ I'm skipping whatever remains of this entry
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 Warning--empty journal in blued_cmu
 Warning--empty year in blued_cmu
-Warning--empty year in Arjunan12
 
 Done.
 You've used 9 entries,
             4024 wiz_defined-function locations,
-            1228 strings with 16020 characters,
-and the built_in function-call counts, 6057 in all, are:
-= -- 472
-> -- 146
+            1226 strings with 15912 characters,
+and the built_in function-call counts, 6010 in all, are:
+= -- 470
+> -- 138
 < -- 43
-+ -- 82
-- -- 33
-* -- 305
-:= -- 939
++ -- 78
+- -- 31
+* -- 300
+:= -- 933
 add.period$ -- 18
 call.type$ -- 9
 change.case$ -- 9
 chr.to.int$ -- 96
-cite$ -- 12
-duplicate$ -- 449
-empty$ -- 500
-format.name$ -- 33
-if$ -- 1358
+cite$ -- 11
+duplicate$ -- 446
+empty$ -- 503
+format.name$ -- 31
+if$ -- 1350
 int.to.chr$ -- 0
 int.to.str$ -- 9
-missing$ -- 79
+missing$ -- 78
 newline$ -- 50
 num.names$ -- 9
-pop$ -- 189
+pop$ -- 186
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 461
+skip$ -- 460
 stack$ -- 0
 substring$ -- 249
-swap$ -- 338
+swap$ -- 335
 text.length$ -- 11
 text.prefix$ -- 0
 top$ -- 5
 type$ -- 9
-warning$ -- 3
+warning$ -- 2
 while$ -- 25
 width$ -- 10
 write$ -- 103
