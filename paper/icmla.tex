@@ -301,15 +301,6 @@ Recent datasets have spurred this field
 \item Smart* \cite{smart}
 \end{itemize}
 
-
-\subsection{Subsection Heading Here}
-Subsection text here.
-
-
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
-
-
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
 % For figures, \caption should occur after the \includegraphics.
@@ -404,18 +395,27 @@ Subsubsection text here.
 \section{Terminologies/ Notations}
 Borrow the notation used by Parson and Hart.
 \begin{itemize}
-\item Input: Aggregate power sequence$$x=\{ x_1,..,x_T\}$$
-\item Infer: Power draw by constituent appliance$$y_n=\{y_{1,n},..y_{T,n}\}$$
-\item Time slice: $$t\in {1,..T}$$
-\item Appliance: $$n\in{1,..N}$$
-\item Appliance state: $$z_n=\{z_1,..z_T\}$$
+\item Input: Aggregate power sequence: $x=\{ x_1,..,x_T\}$
+\item Infer: Power draw by constituent appliance: $y_n=\{y_{1,n},..y_{T,n}\}$
+\item Time slice: $t\in {1,..T}$
+\item Appliance: $n\in{1,..N}$
+\item Appliance state: $z_n=\{z_1,..z_T\}$
 \end{itemize}
 
 \section{Problem Formulation}
 This approach resembles subset sum problem and tries to minimize the difference of total observed power from the sum of various possible subsets coming from various combinations of appliances in different states. For each appliance we assume \textbf{K} states and at a given time, an appliance can only be in a single state. This is given as: 
-$$z_{t,n,k}\in\{0,1\} $$ and, $$\sum\limits_{k=1}^{k=K} z_{t,n,k}=1$$The power drawn by each appliance is given by:
+$z_{t,n,k}\in\{0,1\} $ and, $$\sum\limits_{k=1}^{k=K} z_{t,n,k}=1$$The power drawn by each appliance is given by:
 $$\mu_n=\{\mu_{n,1},..\mu_{n.K}\}$$ Thus, CO can be formulated as:
 $$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,n,k}\mu_{n,k}|$$
+
+\begin{itemize}
+\item Statespace is $K^N$
+\item We assign different loads to different mains, $N_i$ loads to $Mains_i$, $\sum\limits_{1}^{p}{N_i}=N$. Now different state spaces are
+$K^{N_1}$.... We can define the overall state space as $\max{K^{N_i}}$
+
+As a practical example, two mains, 20 appliance, state space before = $2^{20}$. After = $2^{10}$. Exponential reduction in state space.
+
+\end{itemize}
 
 \section{Algorithm}
 
@@ -429,6 +429,7 @@ $$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,n,k}\mu_{
 \item Load Assignment based on 
 \begin{enumerate}
 
+\item Appliance usage times
 \item Appliance Periodicity
 \item Appliance Power threshold
 \item Correlation amongst different appliance usage
@@ -447,13 +448,26 @@ $$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,n,k}\mu_{
 \end{enumerate}
 
 
+Explanation of above steps
+\subsection{Data Pre processing}
+\begin{itemize}
+\item Aligned data
+\item Downsampling and why it is needed
+\begin{itemize}
+\item Sub metered data collected sometimes at 3s sometimes at 4 s
+\item Getting rid of transients, also suggested by Hart
+\item Reducing power fluctuations occuring due to voltage fluctuations. Put figure showing reduction in transients and signal smoothing
+\end{itemize}
+\end{itemize}
 
+\subsection{Load assignment}
+Draws inspiration from work by Parson et. al \cite{parson2012_aaai}
 
 
 \section{Metrics}
 \begin{itemize}
-\item Show confusion matrix and argue that accuracy can be misleading, state 0 dominates in all appliances and will most probably always be predicted correctly
-\item Hart pointed towards residual power as an evaluation metric
+\item Show confusion matrix and argue that accuracy can be misleading, state 0 domi	nates in all appliances and will most probably always be predicted correctly
+\item Hart pointed towards residual power as an evaluation metric, REDD paper talks about \% of energy recovered
 \item METRIC 1: Given an appliance having $m$ states, we propose power weighted appliance accuracy, as follows
 
 $Appliance Accuracy = \frac{\sum\limits_{i=1}^{m} Accuracy(i)*Power(i)}{Power(i)} $
@@ -475,6 +489,7 @@ The conclusion goes here.
 \item 2 D CO (when Real and Reactive Power are known)
 \item Factoring in Time of Day etc.
 \item Factoring in Appliance Correlation
+\item Factor in switch continuity, essentially leads to Factorial HMM
 \end{itemize}
 
 % conference papers do not normally have an appendix
