@@ -40,7 +40,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Back to Basics: Simplying Non-Intrusive Appliance Load Monitoring Using Combinatorial Optimization}
+\title{Back to Basics: Simplifying Non-Intrusive Appliance Load Monitoring Using Combinatorial Optimization}
 
 
 % author names and affiliations
@@ -185,13 +185,6 @@ When you do the comparison, bring up how is your work different rather than just
 %\end{tabular}
 %\end{table}
 
-
-% Note that IEEE does not put floats in the very first column - or typically
-% anywhere on the first page for that matter. Also, in-text middle ("here")
-% positioning is not used. Most IEEE journals/conferences use top floats
-% exclusively. Note that, LaTeX2e, unlike IEEE journals/conferences, places
-% footnotes above bottom floats. This can be corrected via the \fnbelowfloat
-% command of the stfloats package.
 \section{NIALM}
 Discuss in brief the NIALM problem
 \subsection{Terminologies/ Notations}
@@ -255,16 +248,16 @@ Explanation of above steps
 \subsection{Data Pre processing}
 \begin{itemize}
 \item Aligned data
-\item Downsampling and why it is needed
+\item Down sampling and why it is needed
 \begin{itemize}
 \item Sub metered data collected sometimes at 3s sometimes at 4 s
 \item Getting rid of transients, also suggested by Hart
-\item Reducing power fluctuations occuring due to voltage fluctuations. Put figure showing reduction in transients and signal smoothing
+\item Reducing power fluctuations occurring due to voltage fluctuations. Put figure showing reduction in transients and signal smoothing
 \end{itemize}
 \end{itemize}
 
 \subsection{Load assignment}
-Draws inspiration from work by Parson et. al \cite{parson2012_aaai}
+Draws inspiration from work by Parson et. al \cite{parson2012_aaai}. From prior knowledge we divide the loads into two different categories: Periodic such as refrigerator and non periodic such as Television.
 
 \section{Evaluation}
 \subsection{About Dataset}
@@ -278,7 +271,8 @@ Draws inspiration from work by Parson et. al \cite{parson2012_aaai}
 
 \subsection{Evaluation Metric}
 \begin{itemize}
-\item Show confusion matrix and argue that accuracy can be misleading, state 0 domi	nates in all appliances and will most probably always be predicted correctly
+\item Image of confusion matrix
+\item Show confusion matrix and argue that accuracy can be misleading, state 0 dominates in all appliances and will most probably always be predicted correctly
 \item Hart pointed towards residual power as an evaluation metric, REDD paper talks about \% of energy recovered
 \item METRIC 1: Given an appliance having $m$ states, we propose power weighted appliance accuracy, as follows
 $Appliance Accuracy = \frac{\sum\limits_{i=1}^{m} Accuracy(i)*Power(i)}{Power(i)} $
@@ -289,6 +283,13 @@ This is important since it shows the relative importance of larger loads
 \end{itemize}
 
 \subsection{Empirical Analysis}
+
+\begin{itemize}
+\item Table on Cluster assignment
+\item Table on Results
+\item Table on on /off periods
+\item Table on switch continuity
+\end{itemize}
 
 
 
