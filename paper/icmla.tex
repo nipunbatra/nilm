@@ -225,7 +225,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Extending Combinatorial Optimization for Non-Intrusive Appliance Load Monitoring}
+\title{Back to Basics: Simplying Non-Intrusive Appliance Load Monitoring Using Combinatorial Optimization}
 
 
 % author names and affiliations
@@ -260,46 +260,41 @@ Non-Intrusive appliance load monitoring (NIALM) is the process of disaggregating
 
 \section{Introduction}
 % no \IEEEPARstart
-NILM definition \cite{hart}
-
-Motivation
 \begin{itemize}
-\item Feedback 15 energy savings \% \cite{darby}
-\item Potential use cases from Hart paper, benefit to
-\begin{itemize}
-\item Utility
-\item End Users
-\item Appliance Makers
-\end{itemize}
-\end{itemize}
-Typical setup
-\begin{itemize}
-\item How is NILM done- H/W requirements, Put a picture
+\item Motivate the importance of energy consumption in building
+\item Motivate that appliance level information is crucial - detailed feedback and optimized decision making
+\item Challenges with getting appliance level information - introduce NIALM~\cite{hart}
+\item introduce your proposed approach
+\item Enumerate the contributions
 \end{itemize}
 
-Previous work
-
-Several classification \cite{survey1,survey2,survey3}:
+Primary contributions of our work are:
 \begin{itemize}
-\item High vs Low frequency
-\item Time vs Frequency domain analysis
-\item Supervised vs Unsupervised
+\item Fill it up with 2-3 crisp points
 \end{itemize}
+Open source implementation of the proposed work is released for comparative analysis with other NIALM approaches. We believe this is the first extensive release of a generic NIALM ...
 
-Trends and work
+\section{Related work}
+When you do the comparison, bring up how is your work different rather than just saying X did A and Y did B.
+\begin{itemize}
+\item Classification of different NIALM approaches - High/Low frequency, Time/Frequency domain analysis, supervised/unsupervised~\cite{survey1,survey2,survey3}.
+
+\item Discuss the modeling approaches that are used
 \begin{itemize}
 \item Additive Factorial HMM
 \item Difference HMM \cite{parson2012_aaai}
 \end{itemize}
 
-Datasets
-
-Recent datasets have spurred this field
+\item Datasets used: Recent datasets have spurred this field
 \begin{itemize}
 \item REDD \cite{redd}
 \item Blued \cite{blued_cmu}
 \item Smart* \cite{smart}
 \end{itemize}
+
+\end{itemize}
+
+
 
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
@@ -382,17 +377,9 @@ Recent datasets have spurred this field
 % exclusively. Note that, LaTeX2e, unlike IEEE journals/conferences, places
 % footnotes above bottom floats. This can be corrected via the \fnbelowfloat
 % command of the stfloats package.
-
-\section{About Dataset}
-\begin{itemize}
-\item 6 home data, summer of 2011, Boston
-\item ~14 days per home
-\item Submetered information made available
-\item High Freq., Low frequency data, we chose low freq data for our analysis
-\item 
-\end{itemize}
-
-\section{Terminologies/ Notations}
+\section{NIALM}
+Discuss in brief the NIALM problem
+\subsection{Terminologies/ Notations}
 Borrow the notation used by Parson and Hart.
 \begin{itemize}
 \item Input: Aggregate power sequence: $x=\{ x_1,..,x_T\}$
@@ -402,7 +389,7 @@ Borrow the notation used by Parson and Hart.
 \item Appliance state: $z_n=\{z_1,..z_T\}$
 \end{itemize}
 
-\section{Problem Formulation}
+\subsection{NIALM using combinatorial optimization}
 This approach resembles subset sum problem and tries to minimize the difference of total observed power from the sum of various possible subsets coming from various combinations of appliances in different states. For each appliance we assume \textbf{K} states and at a given time, an appliance can only be in a single state. This is given as: 
 $z_{t,n,k}\in\{0,1\} $ and, $$\sum\limits_{k=1}^{k=K} z_{t,n,k}=1$$The power drawn by each appliance is given by:
 $$\mu_n=\{\mu_{n,1},..\mu_{n.K}\}$$ Thus, CO can be formulated as:
@@ -414,11 +401,12 @@ $$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,n,k}\mu_{
 $K^{N_1}$.... We can define the overall state space as $\max{K^{N_i}}$
 
 As a practical example, two mains, 20 appliance, state space before = $2^{20}$. After = $2^{10}$. Exponential reduction in state space.
-
 \end{itemize}
 
-\section{Algorithm}
+Highlight what is the simplification you are bringing forth.
 
+\section{Name of algorithm as section label}
+Think of appropriate name for your approach
 \textbf{Flowchart- TO go as image/flow diagram}
 \begin{enumerate}
 \item Data Preprocessing
@@ -463,20 +451,29 @@ Explanation of above steps
 \subsection{Load assignment}
 Draws inspiration from work by Parson et. al \cite{parson2012_aaai}
 
+\section{Evaluation}
+\subsection{About Dataset}
+\begin{itemize}
+\item 6 home data, summer of 2011, Boston
+\item ~14 days per home
+\item Submetered information made available
+\item High Freq., Low frequency data, we chose low freq data for our analysis
+\item 
+\end{itemize}
 
-\section{Metrics}
+\subsection{Evaluation Metric}
 \begin{itemize}
 \item Show confusion matrix and argue that accuracy can be misleading, state 0 domi	nates in all appliances and will most probably always be predicted correctly
 \item Hart pointed towards residual power as an evaluation metric, REDD paper talks about \% of energy recovered
 \item METRIC 1: Given an appliance having $m$ states, we propose power weighted appliance accuracy, as follows
-
 $Appliance Accuracy = \frac{\sum\limits_{i=1}^{m} Accuracy(i)*Power(i)}{Power(i)} $
 \item METRIC 2: In this we also take into consideration the amount of time an appliance is in a particular state
 \item Overall Accuracy : Based on energy weights of different appliance, for instance .4* Fridge +.2*Light+...
 This is important since it shows the relative importance of larger loads 
 \item Switch continuity
 \end{itemize}
-\section{Results}
+
+\subsection{Empirical Analysis}
 
 
 
