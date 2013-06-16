@@ -103,9 +103,16 @@ Primary contributions of our work are:
 Open source implementation of the proposed work is released for comparative analysis with other NIALM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. We believe this is the first extensive release of a generic NIALM
 
 \section{Related work}
+NIALM has been well studied in the recent past and survey papers \cite{survey1,survey2,survey3} present its classification across various dimensions. Following are three important classification dimensions:
+\begin{itemize}
+\item \textbf{Frequency of data collection}: Approaches such as harmonic analysis require data to be sampled at more than a thousand samples a second. Whereas approaches 
+\item \textbf{Supervised/Unsupervised}: 
+\end{itemize}
 When you do the comparison, bring up how is your work different rather than just saying X did A and Y did B.
 \begin{itemize}
 \item Classification of different NIALM approaches - High/Low frequency, Time/Frequency domain analysis, supervised/unsupervised~\cite{survey1,survey2,survey3}.
+
+For a more detailed overview the reader is referred to the above mentioned survey papers.
 
 \item Discuss the modeling approaches that are used
 \begin{itemize}
@@ -293,25 +300,29 @@ Draws inspiration from work by Parson et. al \cite{parson2012_aaai}. From prior 
 
 \section{Evaluation}
 \subsection{About Dataset}
-\begin{itemize}
-\item 6 home data, summer of 2011, Boston
-\item ~14 days per home
-\item Submetered information made available
-\item High Freq., Low frequency data, we chose low freq data for our analysis
-\item 
-\end{itemize}
+
+We use REDD dataset \cite{redd} for validating our algorithms. This dataset contains power and voltage data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. \figref{fig:breakdown} shows 6 hourly breakdown of energy consumption across the different mains in Home 2 .
+
+
 \begin{figure} 
 	
     \subfloat[\scriptsize Mains 1]{
     \includegraphics[scale=0.1]{./figures/mains_1_6hr.png}}
     \subfloat[\scriptsize Mains 2]{
         \includegraphics[scale=0.1]{./figures/mains_2_6hr.png}}
-  	\caption{6 hourly energy usage breakdown Home 6}
+  	\caption{6 hourly energy usage breakdown Home 2}
     \label{fig:breakdown}
 \end{figure}
 
 \subsection{Evaluation Metric}
-\begin{itemize}
+
+Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NILALM. \figref{fig:confusion} jkj
+%\begin{figure}
+%\centering \includegraphics[scale=0.1]{./figures/confusion_stove.png}
+%  	\caption{Confusion Matrix showing predicted state accuracy for Stove}
+%    \label{fig:confusion}
+%\end{figure}
+    \begin{itemize}
 \item Image of confusion matrix
 \item Show confusion matrix and argue that accuracy can be misleading, state 0 dominates in all appliances and will most probably always be predicted correctly
 \item Hart pointed towards residual power as an evaluation metric, REDD paper talks about \% of energy recovered
@@ -324,6 +335,7 @@ This is important since it shows the relative importance of larger loads
 \end{itemize}
 
 \subsection{Empirical Analysis}
+We analyze data from Home 2 of the REDD dataset and believe that the same analysis can be easily repeated across multiple homes. We do this to compare our results against the Factorial Hidden Markov approach used by Kolter et al. \cite{redd} on the same home.
 
 \begin{itemize}
 \item Table on Cluster assignment
@@ -340,6 +352,7 @@ We also provide mains load assignment of all 6 homes from REDD to further the re
 
 \section{Future Work}
 \begin{itemize}
+
 \item Applying model on noisy datasets
 \item 2 D CO (when Real and Reactive Power are known)
 \item Factoring in Time of Day etc.
