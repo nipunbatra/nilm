@@ -1,11 +1,24 @@
 \documentclass[conference]{IEEEtran}
 \ifCLASSINFOpdf
-  % \usepackage[pdftex]{graphicx}
-  % declare the path(s) where your graphic files are
-  % \graphicspath{{../pdf/}{../jpeg/}}
-  % and their extensions so you won't have to specify these with
-  % every instance of \includegraphics
-  % \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+
+\newcommand{\redcolor}[1]{\textcolor{red}{#1}}
+
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\algoref}[1]{Algorithm~\ref{#1}}
+
+\usepackage{subfig}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{epstopdf}
+\usepackage{graphicx}
+%\usepackage[pdftex]{graphicx}
+% % declare the path(s) where your graphic files are
+%\graphicspath{{../figures/}}
+%  % and their extensions so you won't have to specify these with
+%  % every instance of \includegraphics
+%\DeclareGraphicsExtensions{.pdf,.jpeg,.png}
 \else
 \fi
 % *** MATH PACKAGES ***
@@ -87,7 +100,7 @@ Primary contributions of our work are:
 \begin{itemize}
 \item Fill it up with 2-3 crisp points
 \end{itemize}
-Open source implementation of the proposed work is released for comparative analysis with other NIALM approaches. We believe this is the first extensive release of a generic NIALM ...
+Open source implementation of the proposed work is released for comparative analysis with other NIALM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. We believe this is the first extensive release of a generic NIALM
 
 \section{Related work}
 When you do the comparison, bring up how is your work different rather than just saying X did A and Y did B.
@@ -255,6 +268,25 @@ Explanation of above steps
 \item Reducing power fluctuations occurring due to voltage fluctuations. Put figure showing reduction in transients and signal smoothing
 \end{itemize}
 \end{itemize}
+\begin{figure} 
+	
+    \subfloat[\scriptsize Filtering startup transients]{
+    \includegraphics[scale=0.1]{./figures/downsampled_1.png}}
+    \subfloat[\scriptsize Filtering voltage fluctuations and oscillations]{
+        \includegraphics[scale=0.1]{./figures/downsampled_2.png}}
+  	\caption{Effect of downsampling appliance data}
+    \label{fig:downsampling}
+\end{figure}
+
+%\begin{figure*}[!t]
+%\centerline{\subfloat[Case I]\includegraphics[width=2.5in]{downsampled_1}%
+%\label{fig_first_case}}
+%\hfil
+%\subfloat[Case II]{\includegraphics[width=2.5in]{subfigcase2}%
+%\label{fig_second_case}}}
+%\caption{Simulation results}
+%\label{fig_sim}
+%\end{figure*}
 
 \subsection{Load assignment}
 Draws inspiration from work by Parson et. al \cite{parson2012_aaai}. From prior knowledge we divide the loads into two different categories: Periodic such as refrigerator and non periodic such as Television.
@@ -268,6 +300,15 @@ Draws inspiration from work by Parson et. al \cite{parson2012_aaai}. From prior 
 \item High Freq., Low frequency data, we chose low freq data for our analysis
 \item 
 \end{itemize}
+\begin{figure} 
+	
+    \subfloat[\scriptsize Mains 1]{
+    \includegraphics[scale=0.1]{./figures/mains_1_6hr.png}}
+    \subfloat[\scriptsize Mains 2]{
+        \includegraphics[scale=0.1]{./figures/mains_2_6hr.png}}
+  	\caption{6 hourly energy usage breakdown Home 6}
+    \label{fig:breakdown}
+\end{figure}
 
 \subsection{Evaluation Metric}
 \begin{itemize}
@@ -295,6 +336,7 @@ This is important since it shows the relative importance of larger loads
 
 \section{Conclusion}
 The conclusion goes here.
+We also provide mains load assignment of all 6 homes from REDD to further the research in this direction.
 
 \section{Future Work}
 \begin{itemize}
@@ -303,6 +345,8 @@ The conclusion goes here.
 \item Factoring in Time of Day etc.
 \item Factoring in Appliance Correlation
 \item Factor in switch continuity, essentially leads to Factorial HMM
+\item Distributed NILM
+\item Adaptive Learning
 \end{itemize}
 
 \section*{Acknowledgment}
