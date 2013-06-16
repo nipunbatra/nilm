@@ -316,12 +316,13 @@ We use REDD dataset \cite{redd} for validating our algorithms. This dataset cont
 
 \subsection{Evaluation Metric}
 
-Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NILALM. \figref{fig:confusion} jkj
-%\begin{figure}
-%\centering \includegraphics[scale=0.1]{./figures/confusion_stove.png}
-%  	\caption{Confusion Matrix showing predicted state accuracy for Stove}
-%    \label{fig:confusion}
-%\end{figure}
+Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NILALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state.
+\begin{figure}
+\centering \includegraphics[scale=0.1]{./figures/confusion_stove.png}
+\caption{Confusion Matrix showing predicted state accuracy for Stove}
+   \label{fig:confusion}
+\end{figure}
+
     \begin{itemize}
 \item Image of confusion matrix
 \item Show confusion matrix and argue that accuracy can be misleading, state 0 dominates in all appliances and will most probably always be predicted correctly
