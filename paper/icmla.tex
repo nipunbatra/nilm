@@ -186,24 +186,7 @@ For a more detailed overview the reader is referred to the above mentioned surve
 % \footnotesize as IEEE normally uses this smaller font for tables.
 % The \label must come after \caption as always.
 %
-%\begin{table}[!t]
-%% increase table row spacing, adjust to taste
-%\renewcommand{\arraystretch}{1.3}
-% if using array.sty, it might be a good idea to tweak the value of
-% \extrarowheight as needed to properly center the text within the cells
-%\caption{An Example of a Table}
-%\label{table_example}
-%\centering
-%% Some packages, such as MDW tools, offer better commands for making tables
-%% than the plain LaTeX2e tabular which is used here.
-%\begin{tabular}{|c||c|}
-%\hline
-%One & Two\\
-%\hline
-%Three & Four\\
-%\hline
-%\end{tabular}
-%\end{table}
+
 
 \section{NIALM}
 Discuss in brief the NIALM problem
@@ -244,17 +227,34 @@ In this section we explain the various steps involved in DaCo-NIALM which is sho
 \item \textbf{Downsample and align raw data}: While performing Combinatorial Optimization it is desired that transients and fluctuations in the power signal are filtered. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by downsampling. 
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
 Further realignment amongst the appliance level data and mains level data is needed owing to different frequency of data collection and missing data.
+\begin{figure} 
+	
+    \subfloat[\scriptsize Filtering startup transients]{
+    \label{fig:downsample_startup}
+    \includegraphics[scale=0.1]{./figures/downsampled_1.png}}
+    \subfloat[\scriptsize Filtering voltage fluctuations and oscillations]{
+        \label{fig:downsample_voltage}
+        \includegraphics[scale=0.1]{./figures/downsampled_2.png}}
+  	\caption{Effect of downsampling appliance data}
+    \label{fig:downsampling}
+\end{figure}
 
-\item \textbf{Assigning Loads to Mains}: This is the most important step of the algorithm and aims to identify the mapping between appliances and mains. Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are ON even during periods of low human activity such as night time. Thus, we first aim to assign background loads to different mains. Loads with higher mean power consumption are easier to identify and thus we sort background loads based on mean power in descending order. Starting from the head of this list (appliance having highest mean power consumption) we iteratively attempt to do its assignment and once assign subtract this load from assigned mains to make further analysis easier. As a first check we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). 
-\begin{enumerate}
+\item \textbf{Assigning Loads to Mains}: This is the most important step of the algorithm and aims to identify the mapping between appliances and mains. Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are ON even during periods of low human activity such as night time. Thus, we first aim to assign background loads to different mains. Loads with higher mean power consumption are easier to identify and thus we sort background loads based on mean power in descending order. Starting from the head of this list (appliance having highest mean power consumption) we iteratively attempt to do its assignment and once assign subtract this load from assigned mains to make further analysis easier. As a first check we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). \figref{fig:assignment_1} shows how based on refrigerator duty cycle it is mapped to Mains 2. On similar lines assignment of foreground loads can be done. \figref{fig:assignment_2} shows assignment of dishwasher to Mains 1, which is easy to do, since during this time window, mean dishwasher power is greater than mean Mains 2 power.
+\begin{figure} 
+	
+    \subfloat[\scriptsize Assigning based on duty cycle]{
+    \label{fig:assignment_1}
+    \includegraphics[scale=0.1]{./figures/assignment_1.png}}
+    \subfloat[\scriptsize Assigning based on power threshold and step change times]{
+        \label{fig:assignment_2}
+        \includegraphics[scale=0.1]{./figures/assignment_2.png}}
+  	\caption{Assigning Refrigerator and Dishwasher to Mains 2 and Mains 1 respectively}
+    \label{fig:assignment}
+\end{figure}
 
-\item Appliance usage times
-\item Appliance Periodicity
-\item Appliance Power threshold
-\item Correlation amongst different appliance usage
+\item \textbf{Appliance Power Recalibration}: Since different hardware is used for measuring appliance and mains data there may be a need to calibrate the two. Since mains data is usually collected using better precision hardware, we keep mains data as a reference and calibrate appliance data against it. In practice we found appliance level monitors to usually provide only real power whereas the mains monitors can provide much more like reactive and active power. Like the previous step, time instances when an appliance in a particular mains is single used are identified. The ratio of mains and appliance power step changes occurring this window serve as the calibration factor for that appliance. Further each appliance power is corrected with the corresponding calibration factor.
 
-\end{enumerate}
-\item Data Recalibration using the following
+\item \textbf{Clustering to identify appliance states}:
 \begin{enumerate}
 \item Step changes occurring in Mains vs Appliances
 \item Isolating single appliance usage
@@ -268,17 +268,7 @@ Further realignment amongst the appliance level data and mains level data is nee
 
 
 
-\begin{figure} 
-	
-    \subfloat[\scriptsize Filtering startup transients]{
-    \label{fig:downsample_startup}
-    \includegraphics[scale=0.1]{./figures/downsampled_1.png}}
-    \subfloat[\scriptsize Filtering voltage fluctuations and oscillations]{
-        \label{fig:downsample_voltage}
-        \includegraphics[scale=0.1]{./figures/downsampled_2.png}}
-  	\caption{Effect of downsampling appliance data}
-    \label{fig:downsampling}
-\end{figure}
+
 
 %\begin{figure*}[!t]
 %\centerline{\subfloat[Case I]\includegraphics[width=2.5in]{downsampled_1}%
@@ -341,6 +331,29 @@ We analyze data from Home 2 of the REDD dataset and believe that the same analys
 
 \begin{itemize}
 \item Table on Cluster assignment
+\item Table on Calibration factors
+\begin{table}
+%% increase table row spacing, adjust to taste
+%\renewcommand{\arraystretch}{1.3}
+% if using array.sty, it might be a good idea to tweak the value of
+% \extrarowheight as needed to properly center the text within the cells
+\caption{Calibration Factors and Mains Assignment}
+\label{calibration_factors}
+\centering
+%% Some packages, such as MDW tools, offer better commands for making tables
+%% than the plain LaTeX2e tabular which is used here.
+\begin{tabular}{|c|c|c|}
+\hline
+Appliance & Mains & Calibration Factor\\
+\hline
+Refrigerator & 2&1.5\\
+Microwave & 2&1.5\\
+Lighting & 2&1.5\\
+Dishwasher & 1&1230/1200\\
+\hline
+
+\end{tabular}
+\end{table}
 \item Table on Results
 \item Table on on /off periods
 \item Table on switch continuity
