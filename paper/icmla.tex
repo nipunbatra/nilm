@@ -26,7 +26,7 @@
 %\usepackage[cmex10]{amsmath}
 % *** SPECIALIZED LIST PACKAGES ***
 %
-%\usepackage{algorithmic}
+\usepackage{algorithmicx}
 
 % *** ALIGNMENT PACKAGES ***
 %
@@ -233,16 +233,19 @@ As a practical example, two mains, 20 appliance, state space before = $2^{20}$. 
 
 Highlight what is the simplification you are bringing forth.
 
-\section{Name of algorithm as section label}
-Think of appropriate name for your approach
-\textbf{Flowchart- TO go as image/flow diagram}
+\section{Divide and Conquer NIALM (DaCo-NIALM)}
+\begin{figure}
+\centering \includegraphics[scale=0.1]{./figures/algo_3.png}
+\caption{Divide and Conquer NIALM}
+   \label{fig:algorithm}
+\end{figure}
+In this section we explain the various steps involved in DaCo-NIALM which is shown in \figref{fig:algorithm}.
 \begin{enumerate}
-\item Data Preprocessing
-\begin{enumerate}
-\item Aligning Mains and Appliance Level data
-\item Down sampling to 1 minute resolution
-\end{enumerate}
-\item Load Assignment based on 
+\item \textbf{Downsample and align raw data}: While performing Combinatorial Optimization it is desired that transients and fluctuations in the power signal are filtered. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by downsampling. 
+%To overcome these we downsampled our data to one minute resolution using mean filter. 
+Further realignment amongst the appliance level data and mains level data is needed owing to different frequency of data collection and missing data.
+
+\item \textbf{Assigning Loads to Mains}: This is the most important step of the algorithm and aims to identify the mapping between appliances and mains. Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are ON even during periods of low human activity such as night time. Thus, we first aim to assign background loads to different mains. Loads with higher mean power consumption are easier to identify and thus we sort background loads based on mean power in descending order. Starting from the head of this list (appliance having highest mean power consumption) we iteratively attempt to do its assignment and once assign subtract this load from assigned mains to make further analysis easier. As a first check we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). 
 \begin{enumerate}
 
 \item Appliance usage times
@@ -264,22 +267,14 @@ Think of appropriate name for your approach
 \end{enumerate}
 
 
-Explanation of above steps
-\subsection{Data Pre processing}
-\begin{itemize}
-\item Aligned data
-\item Down sampling and why it is needed
-\begin{itemize}
-\item Sub metered data collected sometimes at 3s sometimes at 4 s
-\item Getting rid of transients, also suggested by Hart
-\item Reducing power fluctuations occurring due to voltage fluctuations. Put figure showing reduction in transients and signal smoothing
-\end{itemize}
-\end{itemize}
+
 \begin{figure} 
 	
     \subfloat[\scriptsize Filtering startup transients]{
+    \label{fig:downsample_startup}
     \includegraphics[scale=0.1]{./figures/downsampled_1.png}}
     \subfloat[\scriptsize Filtering voltage fluctuations and oscillations]{
+        \label{fig:downsample_voltage}
         \includegraphics[scale=0.1]{./figures/downsampled_2.png}}
   	\caption{Effect of downsampling appliance data}
     \label{fig:downsampling}
@@ -316,7 +311,13 @@ We use REDD dataset \cite{redd} for validating our algorithms. This dataset cont
 
 \subsection{Evaluation Metric}
 
-Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NILALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state.
+Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state, which is misleading, since it is easy to predict off states of appliances irrespective of the approach. Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches. We use the following metrics which have been used in the past work and some of which were suggested by Hart \cite{hart}, but not shown in previous work:
+\begin{itemize}
+\item \textbf{Switch Continuity Violations}: According to Switch continuity principle at a given time instance not more than 1 appliance is expected to change its state. Thus, we count the number of violations of this principle.
+\item \textbf{Percentage of energy explained per appliance}: $Appliance Accuracy = \frac{\sum\limits_{i=1}^{m} Accuracy(i)*Power(i)}{Power(i)} $ Considering fig
+\item \textbf{Percentage of energy explained overall}:
+\item \textbf{Residual Power}: This is the amount of power which was left after disaggregation. It is desired that this quantity be reduced.
+\end{itemize} 
 \begin{figure}
 \centering \includegraphics[scale=0.1]{./figures/confusion_stove.png}
 \caption{Confusion Matrix showing predicted state accuracy for Stove}
@@ -336,7 +337,7 @@ This is important since it shows the relative importance of larger loads
 \end{itemize}
 
 \subsection{Empirical Analysis}
-We analyze data from Home 2 of the REDD dataset and believe that the same analysis can be easily repeated across multiple homes. We do this to compare our results against the Factorial Hidden Markov approach used by Kolter et al. \cite{redd} on the same home.
+We analyze data from Home 2 of the REDD dataset and believe that the same analysis can be easily repeated across multiple homes. We perform various steps as described in section .. and find the load assignment corresponding to the two mains. 
 
 \begin{itemize}
 \item Table on Cluster assignment
