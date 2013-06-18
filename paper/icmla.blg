@@ -21,45 +21,45 @@ Warning--empty journal in blued_cmu
 Warning--empty year in blued_cmu
 
 Done.
-You've used 9 entries,
+You've used 10 entries,
             4024 wiz_defined-function locations,
-            1226 strings with 15912 characters,
-and the built_in function-call counts, 6010 in all, are:
-= -- 470
-> -- 138
-< -- 43
-+ -- 78
-- -- 31
-* -- 300
-:= -- 933
-add.period$ -- 18
-call.type$ -- 9
-change.case$ -- 9
-chr.to.int$ -- 96
-cite$ -- 11
-duplicate$ -- 446
-empty$ -- 503
-format.name$ -- 31
-if$ -- 1350
+            1233 strings with 16147 characters,
+and the built_in function-call counts, 6983 in all, are:
+= -- 546
+> -- 157
+< -- 54
++ -- 90
+- -- 33
+* -- 344
+:= -- 1062
+add.period$ -- 21
+call.type$ -- 10
+change.case$ -- 10
+chr.to.int$ -- 126
+cite$ -- 12
+duplicate$ -- 511
+empty$ -- 589
+format.name$ -- 34
+if$ -- 1583
 int.to.chr$ -- 0
-int.to.str$ -- 9
-missing$ -- 78
-newline$ -- 50
-num.names$ -- 9
-pop$ -- 186
+int.to.str$ -- 10
+missing$ -- 87
+newline$ -- 53
+num.names$ -- 10
+pop$ -- 209
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 460
+skip$ -- 535
 stack$ -- 0
-substring$ -- 249
-swap$ -- 335
-text.length$ -- 11
+substring$ -- 320
+swap$ -- 391
+text.length$ -- 12
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 9
+type$ -- 10
 warning$ -- 2
-while$ -- 25
-width$ -- 10
-write$ -- 103
+while$ -- 30
+width$ -- 12
+write$ -- 112
 (There was 1 error message)

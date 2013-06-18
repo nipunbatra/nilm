@@ -258,6 +258,7 @@ Further realignment amongst the appliance level data and mains level data is nee
 \begin{enumerate}
 \item Step changes occurring in Mains vs Appliances
 \item Isolating single appliance usage
+We use \cite{kmeansplusplus} to run our clustering
 \end{enumerate}
 \item Appliance states identification using clustering (Possibly talk about unbalanced data, but leave it for future work)
 \item State space creation
@@ -337,19 +338,46 @@ We analyze data from Home 2 of the REDD dataset and believe that the same analys
 %\renewcommand{\arraystretch}{1.3}
 % if using array.sty, it might be a good idea to tweak the value of
 % \extrarowheight as needed to properly center the text within the cells
-\caption{Calibration Factors and Mains Assignment}
+\caption{Calibration Factors, Mains Assignment and States}
 \label{calibration_factors}
 \centering
 %% Some packages, such as MDW tools, offer better commands for making tables
 %% than the plain LaTeX2e tabular which is used here.
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|}
 \hline
-Appliance & Mains & Calibration Factor\\
+Appliance & Mains & Calibration Factor& States Power& States Power\\
 \hline
-Refrigerator & 2&1.5\\
-Microwave & 2&1.5\\
-Lighting & 2&1.5\\
-Dishwasher & 1&1230/1200\\
+&&&Pre calibration&Post calibration\\
+\hline
+Refrigerator & 2&1.5 & 7,162,423 & 0,230, 500\\
+Microwave & 2&1.5&10,832,1730& TBD\\
+Lighting & 2&1.5& 9,96,156&\\
+Dishwasher & 1&1230/1200& 0,256, 1195 & TBD\\
+Stove& 1 & TBD & 0,374& TBD\\
+Kitchen & 1 & TBD & 5,727 & TBD\\
+Kitchen 2 & 1 & TBD & 1,204,1032 & TBD\\
+
+
+\hline
+
+\end{tabular}
+\end{table}
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Appliance & RMS Error & Without DaCo, Without recal& With Daco without recal& Without DaCo with recal& With Daco with recal\\
+\hline
+&&&Pre calibration&Post calibration\\
+\hline
+Refrigerator & 2&1.5 & 7,162,423 & 0,230, 500\\
+Microwave & 2&1.5&10,832,1730& TBD\\
+Lighting & 2&1.5& 9,96,156&\\
+Dishwasher & 1&1230/1200& 0,256, 1195 & TBD\\
+Stove& 1 & TBD & 0,374& TBD\\
+Kitchen & 1 & TBD & 5,727 & TBD\\
+Kitchen 2 & 1 & TBD & 1,204,1032 & TBD\\
+
+
 \hline
 
 \end{tabular}
