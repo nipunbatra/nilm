@@ -272,8 +272,18 @@ We analyze data from Home 2 of the REDD dataset and believe that the same analys
 \item Train on first 7, test on last 7 days
 \item State assignment, Mains assignment in \tabref{tab:calibration_factors}
 \item Overall results in \tabref{tab:results}, first column NILM without dividing into mains and without recalibration, last column with DiCaCo NIALM. Vast reduction in R.E. and M.N.E , especially for most appliance contributing most like refrigerator and lighting	
+\item Confusion matrix showing a large improvement in refrigerator recognition in \figref{fig:confusion_ref}
 \end{itemize}
 
+\begin{figure} 
+	
+    \subfloat[\scriptsize Without applying DiCaCo]{
+    \includegraphics[scale=0.15]{./figures/confusion_before_dicaco.png}}
+    \subfloat[\scriptsize After applying DiCaCo]{
+        \includegraphics[scale=0.15]{./figures/confusion_after_dicaco.png}}
+  	\caption{Confusion Matrix for refrigerator disaggregation}
+    \label{fig:confusion_ref}
+\end{figure}
 
 %\item Table on Calibration factors
 \begin{table}
