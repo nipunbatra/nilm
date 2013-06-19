@@ -141,7 +141,7 @@ Borrow the notation used by Parson and Hart.
 \item Input: Ground truth power sequence for each appliance: $\theta^n=\{\theta_1^n,...,\theta_T^n\}$
 \item Infer: Power draw by constituent appliance: $y^n=\{y_1^n,..y_T^n\}$
 \item Each appliance has $K$ (from k=1 to K )states and consumes $\mu_k$ power corresponding state
-\item Appliance state: $z^n=\{z_1^n,..z_T^n\}$ where  $z_i^n \in [1,..K]$
+\item Appliance state: $z^n=\{z_1^n,..z_T^n\}$ where  $z_i^n \in [1,..K]$ Also $z_{i,k}^n$ denotes whether $n^{th}$ appliance is in $k^{th}$ state at time $i$.
 \end{itemize}
 
 \subsection{NIALM using combinatorial optimization}
@@ -251,9 +251,11 @@ Commonly used metrics such as accuracy, sensitivity and specificity can be misle
 \begin{itemize}
 \item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance over the test period, given by 
 $$\frac{|\sum\limits_{t=1}^{T}\theta_t^n- \sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} $$
+Lesser is better
 
 \item \textbf{RMS Error (RE Watts)}: RMS error per time slice given by
 $$\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}$$
+Lesser is better
 \item Explain why the metric used by MIT REDD people will fail under some cases
 \end{itemize} 
 \begin{figure}
