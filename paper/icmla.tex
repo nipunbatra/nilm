@@ -302,12 +302,12 @@ We use REDD dataset \cite{redd} for validating our algorithms. This dataset cont
 
 \subsection{Evaluation Metric}
 
-Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state, which is misleading, since it is easy to predict off states of appliances irrespective of the approach. Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches. We use the following metrics which have been used in the past work and some of which were suggested by Hart \cite{hart}, but not shown in previous work:
+Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state, which is misleading, since it is easy to predict off states of appliances irrespective of the approach. Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches. We use the following metrics which have been used in the past work \cite{parson2012_aaai,redd} and were also suggested by Hart \cite{hart}:
 \begin{itemize}
-\item \textbf{Switch Continuity Violations}: According to Switch continuity principle at a given time instance not more than 1 appliance is expected to change its state. Thus, we count the number of violations of this principle.
-\item \textbf{Percentage of energy explained per appliance}: $Appliance Accuracy = \frac{\sum\limits_{i=1}^{m} Accuracy(i)*Power(i)}{Power(i)} $ Considering fig
-\item \textbf{Percentage of energy explained overall}:
-\item \textbf{Residual Power}: This is the amount of power which was left after disaggregation. It is desired that this quantity be reduced.
+\item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance over the test period, given by 
+$$\frac{|\sum\limits_{t=1}^{T}x_t^{(n)}- \sum\limits_{t=1}^{T}\mu_t^{(n)}|}{\sum\limits_{t=1}^{T}x_t^{(n)}} $$
+
+\item \textbf{RMS Error (RE Watts)}:
 \end{itemize} 
 \begin{figure}
 \centering \includegraphics[scale=0.1]{./figures/confusion_stove.png}
@@ -328,64 +328,75 @@ This is important since it shows the relative importance of larger loads
 \end{itemize}
 
 \subsection{Empirical Analysis}
-We analyze data from Home 2 of the REDD dataset and believe that the same analysis can be easily repeated across multiple homes. We perform various steps as described in section .. and find the load assignment corresponding to the two mains. 
-
+We analyze data from Home 2 of the REDD dataset and believe that the same analysis can be easily repeated across multiple homes. 
 \begin{itemize}
-\item Table on Cluster assignment
-\item Table on Calibration factors
-\begin{table}
-%% increase table row spacing, adjust to taste
-%\renewcommand{\arraystretch}{1.3}
-% if using array.sty, it might be a good idea to tweak the value of
-% \extrarowheight as needed to properly center the text within the cells
-\caption{Calibration Factors, Mains Assignment and States}
-\label{calibration_factors}
-\centering
-%% Some packages, such as MDW tools, offer better commands for making tables
-%% than the plain LaTeX2e tabular which is used here.
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-Appliance & Mains & Calibration Factor& States Power& States Power\\
-\hline
-&&&Pre calibration&Post calibration\\
-\hline
-Refrigerator & 2&1.5 & 7,162,423 & 0,230, 500\\
-Microwave & 2&1.5&10,832,1730& TBD\\
-Lighting & 2&1.5& 9,96,156&\\
-Dishwasher & 1&1230/1200& 0,256, 1195 & TBD\\
-Stove& 1 & TBD & 0,374& TBD\\
-Kitchen & 1 & TBD & 5,727 & TBD\\
-Kitchen 2 & 1 & TBD & 1,204,1032 & TBD\\
-
-
-\hline
-
-\end{tabular}
-\end{table}
-
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-Appliance & RMS Error & Without DaCo, Without recal& With Daco without recal& Without DaCo with recal& With Daco with recal\\
-\hline
-&&&Pre calibration&Post calibration\\
-\hline
-Refrigerator & 2&1.5 & 7,162,423 & 0,230, 500\\
-Microwave & 2&1.5&10,832,1730& TBD\\
-Lighting & 2&1.5& 9,96,156&\\
-Dishwasher & 1&1230/1200& 0,256, 1195 & TBD\\
-Stove& 1 & TBD & 0,374& TBD\\
-Kitchen & 1 & TBD & 5,727 & TBD\\
-Kitchen 2 & 1 & TBD & 1,204,1032 & TBD\\
-
-
-\hline
-
-\end{tabular}
-\end{table}
-\item Table on Results
-\item Table on on /off periods
-\item Table on switch continuity
+\item Train on first 7, test on last 7 days
+\item State assignment, Mains assignment in \tabref{tab:calibration_factors}
+\item Overall results in \tabref{tab:results}, first column NILM without dividing into mains and without recalibration, last column with DiCaCo NIALM. Vast reduction in R.E. and M.N.E , especially for most appliance contributing most like refrigerator and lighting	
 \end{itemize}
+
+
+%\item Table on Calibration factors
+\begin{table}
+%%% increase table row spacing, adjust to taste
+%%\renewcommand{\arraystretch}{1.3}
+%% if using array.sty, it might be a good idea to tweak the value of
+%% \extrarowheight as needed to properly center the text within the cells
+\caption{Calibration Factors, Mains Assignment and States}
+\label{tab:calibration_factors}
+%\centering
+%%% Some packages, such as MDW tools, offer better commands for making tables
+%%% than the plain LaTeX2e tabular which is used here.
+\begin{tabular}{|c|c|c|c|}
+\hline
+Appliance & Mains & States Power (W)& States Power (W)\\
+\hline
+&&Pre calibration&Post calibration\\
+\hline
+Refrigerator & 2& 7,162,423 & 9,210,423\\
+Microwave &2& 210,832,1730& 10,832,1730\\
+Lighting & 2& 9,96,156&10,110,178\\
+Dishwasher & 1& 0,256, 1195 & 0,256, 1195\\
+Stove& 1 & 0,374& 0,374\\
+Kitchen & 1& 5,727&5,727\\
+Kitchen 2&1 & 1,204,1032&1,204,1032 \\
+%
+%
+\hline
+%
+\end{tabular}
+\end{table}
+
+\begin{table}
+\caption{Mean Normalized Error and RMS error with and without DiCaCo NIALM}
+\label{tab:results}
+\begin{tabular}{|p{30pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|}
+\hline
+&\multicolumn{4}{|c|}{Without}&\multicolumn{4}{|c|}{With}\\
+&\multicolumn{4}{|c|}{Recalibration}&\multicolumn{4}{|c|}{Recalibration}\\
+\hline
+&\multicolumn{2}{|c|}{Without Load}&\multicolumn{2}{|c|}{With Load}&\multicolumn{2}{|c|}{Without Load}&\multicolumn{2}{|c|}{With Load}\\
+&\multicolumn{2}{|c|}{Division}&\multicolumn{2}{|c|}{Division}&\multicolumn{2}{|c|}{Division}&\multicolumn{2}{|c|}{Division}\\
+\hline
+
+Appliance &R.E.&M.N.E.& R.E.&M.N.E.&R.E.&M.N.E.&R.E.& M.N.E.\\
+&Watts&\%&Watts&\%&Watts&\%&Watts&\%\\
+\hline
+Refrigerator & 136 &109 & 71 & 32 & 130 &95  &59 &21\\
+Microwave    & 102 &98  & 97 & 110& 104 &97  &96 &109\\
+Lighting     & 51  &164 & 48 & 195& 44  &83  &38 &60\\
+Dishwasher   & 406 &2947& 63 & 100& 377 &2517&63 &100\\
+Stove        & 77  &1191& 36 & 281& 75  &1118&36 &281\\
+Kitchen      & 64  &182 & 58 & 168& 69  &196 &58 &168\\
+Kitchen 2    & 95  &267 & 91 & 117& 92  &230 &91 &117\\
+Overall      &478  &187 &161 &  58& 450 &157 &168&39\\
+
+\hline
+
+\end{tabular}
+\end{table}
+
+
 
 
 
