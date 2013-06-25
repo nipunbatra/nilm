@@ -209,13 +209,12 @@ This step aims to identify the mapping between appliances and mains. Based on do
     \label{fig:assignment}
 \end{figure}
 
-\item \textbf{Appliance Power Recalibration}: 
-Owing to 
-Need of recalibration
+\item \textbf{Appliance Power Calibration}: 
+Power measured by appliance level meters may need calibration due to the following reasons:
 \begin{itemize}
-\item Difference in meaurement of different meters, diagram showing CC, ZWave, etc
-\item Voltage fluctuations and normalization
-\item Missing meta data whether real vs apparent power is being calculated
+\item Difference in measurement of different measurement instrument (diagram showing CC, ZWave, etc)
+\item Fluctuation in voltage cause power to fluctuate as well
+\item Missing meta data, whether real or apparent power is being measured at appliance level
 
 \end{itemize}Since different hardware is used for measuring appliance and mains data there may be a need to calibrate the two. Since mains data is usually collected using better precision hardware, we keep mains data as a reference and calibrate appliance data against it. In practice we found appliance level monitors to usually provide only real power whereas the mains monitors can provide much more like reactive and active power. Like the previous step, time instances when an appliance in a particular mains is single used are identified. The ratio of mains and appliance power step changes occurring this window serve as the calibration factor for that appliance. Further each appliance power is corrected with the corresponding calibration factor.
 
