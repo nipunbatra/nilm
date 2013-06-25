@@ -172,13 +172,13 @@ As a practical example, two mains, 20 appliance, state space before = $2^{20}$. 
 
 Highlight what is the simplification you are bringing forth.
 
-\section{Divide and Conquer NIALM (DaCo-NIALM)}
+\section{INDiC NIALM}
 \begin{figure}
 \centering \includegraphics[scale=0.1]{./figures/algo_3.png}
 \caption{Divide and Conquer NIALM}
    \label{fig:algorithm}
 \end{figure}
-In this section we explain the various steps involved in DaCo-NIALM which is shown in \figref{fig:algorithm}.
+In this section we explain the various steps involved in DaCo-NIALM which is shown in \figref{fig:algorithm} or \algoref{algo:main}.
 \begin{enumerate}
 \item \textbf{Downsample and align raw data}: While performing Combinatorial Optimization it is desired that transients and fluctuations in the power signal are filtered. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by downsampling. 
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
@@ -187,29 +187,25 @@ Further realignment amongst the appliance level data and mains level data is nee
 	
     \subfloat[\scriptsize Filtering startup transients]{
     \label{fig:downsample_startup}
-    \includegraphics[scale=0.1]{./figures/downsampled_1.png}}
+    \includegraphics[scale=0.14]{./figures/downsample_1.png}}
     \subfloat[\scriptsize Filtering voltage fluctuations and oscillations]{
         \label{fig:downsample_voltage}
-        \includegraphics[scale=0.1]{./figures/downsampled_2.png}}
+        \includegraphics[scale=0.14]{./figures/downsample_2.png}}
   	\caption{Effect of downsampling appliance data}
     \label{fig:downsampling}
 \end{figure}
 
 \item \textbf{Assigning Loads to Mains}:
-Making a case of division
-\begin{itemize}
-\item See if some citation suggests that simplifications can be made
-\item Wherever possible using more than one CT for mains is advisable.
-\end{itemize} This is the most important step of the algorithm and aims to identify the mapping between appliances and mains. Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are ON even during periods of low human activity such as night time. Thus, we first aim to assign background loads to different mains. Loads with higher mean power consumption are easier to identify and thus we sort background loads based on mean power in descending order. Starting from the head of this list (appliance having highest mean power consumption) we iteratively attempt to do its assignment and once assign subtract this load from assigned mains to make further analysis easier. As a first check we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). \figref{fig:assignment_1} shows how based on refrigerator duty cycle it is mapped to Mains 2. On similar lines assignment of foreground loads can be done. \figref{fig:assignment_2} shows assignment of dishwasher to Mains 1, which is easy to do, since during this time window, mean dishwasher power is greater than mean Mains 2 power.
+This step aims to identify the mapping between appliances and mains. Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are On even during periods of low human activity. Also loads with higher mean power consumption are easier to identify and thus we sort background loads based on power in descending order. For all such background loads we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). \figref{fig:assignment_1} shows how based on refrigerator duty cycle it is mapped to Mains 2. On similar lines assignment of foreground loads can be done.
 \begin{figure} 
 	
-    \subfloat[\scriptsize Assigning based on duty cycle]{
+    \subfloat[\scriptsize Assigning refrigerator to Mains 2 since refrigerator power $>$ Mains 1 power and on basis of duty cycle]{
     \label{fig:assignment_1}
-    \includegraphics[scale=0.1]{./figures/assignment_1.png}}
-    \subfloat[\scriptsize Assigning based on power threshold and step change times]{
+    \includegraphics[scale=0.132]{./figures/ref_assign.png}}
+    \subfloat[\scriptsize Calibrating Refrigerator Power consumption]{
         \label{fig:assignment_2}
-        \includegraphics[scale=0.1]{./figures/assignment_2.png}}
-  	\caption{Assigning Refrigerator and Dishwasher to Mains 2 and Mains 1 respectively}
+        \includegraphics[scale=0.132]{./figures/ref_calibrate.png}}
+  	\caption{Calibrating and assigning refrigerator to Mains 2 }
     \label{fig:assignment}
 \end{figure}
 
@@ -281,7 +277,7 @@ Apply NILM algorithm on each Mains and set of loads in it
 
 \Return{Disaggregated mains power data per appliance}\;
 \caption{INDiC}
-\label{algo:change}
+\label{algo:main}
 \end{algorithm}
 \subsection{Load assignment}
 Draws inspiration from work by Parson et. al \cite{parson2012_aaai}. From prior knowledge we divide the loads into two different categories: Periodic such as refrigerator and non periodic such as Television.
