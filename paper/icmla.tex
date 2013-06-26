@@ -156,14 +156,16 @@ Borrow the notation used by Parson and Hart.
 \end{itemize}
 
 \subsection{NIALM using combinatorial optimization}
-This approach resembles subset sum problem and tries to minimize the difference of total observed power from the sum of various possible subsets coming from various combinations of appliances in different states. For each appliance we assume \textbf{K} states and at a given time, an appliance can only be in a single state. This is given as: 
-$z_{t,k}^n\in\{0,1\} $ and, $$\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$$The power drawn by $n^{th}$ appliance in $k^{th}$ state is given by:
+NIALM using combinatorial optimization (CO) resembles subset sum problem \cite{knapsack}. The aim is to minimize the difference of total observed power from the sum of various possible subsets coming from various combinations of appliances in different states. For each appliance we assume \textbf{K} states and at a given time, an appliance can only be in a single state. This is given as: 
+$z_{t,k}^n\in\{0,1\} $ and, $$\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$$. The power drawn by $n^{th}$ appliance in $k^{th}$ state is given by:
 $$\mu^n=\{\mu_1^n,..\mu_K^n\}$$ Thus, CO can be formulated as:
 $$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$$
 Correspondingly the power draw by $n^{th}$ appliance is given by: $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 
+This problem is NP complete and the state space is $K^N$, which is exponential in the number of appliances used. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past. We chose to use this as a proof of concept of our contributions.
+
 \begin{itemize}
-\item Statespace is $K^N$
+\item Statespace is 
 \item We assign different loads to different mains, $N_i$ loads to $Mains_i$, $\sum\limits_{1}^{p}{N_i}=N$. Now different state spaces are
 $K^{N_1}$.... We can define the overall state space as $\max{K^{N_i}}$
 
@@ -285,32 +287,36 @@ Draws inspiration from work by Parson et. al \cite{parson2012_aaai}. From prior 
 \section{Evaluation}
 \subsection{About Dataset}
 
-We use REDD dataset \cite{redd} for validating our algorithms. This dataset contains power and voltage data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. \figref{fig:breakdown} shows 6 hourly breakdown of energy consumption across the different mains in Home 2 .
+We use Reference Energy Disaggregation Data Set (REDD) \cite{redd} for validating our algorithms. This dataset contains power and voltage data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~0.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. 
+
+%\figref{fig:breakdown} shows 6 hourly breakdown of energy consumption across the different mains in Home 2 .
 
 
-\begin{figure} 
-	
-    \subfloat[\scriptsize Mains 1]{
-    \includegraphics[scale=0.1]{./figures/mains_1_6hr.png}}
-    \subfloat[\scriptsize Mains 2]{
-        \includegraphics[scale=0.1]{./figures/mains_2_6hr.png}}
-  	\caption{6 hourly energy usage breakdown Home 2}
-    \label{fig:breakdown}
-\end{figure}
-
+%\begin{figure} 
+%	
+%    \subfloat[\scriptsize Mains 1]{
+%    \includegraphics[scale=0.1]{./figures/mains_1_6hr.png}}
+%    \subfloat[\scriptsize Mains 2]{
+%        \includegraphics[scale=0.1]{./figures/mains_2_6hr.png}}
+%  	\caption{6 hourly energy usage breakdown Home 2}
+%    \label{fig:breakdown}
+%\end{figure}
+%
 \subsection{Evaluation Metric}
 
-Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state, which is misleading, since it is easy to predict off states of appliances irrespective of the approach. Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches. We use the following metrics which have been used in the past work \cite{parson2012_aaai,redd} and were also suggested by Hart \cite{hart}:
+Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state. This does not tell how badly the prediction is misclassifying state 1 (On). 
+%Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches.
+Thus, we use the following metrics which have been used in the past work \cite{parson2012_aaai,redd}:
 \begin{itemize}
-\item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance over the test period, given by 
-$$\frac{|\sum\limits_{t=1}^{T}\theta_t^n- \sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} $$
-Lesser is better
+\item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by 
+$$ MNE(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n- \sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} $$
 
-\item \textbf{RMS Error (RE Watts)}: RMS error per time slice given by
-$$\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}$$
-Lesser is better
-\item Explain why the metric used by MIT REDD people will fail under some cases
+
+\item \textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice given by
+$$RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}$$
+
 \end{itemize} 
+Since both these quantities represent error, the lesser they are the better is the prediction.
 \begin{figure}
 \centering \includegraphics[scale=0.2]{./figures/confusion_stove.png}
 \caption{Confusion Matrix showing predicted state accuracy for Stove}
@@ -320,14 +326,25 @@ Lesser is better
 
 
 \subsection{Empirical Analysis}
-We perform empirical analysis on REDD dataset Home 2. We believe that the same analysis can be easily repeated across multiple homes.  
-\begin{itemize}
-\item Train on first 7, test on last 7 days
-\item State assignment, Mains assignment in \tabref{tab:calibration_factors}
-\item Overall results in \tabref{tab:results}, first column NILM without dividing into mains and without recalibration, last column with DiCaCo NIALM. Vast reduction in R.E. and M.N.E , especially for most appliance contributing most like refrigerator and lighting	
-\item Confusion matrix showing a large improvement in refrigerator recognition in \figref{fig:confusion_ref}
-\end{itemize}
+We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances). We believe that the same analysis can be easily repeated across multiple homes. We aligned the data and downsampled it to one minute using mean filter. Since we had two weeks of clean data, we used the first week as the train set and the second week as the test set. We used INDiC algorithm described earlier to assign loads to different mains and calibrate appliance data. \tabref{tab:calibration_factors} shows the assignment of loads to different mains. Further this table also shows the learnt power states of these appliance via k-means++ clustering (which for several reasons is considered better than k-means) \cite{kmeansplusplus}. Refrigerator and lighting showed significant difference in power states post calibration. Based on prior experience and appliance circuity, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power. These loads constitute a major chunk of Mains 2 power. \figref{fig:calibration} shows the reduction in unassigned power due to calibrating these two appliances. Two loads - washer dryer and disposal did not have significant usage and we chose not to consider them in the analysis. 
 
+To show the significance of load division and calibration, we applied Combinatorial optimization on the test set, considering 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division. These results are presented in \tabref{tab:results}. For the overall dataset, it can be seen that MNE reduces from 187\% to 39\%, RE reduces from 478 W to 168 W, after applying INDiC. All appliances show reduction in MNE and RE after applying INDiC. However, there is significant improvement in correctly predicting refrigerator and lighting. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction pre and post applying INDiC. It can be seen that after applying INDiC there is a vast improvement in predicting refrigerator's state 0 and 1.
+
+We had used Combinatorial Optimization which is the simplest NIALM technique to show the improvements which can be made by load division and appliance calibration. We believe that using state of the art NIALM algorithms will improve the results by leaps and bounds.
+
+%\item Overall results in \tabref{tab:results}, first column NILM without dividing into mains and without recalibration, last column with DiCaCo NIALM. Vast reduction in R.E. and M.N.E , especially for most appliance contributing most like refrigerator and lighting	
+%\item Confusion matrix showing a large improvement in refrigerator recognition in \figref{fig:confusion_ref}
+%\end{itemize}
+
+\begin{figure} 
+	
+    \subfloat[\scriptsize Without applying calibration]{
+    \includegraphics[scale=0.2]{./figures/breakdown_before_calibration.png}}
+    \subfloat[\scriptsize After applying calibration]{
+        \includegraphics[scale=0.2]{./figures/breakdown_after_calibration.png}}
+  	\caption{Mains 2 Break down by load}
+    \label{fig:calibration}
+\end{figure}
 \begin{figure} 
 	
     \subfloat[\scriptsize Without applying DiCaCo]{

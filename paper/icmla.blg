@@ -9,7 +9,7 @@ Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: IEEEabrv.bib
 Database file #2: references.bib
-I was expecting a `,' or a `}'---line 169 of file references.bib
+I was expecting a `,' or a `}'---line 181 of file references.bib
  : 
  : %YEAR=2012
 (Error may have been on previous line)
@@ -21,45 +21,45 @@ Warning--empty journal in blued_cmu
 Warning--empty year in blued_cmu
 
 Done.
-You've used 10 entries,
+You've used 11 entries,
             4024 wiz_defined-function locations,
-            1233 strings with 16147 characters,
-and the built_in function-call counts, 6983 in all, are:
-= -- 546
-> -- 157
+            1238 strings with 16274 characters,
+and the built_in function-call counts, 7360 in all, are:
+= -- 571
+> -- 166
 < -- 54
-+ -- 90
-- -- 33
-* -- 344
-:= -- 1062
-add.period$ -- 21
-call.type$ -- 10
++ -- 94
+- -- 35
+* -- 357
+:= -- 1123
+add.period$ -- 23
+call.type$ -- 11
 change.case$ -- 10
 chr.to.int$ -- 126
-cite$ -- 12
-duplicate$ -- 511
-empty$ -- 589
-format.name$ -- 34
-if$ -- 1583
+cite$ -- 13
+duplicate$ -- 541
+empty$ -- 637
+format.name$ -- 37
+if$ -- 1671
 int.to.chr$ -- 0
-int.to.str$ -- 10
-missing$ -- 87
-newline$ -- 53
-num.names$ -- 10
-pop$ -- 209
+int.to.str$ -- 11
+missing$ -- 93
+newline$ -- 56
+num.names$ -- 11
+pop$ -- 229
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 535
+skip$ -- 568
 stack$ -- 0
 substring$ -- 320
-swap$ -- 391
+swap$ -- 407
 text.length$ -- 12
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 10
+type$ -- 11
 warning$ -- 2
-while$ -- 30
-width$ -- 12
-write$ -- 112
+while$ -- 31
+width$ -- 13
+write$ -- 119
 (There was 1 error message)
