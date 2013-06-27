@@ -168,16 +168,27 @@ $k\in {1,..K}$ & Appliance power state\\
 $z^n=\{z_1^n,..z_T^n\}$ & Appliance state sequence,$z_i^n \in [1,..K]$\\
 $z_{i,k}^n \in{0,1}$ & Whether $n^{th}$ appliance is in $k^{th}$ state at time $i$\\
 $\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance in $k^{th}$ state\\
+$Mapping[n] \in {1,2}$ & Mapping of $n^{th}$ appliance to Mains\\
 \hline
 \multirow{2}{*}{$B$} & List of background appliances (which can run\\
  					 &without human intervention) eg. refrigerator\\
 \multirow{2}{*}{$F$} & List of foreground appliances (which are \\ 
  					 &operated by humans) eg. light, microwave\\
 \hline
-\multirow{2}{*}{$Downsample(s,filter)$} & Function to downsample a timeseries $s$\\
-                                        & according to specified filter: mean/median\\
+$Downsample(s,filter,$ & Function to downsample a timeseries $s$ to\\
+$interval)$                                        & an $interval$ according to specified $filter$\\
 \multirow{2}{*}{$Align([s^1,..s^n],method)$} & Function to align $n$ timeseries accounting\\
-                                        &for missing data using specified $method$\\                                        
+                                        &for missing data using specified $method$\\
+\multirow{2}{*}{$Sort([s^1,..s^n],rule,order)$} & Function to sort $n$ timeseries according\\
+                                        &to $rule$ in specified $order$\\
+$Contiguous\_Below\_$ & Function to find contiguous period where time \\
+$Mean(s,min\_period)$                  &series $s$ is below its mean \\
+                                       &for atleast $min\_period$\\
+$Step\_Changes(s,$ & Function returning magnitude and times of step\\
+$threshold)$                  &changes occurring in time series $s$, whose \\
+                              &absolute value is greater than $threshold$\\                                                                       
+                                                                               
+
 \hline
 %
 \end{tabular}
@@ -269,13 +280,28 @@ Find energy distribution by appliance and assign weights (To be used in results)
 \begin{algorithm}
 \DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
 \KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F$	}
-\KwOut{Disaggregated mains power data by appliance}
+\KwOut{$y^n,\mu_k^n$}
 \textbf{Align and Downsample}\;
-\For {$n \in {1,N}$ in sorted list of background loads}{nothng}
+\For {$n \in {1,N}$}
+	{
+	$\theta^n \gets Downsample(\theta^n,mean,1\: minute)$\;
+	}
+$\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Align([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
 
-Downsample mains and appliance power data timeseries using mean/median filter\;
-
-Using domain expertise separate the loads into background and foreground\;
+\textbf{Appliance to Mains mapping}\;
+$s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
+$l^1 \gets Contiguous\_Below\_Mean (\theta^{M_1}, 2\: hours)$\;
+$l^2 \gets Contiguous\_Below\_Mean (\theta^{M_2}, 2\: hours)$\;
+\For{$Appliance\: n \in s$}
+	{
+	\If {$\theta^n > \theta^{M_1}\: for\: any\: t \in {1,T}$} 
+		{ $Mapping[n]=2$\;		
+		}  
+	\ElseIf {$\theta^n > \theta^{M_2}\: for\: any\: t \in {1,T}$}
+		{ $Mapping[n]=1$\;
+		}
+	
+	}
 Find consecutive time periods ($low\_activity$) of low or minimal electrical activity\;
 Sort background loads in decreasing order of peak power \;
 \For {$load$ in sorted list of background loads}
