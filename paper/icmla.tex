@@ -168,10 +168,16 @@ $k\in {1,..K}$ & Appliance power state\\
 $z^n=\{z_1^n,..z_T^n\}$ & Appliance state sequence,$z_i^n \in [1,..K]$\\
 $z_{i,k}^n \in{0,1}$ & Whether $n^{th}$ appliance is in $k^{th}$ state at time $i$\\
 $\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance in $k^{th}$ state\\
+\hline
 \multirow{2}{*}{$B$} & List of background appliances (which can run\\
  					 &without human intervention) eg. refrigerator\\
 \multirow{2}{*}{$F$} & List of foreground appliances (which are \\ 
  					 &operated by humans) eg. light, microwave\\
+\hline
+\multirow{2}{*}{$Downsample(s,filter)$} & Function to downsample a timeseries $s$\\
+                                        & according to specified filter: mean/median\\
+\multirow{2}{*}{$Align([s^1,..s^n],method)$} & Function to align $n$ timeseries accounting\\
+                                        &for missing data using specified $method$\\                                        
 \hline
 %
 \end{tabular}
@@ -262,9 +268,11 @@ Find energy distribution by appliance and assign weights (To be used in results)
 
 \begin{algorithm}
 \DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
-\KwIn{Raw appliance, Mains 1 and 2 power data, Domain expertise about appliances	}
+\KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F$	}
 \KwOut{Disaggregated mains power data by appliance}
-Align mains and appliance power data timeseries\;
+\textbf{Align and Downsample}\;
+\For {$n \in {1,N}$ in sorted list of background loads}{nothng}
+
 Downsample mains and appliance power data timeseries using mean/median filter\;
 
 Using domain expertise separate the loads into background and foreground\;
