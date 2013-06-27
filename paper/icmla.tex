@@ -133,7 +133,7 @@ For a more detailed overview the reader is referred to the above mentioned surve
 
 
 \section{NIALM}
-NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}. A typical NIALM setup involves instrumenting the power mains with smart meters and the aim is to attribute the whole home electricity load perceived at the smart meter into different appliances. \figref{fig:disagg} shows the house mains disaggregated into 3 appliances.
+NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}. A typical NIALM setup involves instrumenting the power mains with smart meters and individual appliances with appliance meters for ground truth. \figref{fig:disagg} shows the house mains disaggregated into 3 appliances.
 
 \begin{figure} 
 	
@@ -226,14 +226,11 @@ y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}
 \end{equation}
 This optimization problem resembles subset sum problem \cite{knapsack} and is NP-complete. The state space of this optimization function is $K^N$, which means it is exponential in the number of appliances. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
 
-\textbf{Load subdivision}: In the US homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains, we leverage the load division to improve load disaggregation. We assign different loads to different mains, assigning $N_i$ loads to $Mains_i$, given by
+\textbf{Load subdivision}: In the US homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains given by where:
 \begin{equation}
 \sum\limits_{1}^{p}{N_i}=N
 \end{equation}
-After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances, state space before load division is given by $2^{20}$. After = $2^{10}$. Exponential reduction in state space.
-
-
-Highlight what is the simplification you are bringing forth.
+After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space. Moreover, this approach owing to the reduction in state space is expected to perform much better disaggregation.
 
 \section{INDiC NIALM}
 %\begin{figure}
@@ -385,7 +382,7 @@ Thus, we use the following metrics which have been used in the past work \cite{p
 \begin{equation}
 MNE(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n- \sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
 \end{equation} 
-\item \textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice given by:
+\item \textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice $t$ given by:
 \begin{equation}
 RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 \end{equation}
