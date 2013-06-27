@@ -226,13 +226,12 @@ y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}
 \end{equation}
 This optimization problem resembles subset sum problem \cite{knapsack} and is NP-complete. The state space of this optimization function is $K^N$, which means it is exponential in the number of appliances. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
 
-\begin{itemize}
-\item Statespace is 
-\item We assign different loads to different mains, $N_i$ loads to $Mains_i$, $\sum\limits_{1}^{p}{N_i}=N$. Now different state spaces are
-$K^{N_1}$.... We can define the overall state space as $\max{K^{N_i}}$
+\textbf{Load subdivision}: In the US homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains, we leverage the load division to improve load disaggregation. We assign different loads to different mains, assigning $N_i$ loads to $Mains_i$, given by
+\begin{equation}
+\sum\limits_{1}^{p}{N_i}=N
+\end{equation}
+After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances, state space before load division is given by $2^{20}$. After = $2^{10}$. Exponential reduction in state space.
 
-As a practical example, two mains, 20 appliance, state space before = $2^{20}$. After = $2^{10}$. Exponential reduction in state space.
-\end{itemize}
 
 Highlight what is the simplification you are bringing forth.
 
@@ -382,12 +381,14 @@ Commonly used metrics such as accuracy, sensitivity and specificity can be misle
 %Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches.
 Thus, we use the following metrics which have been used in the past work \cite{parson2012_aaai,redd}:
 \begin{itemize}
-\item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by 
-$$ MNE(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n- \sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} $$
-
-
-\item \textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice given by
-$$RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}$$
+\item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by:
+\begin{equation}
+MNE(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n- \sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
+\end{equation} 
+\item \textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice given by:
+\begin{equation}
+RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
+\end{equation}
 
 \end{itemize} 
 Since both these quantities represent error, the lesser they are the better is the prediction.
