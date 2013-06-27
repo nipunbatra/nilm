@@ -148,7 +148,7 @@ We use some terminologies from previous work and introduce some which are needed
 
 
 \begin{table}
-\caption{Terminologies}
+\caption{Terminologies and Functions}
 \label{tab:terms}
 \begin{tabular}{|l|l|}
 \hline
@@ -160,6 +160,7 @@ $\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Labeled power sequence for each appli
 $\theta^{M_1}=\{\theta_1^{M_1},...,\theta_T^{M_1}\}$ & Labeled power sequence for Mains 1\\
 $\theta^{M_2}=\{\theta_1^{M_2},...,\theta_T^{M_2}\}$ & Labeled power sequence for Mains 2\\
 $x=\{ x_1,..,x_T\}=\theta^{M_1}+\theta^{M_2}$ & Labeled aggregate power sequence\\
+$v=\{ v_1,..,v_T\}$ & Labeled voltage time series\\
 $e^{M_1}=\{e_1^{M_1},...,e_T^{M_1}\}$ & Noise power sequence for Mains 1\\
 $e^{M_2}=\{e_1^{M_2},...,e_T^{M_2}\}$ & Noise power sequence for Mains 2\\
 $e=\{e_1,...,e_T\}$ & Aggregate noise power sequence\\
@@ -185,8 +186,11 @@ $Contiguous\_Below\_$ & Function to find contiguous period where time \\
 $Mean(s,min\_period)$                  &series $s$ is below its mean \\
                                        &for atleast $min\_period$\\
 $Step\_Changes(s,$ & Function returning magnitude and times of step\\
-$threshold)$                  &changes occurring in time series $s$, whose \\
-                              &absolute value is greater than $threshold$\\                                                                       
+$threshold,interval)$                  &changes occurring in time series $s$ during \\
+                              &an $interval$ , whose absolute value is \\
+                              & greater than $threshold$\\
+\multirow{2}{*}{$Greater\_Than(s,threshold)$} & Function to return times when timeseries $s$ is\\
+                                        &greater than $threshold$\\                                                                                                    
                                                                                
 
 \hline
@@ -279,8 +283,8 @@ Find energy distribution by appliance and assign weights (To be used in results)
 
 \begin{algorithm}
 \DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
-\KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F$	}
-\KwOut{$y^n,\mu_k^n$}
+\KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F,v$	}
+\KwOut{$y^n,\mu_k^n, Calibrated\: \theta^n$}
 \textbf{Align and Downsample}\;
 \For {$n \in {1,N}$}
 	{
@@ -288,56 +292,51 @@ Find energy distribution by appliance and assign weights (To be used in results)
 	}
 $\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Align([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
 
-\textbf{Appliance to Mains mapping}\;
 $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
-$l^1 \gets Contiguous\_Below\_Mean (\theta^{M_1}, 2\: hours)$\;
-$l^2 \gets Contiguous\_Below\_Mean (\theta^{M_2}, 2\: hours)$\;
+
 \For{$Appliance\: n \in s$}
 	{
+	\textbf{Appliance to Mains mapping}\;
 	\If {$\theta^n > \theta^{M_1}\: for\: any\: t \in {1,T}$} 
 		{ $Mapping[n]=2$\;		
 		}  
 	\ElseIf {$\theta^n > \theta^{M_2}\: for\: any\: t \in {1,T}$}
 		{ $Mapping[n]=1$\;
 		}
+	\ElseIf {$n \in B$}
+		{
+		$t \gets Contiguous\_Below\_Mean (\theta^{M_1}, 2\: hours)$\;
+		}
+	\ElseIf {$n \in F$}
+		{
+		$t \gets Greater\_Than(\theta^n,100)$
+		}
+	\Else{
+		\If {$Step\_Changes(\theta^n,15,t).Times \subset Step\_Changes(\theta^{M_1},15,t).Times \& 
+		Step\_Changes(\theta^n,15,t).Magnitude\/
+		Step\_Changes(\theta^{M_1},15,t).Magnitude $}
+			{ 
+			$Mapping[n]=1$\;
+			}
+		\Else{
+			$Mapping[n]=2$\;	
+			}	
+		}
+	\textbf{Calibration} \;
+	$\theta^n \gets \theta^n * Step\_Changes(\theta^n,15,t).Magnitude \/
+			Step\_Changes(\theta^{M_{Mapping[n]}},15,t).Magnitude $ \;
+	$\theta^n \gets Normalize(\theta^n,v)$\; 
+	
+	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
+	
+	\textbf{Clustering}\;
+	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
+
 	
 	}
-Find consecutive time periods ($low\_activity$) of low or minimal electrical activity\;
-Sort background loads in decreasing order of peak power \;
-\For {$load$ in sorted list of background loads}
-	{
-	\If{$load > $ either Mains during $low\_activity$} {
-	Assign $load$ to other Mains\;	
-	}
-	\Else{
-	Find duty cycle of $load$ and compare with both Mains during $low\_activity$\;  
-	Assign $load$ to the Mains having power step up and down at same time as that of $load$\;	
-	}
-	Subtract $load$ from assigned Mains
-	}
-Sort foreground loads in decreasing order of peak power\;
-\For {$load$ in sorted list of foreground loads}
-	{
-%	Find $load\_used\_alone$ times when $load$ is used alone amongst unassigned loads and $load >$ 100 W\;
-	\If{$load > $ either Mains during entire timeseries} {
-	Assign $load$ to other Mains\;	
-	}
-	\Else{
-	Find time windows when $load >$ 100 W and find step changes occurring and their $times$ in $load$ during these time windows\;
-	Assign $load$ to the Mains where similar step changes are found in same $times$ during the time windows\;
-	}
-	Subtract $load$ from assigned Mains
-	}
-\For {$load$ in sorted list of loads}
-{
-Normalize power consumption of each load in case of voltage fluctuation\;
-Apply additive or multiplicative calibration to load based on step change occurring in $load$ and corresponding Mains\;
-Using prior knowledge about appliances apply clustering techniques to learn different states for loads\;
-}
-Create state space based on NILM algorithm\;
-Apply NILM algorithm on each Mains and set of loads in it
+Solve combinatorial optimization using equation...
 
-\Return{Disaggregated mains power data per appliance}\;
+\Return{$y^n$}\;
 \caption{INDiC}
 \label{algo:main}
 \end{algorithm}
