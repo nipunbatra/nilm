@@ -14,6 +14,7 @@
 \usepackage{caption}
 \usepackage{url}
 \usepackage{epstopdf}
+\usepackage{multirow}
 
 %\usepackage[pdftex]{graphicx}
 % % declare the path(s) where your graphic files are
@@ -143,20 +144,45 @@ NIALM is the process of disaggregating the total electrical load into constituen
   	\caption{The process of disaggregation}
     \label{fig:disagg}
 \end{figure}
-\subsection{Terminologies/ Notations}
-Borrow the notation used by Parson and Hart.
-\begin{itemize}
-\item Time slice: $t\in {1,..T}$
-\item Appliance: $n\in{1,..N}$
-\item Input: Aggregate power sequence: $x=\{ x_1,..,x_T\}$
-\item Input: Ground truth power sequence for each appliance: $\theta^n=\{\theta_1^n,...,\theta_T^n\}$
-\item Infer: Power draw by constituent appliance: $y^n=\{y_1^n,..y_T^n\}$
-\item Each appliance has $K$ (from k=1 to K )states and consumes $\mu_k$ power corresponding state
-\item Appliance state: $z^n=\{z_1^n,..z_T^n\}$ where  $z_i^n \in [1,..K]$ Also $z_{i,k}^n$ denotes whether $n^{th}$ appliance is in $k^{th}$ state at time $i$.
-\end{itemize}
+We use some terminologies from previous work and introduce some which are needed for our analysis in \tabref{tab:terms}. Based on these terminologies the NIALM problem in supervised setting may be formulated as predicting the power sequence for $n^{th}$ appliance, given by $y^n$, given the labeled power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
 
-\subsection{NIALM using combinatorial optimization}
-NIALM using combinatorial optimization (CO) resembles subset sum problem \cite{knapsack}. The aim is to minimize the difference of total observed power from the sum of various possible subsets coming from various combinations of appliances in different states. For each appliance we assume \textbf{K} states and at a given time, an appliance can only be in a single state. This is given as: 
+
+\begin{table}
+\caption{Terminologies}
+\label{tab:terms}
+\begin{tabular}{|l|l|}
+\hline
+Symbol&Meaning\\
+\hline
+$t\in {1,..T}$& Time slice\\
+$n\in{1,..N}$ & Appliance number\\
+$\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Labeled power sequence for each appliance\\
+$\theta^{M_1}=\{\theta_1^{M_1},...,\theta_T^{M_1}\}$ & Labeled power sequence for Mains 1\\
+$\theta^{M_2}=\{\theta_1^{M_2},...,\theta_T^{M_2}\}$ & Labeled power sequence for Mains 2\\
+$x=\{ x_1,..,x_T\}=\theta^{M_1}+\theta^{M_2}$ & Labeled aggregate power sequence\\
+$e^{M_1}=\{e_1^{M_1},...,e_T^{M_1}\}$ & Noise power sequence for Mains 1\\
+$e^{M_2}=\{e_1^{M_2},...,e_T^{M_2}\}$ & Noise power sequence for Mains 2\\
+$e=\{e_1,...,e_T\}$ & Aggregate noise power sequence\\
+$y^n=\{y_1^n,..y_T^n\}$ & Predicted power sequence for $n^{th}$ appliance\\
+$k\in {1,..K}$ & Appliance power state\\
+$z^n=\{z_1^n,..z_T^n\}$ & Appliance state sequence,$z_i^n \in [1,..K]$\\
+$z_{i,k}^n \in{0,1}$ & Whether $n^{th}$ appliance is in $k^{th}$ state at time $i$\\
+$\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance in $k^{th}$ state\\
+\multirow{2}{*}{$B$} & List of background appliances (which can run\\
+ 					 &without human intervention) eg. refrigerator\\
+\multirow{2}{*}{$F$} & List of foreground appliances (which are \\ 
+ 					 &operated by humans) eg. light, microwave\\
+\hline
+%
+\end{tabular}
+\end{table}
+
+\textbf{Combinatorial optimization}: If $n_{th}$ appliance is in $k_{th}$ state at , the total power consumption at a given time slice is given by:
+$\sum\lim\limits_{n=1}^{N}\mu^n$
+		
+
+NIALM using combinatorial optimization (CO) resembles subset sum problem \cite{knapsack}. 
+The aim is to minimize the difference of total observed power from the sum of various possible subsets coming from various combinations of appliances in different states. For each appliance we assume \textbf{K} states and at a given time, an appliance can only be in a single state. This is given as: 
 $z_{t,k}^n\in\{0,1\} $ and, $$\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$$. The power drawn by $n^{th}$ appliance in $k^{th}$ state is given by:
 $$\mu^n=\{\mu_1^n,..\mu_K^n\}$$ Thus, CO can be formulated as:
 $$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$$
@@ -175,14 +201,14 @@ As a practical example, two mains, 20 appliance, state space before = $2^{20}$. 
 Highlight what is the simplification you are bringing forth.
 
 \section{INDiC NIALM}
-\begin{figure}
-\centering \includegraphics[scale=0.1]{./figures/algo_3.png}
-\caption{Divide and Conquer NIALM}
-   \label{fig:algorithm}
-\end{figure}
+%\begin{figure}
+%\centering \includegraphics[scale=0.1]{./figures/algo_3.png}
+%\caption{Divide and Conquer NIALM}
+%   \label{fig:algorithm}
+%\end{figure}
 In this section we explain the various steps involved in DaCo-NIALM which is shown in \figref{fig:algorithm} or \algoref{algo:main}.
-\begin{enumerate}
-\item \textbf{Downsample and align raw data}: While performing Combinatorial Optimization it is desired that transients and fluctuations in the power signal are filtered. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by downsampling. 
+
+\textbf{Downsample and align raw data}: While performing Combinatorial Optimization it is desired that transients and fluctuations in the power signal are filtered. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by downsampling. 
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
 Further realignment amongst the appliance level data and mains level data is needed owing to different frequency of data collection and missing data.
 \begin{figure} 
@@ -197,7 +223,7 @@ Further realignment amongst the appliance level data and mains level data is nee
     \label{fig:downsampling}
 \end{figure}
 
-\item \textbf{Assigning Loads to Mains}:
+\textbf{Assigning Loads to Mains}:
 This step aims to identify the mapping between appliances and mains. Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are On even during periods of low human activity. Also loads with higher mean power consumption are easier to identify and thus we sort background loads based on power in descending order. For all such background loads we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). \figref{fig:assignment_1} shows how based on refrigerator duty cycle it is mapped to Mains 2. On similar lines assignment of foreground loads can be done.
 \begin{figure} 
 	
@@ -211,7 +237,7 @@ This step aims to identify the mapping between appliances and mains. Based on do
     \label{fig:assignment}
 \end{figure}
 
-\item \textbf{Appliance Power Calibration}: 
+\textbf{Appliance Power Calibration}: 
 Power measured by appliance level meters may need calibration due to the following reasons:
 \begin{itemize}
 \item Difference in measurement of different measurement instrument (diagram showing CC, ZWave, etc)
@@ -220,18 +246,18 @@ Power measured by appliance level meters may need calibration due to the followi
 
 \end{itemize}Since different hardware is used for measuring appliance and mains data there may be a need to calibrate the two. Since mains data is usually collected using better precision hardware, we keep mains data as a reference and calibrate appliance data against it. In practice we found appliance level monitors to usually provide only real power whereas the mains monitors can provide much more like reactive and active power. Like the previous step, time instances when an appliance in a particular mains is single used are identified. The ratio of mains and appliance power step changes occurring this window serve as the calibration factor for that appliance. Further each appliance power is corrected with the corresponding calibration factor.
 
-\item \textbf{Clustering to identify appliance states}:
+\textbf{Clustering to identify appliance states}:
 \begin{enumerate}
 \item Step changes occurring in Mains vs Appliances
 \item Isolating single appliance usage
 We use \cite{kmeansplusplus} to run our clustering
 \end{enumerate}
-\item Appliance states identification using clustering (Possibly talk about unbalanced data, but leave it for future work)
-\item State space creation
-\item Applying CO for different mains
-\item Find energy distribution by appliance and assign weights (To be used in results)
+Appliance states identification using clustering (Possibly talk about unbalanced data, but leave it for future work)
+State space creation
+Applying CO for different mains
+Find energy distribution by appliance and assign weights (To be used in results)
 
-\end{enumerate}
+
 
 
 \begin{algorithm}
@@ -372,7 +398,7 @@ Appliance & Mains & States Power (W)& States Power (W)\\
 \hline
 &&Pre calibration&Post calibration\\
 \hline
-Refrigerator & 2& 7,162,423 & 9,210,423\\
+Refrigerator & 2& 7,162,423 & 9,210,423\footnote{Could not be calibrated}\\
 Microwave &2& 10,832,1730& 10,832,1730\\
 Lighting & 2& 9,96,156&10,110,178\\
 Dishwasher & 1& 0,256, 1195 & 0,256, 1195\\
