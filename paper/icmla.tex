@@ -15,7 +15,7 @@
 \usepackage{url}
 \usepackage{epstopdf}
 \usepackage{multirow}
-
+\newcommand{\pushline}{\Indp}
 %\usepackage[pdftex]{graphicx}
 % % declare the path(s) where your graphic files are
 %\graphicspath{{../figures/}}
@@ -214,7 +214,7 @@ The overall power consumption of all appliances at a given time $t$ is given by:
 \end{equation}
 The error in power signal after the load assignment explained above is given by:
 \begin{equation}
-e^t=|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|
+e_t=|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|
 \end{equation}
 Combinatorial optimization aims to minimize this error term, by the following state assignment scheme:
 \begin{equation}
@@ -230,7 +230,7 @@ This optimization problem resembles subset sum problem \cite{knapsack} and is NP
 \begin{equation}
 \sum\limits_{1}^{p}{N_i}=N
 \end{equation}
-After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space. Moreover, this approach owing to the reduction in state space is expected to perform much better disaggregation.
+After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space. Moreover, this approach owing to the reduction in state space is expected to perform much better disaggregation. Also tackles both the problems- exponential state space and full power required to be known.
 
 \section{INDiC NIALM}
 %\begin{figure}
@@ -238,7 +238,7 @@ After load assignment to different mains, the state spaces for different mains a
 %\caption{Divide and Conquer NIALM}
 %   \label{fig:algorithm}
 %\end{figure}
-In this section we explain the various steps involved in DaCo-NIALM which is shown in \figref{fig:algorithm} or \algoref{algo:main}.
+In this section we explain the various steps involved in INDiC-NIALM which is shown in \algoref{algo:main}.
 
 \textbf{Downsample and align raw data}: While performing Combinatorial Optimization it is desired that transients and fluctuations in the power signal are filtered. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by downsampling. 
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
@@ -323,8 +323,8 @@ $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
 		$t \gets Greater\_Than(\theta^n,100)$
 		}
 	\Else{
-		\If {$Step\_Changes(\theta^n,15,t).Times \subset Step\_Changes(\theta^{M_1},15,t).Times \& 
-		Step\_Changes(\theta^n,15,t).Magnitude\/
+		\If {$Step\_Changes(\theta^n,15,t).Times \subset Step\_Changes(\theta^{M_1},15,t).Times \linebreak \&\: 
+		Step\_Changes(\theta^n,15,t).Magnitude\/ \linebreak
 		Step\_Changes(\theta^{M_1},15,t).Magnitude $}
 			{ 
 			$Mapping[n]=1$\;
@@ -334,8 +334,8 @@ $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
 			}	
 		}
 	\textbf{Calibration} \;
-	$\theta^n \gets \theta^n * Step\_Changes(\theta^n,15,t).Magnitude \/
-			Step\_Changes(\theta^{M_{Mapping[n]}},15,t).Magnitude $ \;
+	$\theta^n \gets \theta^n * Step\_Changes(\theta^n,15,t).Magnitude  \linebreak
+			\div Step\_Changes(\theta^{M_{Mapping[n]}},15,t).Magnitude $ \;
 	$\theta^n \gets Normalize(\theta^n,v)$\; 
 	
 	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
@@ -351,8 +351,6 @@ Solve combinatorial optimization using equation...
 \caption{INDiC}
 \label{algo:main}
 \end{algorithm}
-\subsection{Load assignment}
-Draws inspiration from work by Parson et. al \cite{parson2012_aaai}. From prior knowledge we divide the loads into two different categories: Periodic such as refrigerator and non periodic such as Television.
 
 \section{Evaluation}
 \subsection{About Dataset}
