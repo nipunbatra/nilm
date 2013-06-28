@@ -28,7 +28,7 @@
 %
 %\usepackage[cmex10]{amsmath}
 % *** SPECIALIZED LIST PACKAGES ***
-\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[boxed,ruled,vlined]{algorithm2e}
 
 % *** ALIGNMENT PACKAGES ***
 %
@@ -299,58 +299,66 @@ Find energy distribution by appliance and assign weights (To be used in results)
 \DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
 \KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F,v$	}
 \KwOut{$y^n,\mu_k^n, Calibrated\: \theta^n$}
+\BlankLine
 \textbf{Align and Downsample}\;
-\For {$n \in {1,N}$}
+\BlankLine
+\nl \For {$n \in {1,N}$}
 	{
 	$\theta^n \gets Downsample(\theta^n,mean,1\: minute)$\;
 	}
-$\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Align([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
+\nl$\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Align([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
 
-$s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
+\nl $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
 
-\For{$Appliance\: n \in s$}
+\nl \For{$Appliance\: n \in s$}
 	{
+	\BlankLine
 	\textbf{Appliance to Mains mapping}\;
-	\If {$\theta^n > \theta^{M_1}\: for\: any\: t \in {1,T}$} 
+	\BlankLine
+\nl	\If {$\theta^n > \theta^{M_1}\: for\: any\: t \in {1,T}$} 
 		{ $Mapping[n]=2$\;		
 		}  
-	\ElseIf {$\theta^n > \theta^{M_2}\: for\: any\: t \in {1,T}$}
+\nl	\ElseIf {$\theta^n > \theta^{M_2}\: for\: any\: t \in {1,T}$}
 		{ $Mapping[n]=1$\;
 		}
-	\ElseIf {$n \in B$}
+\nl	\ElseIf {$n \in B$}
 		{
-		$t \gets Contiguous\_Below\_Mean (\theta^{M_1}, 2\: hours)$\;
+\nl		$t \gets Contiguous\_Below\_Mean (\theta^{M_1}, 2\: hours)$\;
 		}
-	\ElseIf {$n \in F$}
+\nl	\ElseIf {$n \in F$}
 		{
 		$t \gets Greater\_Than(\theta^n,100)$
 		}
-	\Else{
-		\If {$Step\_Changes(\theta^n,15,t).Times \subset Step\_Changes(\theta^{M_1},15,t).Times \linebreak \&\: 
-		Step\_Changes(\theta^n,15,t).Magnitude\/ \linebreak
-		Step\_Changes(\theta^{M_1},15,t).Magnitude $}
+\nl	\Else{
+\nl		\If {$Step\_Changes(\theta^n,15,t).Times \subset Step\_Changes(\theta^{M_1},15,t).Times \linebreak \&\: 
+		Step\_Changes(\theta^n,15,t).Magnitude \div \linebreak
+		Step\_Changes(\theta^{M_1},15,t).Magnitude \approx Constant\:C$}
 			{ 
 			$Mapping[n]=1$\;
 			}
-		\Else{
+\nl		\Else{
 			$Mapping[n]=2$\;	
 			}	
 		}
+	\BlankLine
 	\textbf{Calibration} \;
-	$\theta^n \gets \theta^n * Step\_Changes(\theta^n,15,t).Magnitude  \linebreak
+	\BlankLine
+\nl	$\theta^n \gets \theta^n * Step\_Changes(\theta^n,15,t).Magnitude  \linebreak
 			\div Step\_Changes(\theta^{M_{Mapping[n]}},15,t).Magnitude $ \;
-	$\theta^n \gets Normalize(\theta^n,v)$\; 
+\nl	$\theta^n \gets Normalize(\theta^n,v)$\; 
 	
-	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
+\nl	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
 	
+	\BlankLine
 	\textbf{Clustering}\;
-	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
+	\BlankLine
+\nl	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
 
 	
 	}
-Solve combinatorial optimization using equation...
+\nl Solve combinatorial optimization using equations 1-6
 
-\Return{$y^n$}\;
+\nl \Return{$y^n$}\;
 \caption{INDiC}
 \label{algo:main}
 \end{algorithm}
@@ -380,7 +388,7 @@ Thus, we use the following metrics which have been used in the past work \cite{p
 \begin{itemize}
 \item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by:
 \begin{equation}
-MNE(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n- \sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
+MNE(n)=\frac{\sum\limits_{t=1}^{T}|\theta_t^n-y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
 \end{equation} 
 \item \textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice $t$ given by:
 \begin{equation}
@@ -438,19 +446,19 @@ We had used Combinatorial Optimization which is the simplest NIALM technique to 
 %\centering
 %%% Some packages, such as MDW tools, offer better commands for making tables
 %%% than the plain LaTeX2e tabular which is used here.
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
 \hline
-Appliance & Mains & States Power (W)& States Power (W)\\
+Appliance & Mains & \multicolumn{6}{|c|}{States Power (W)}\\
 \hline
-&&Pre calibration&Post calibration\\
+&&\multicolumn{3}{|c|}{Pre calibration}&\multicolumn{3}{|c|}{Post calibration}\\
 \hline
-Refrigerator & 2& 7,162,423 & 9,210,423\footnote{Could not be calibrated}\\
-Microwave &2& 10,832,1730& 10,832,1730\\
-Lighting & 2& 9,96,156&10,110,178\\
-Dishwasher & 1& 0,256, 1195 & 0,256, 1195\\
-Stove& 1 & 0,374& 0,374\\
-Kitchen & 1& 5,727&5,727\\
-Kitchen 2&1 & 1,204,1032&1,204,1032 \\
+Refrigerator & 2& 7&162&423 & 9&210&423\footnote{Could not be calibrated}\\
+Microwave &2& 10&832&1730& 10&832&1730\\
+Lighting & 2& 9&96&156&10&110&178\\
+Dishwasher & 1& 0&256& 1195 & 0&256& 1195\\
+Stove& 1 & 0&374&-& 0&374&-\\
+Kitchen & 1& 5&727&-&5&727&-\\
+Kitchen 2&1 & 1&204&1032&1&204&1032 \\
 %
 %
 \hline
