@@ -115,7 +115,7 @@ NIALM is the process of disaggregating the total electrical load into constituen
   	\caption{The process of disaggregation}
     \label{fig:disagg}
 \end{figure}
-We use some terminologies from previous work and introduce some which are needed for our analysis in \tabref{tab:terms}. Based on these terminologies the NIALM problem in supervised setting may be formulated as predicting the power sequence for $n^{th}$ appliance, given by $y^n$, given the labeled power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
+We use some terminologies from previous work \cite{redd,parson2012_aaai,hart} and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, the NIALM problem in supervised setting can be formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the labeled power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
 
 
 \begin{table}
@@ -174,7 +174,7 @@ $threshold,interval)$                  &changes occurring in time series $s$ dur
 \end{table}
 
 \textbf{Combinatorial optimization}:
-We follow 1-of-K coding scheme for appliance states and thus we have:
+At a given time an appliance can only be in a single state. Thus,we follow 1-of-K coding scheme for appliance states we have:
 \begin{equation}
 \sum\limits_{k=1}^{k=K} z_{t,k}^n=1
 \end{equation}
@@ -204,7 +204,7 @@ This optimization problem resembles subset sum problem \cite{knapsack} and is NP
 \begin{equation}
 \sum\limits_{1}^{p}{N_i}=N
 \end{equation}
-After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space. Moreover, this approach owing to the reduction in state space is expected to perform much better disaggregation. Also tackles both the problems- exponential state space and full power required to be known.
+After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space. Moreover, this approach owing to the reduction in state space is expected to improve disaggregation results. \textbf{Unsure where to put why Load Division is expected to improve results}
 
 \section{INDiC NIALM}
 %\begin{figure}
@@ -212,11 +212,13 @@ After load assignment to different mains, the state spaces for different mains a
 %\caption{Divide and Conquer NIALM}
 %   \label{fig:algorithm}
 %\end{figure}
-In this section we explain the various steps involved in INDiC-NIALM which is shown in \algoref{algo:main}.
+In this section we explain our algorithm- Improved Non intrusive load monitoring using load Division and Calibration (INDiC). While INDiC can be used with any modeling technique such as Hidden Markov Models\cite{rabiner}, combinatorial optimization, etc., we present INDiC-CO (INDiC using Combinatorial optimization as modeling approach). The various steps of INDiC-CO NIALM shown in \algoref{algo:main} are described below. 
 
-\textbf{Downsample and align raw data}: While performing Combinatorial Optimization it is desired that transients and fluctuations in the power signal are filtered. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by downsampling. 
+\textbf{Preprocessing}: Since multiple data streams (appliances and mains power time series) from varied hardware are used to produce data for NIALM applications, it is highly likely that some hardware malfunctions during the data collection process. In the preprocessing step we ensure that all the time series start and end at the same time. Moreover, small gaps in data collection can be filled using techniques such as forward filling(padding).
+
+\textbf{Downsampling}: While performing CO it is desired that transients and fluctuations in the power signal are filtered\cite{hart}. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by down sampling. Filters such mean/median can be used to down sample a time series, whereby, where the value assigned to a time window is the mean/median of values occurring during that time window.
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
-Further realignment amongst the appliance level data and mains level data is needed owing to different frequency of data collection and missing data.
+
 \begin{figure} 
 	
     \subfloat[\scriptsize Filtering startup transients]{
@@ -229,8 +231,8 @@ Further realignment amongst the appliance level data and mains level data is nee
     \label{fig:downsampling}
 \end{figure}
 
-\textbf{Assigning Loads to Mains}:
-This step aims to identify the mapping between appliances and mains. Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are On even during periods of low human activity. Also loads with higher mean power consumption are easier to identify and thus we sort background loads based on power in descending order. For all such background loads we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). \figref{fig:assignment_1} shows how based on refrigerator duty cycle it is mapped to Mains 2. On similar lines assignment of foreground loads can be done.
+\textbf{Assigning Loads to Mains\footnote{While we provide methods for 2 Mains, it can be easily extended}}:
+This step aims to identify the mapping between appliances and mains. Patterns corresponding to appliances having higher peak power are generally easier to extract from main signal, thus we sort the appliance in decreasing order of peak power. usage are easier to Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are On even during periods of low human activity. Also loads with higher mean power consumption are easier to identify and thus we sort background loads based on power in descending order. For all such background loads we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). \figref{fig:assignment_1} shows how based on refrigerator duty cycle it is mapped to Mains 2. On similar lines assignment of foreground loads can be done.
 \begin{figure} 
 	
     \subfloat[\scriptsize Assigning refrigerator to Mains 2 since refrigerator power $>$ Mains 1 power and on basis of duty cycle]{
