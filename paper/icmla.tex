@@ -16,38 +16,12 @@
 \usepackage{epstopdf}
 \usepackage{multirow}
 \newcommand{\pushline}{\Indp}
-%\usepackage[pdftex]{graphicx}
-% % declare the path(s) where your graphic files are
-%\graphicspath{{../figures/}}
-%  % and their extensions so you won't have to specify these with
-%  % every instance of \includegraphics
-%\DeclareGraphicsExtensions{.pdf,.jpeg,.png}
 \else
 \fi
-% *** MATH PACKAGES ***
-%
-%\usepackage[cmex10]{amsmath}
-% *** SPECIALIZED LIST PACKAGES ***
+
 \usepackage[boxed,ruled,vlined]{algorithm2e}
 
 % *** ALIGNMENT PACKAGES ***
-%
-%\usepackage{array}
-%\usepackage{mdwmath}
-%\usepackage{mdwtab}
-%\usepackage{eqparbox}
-% *** SUBFIGURE PACKAGES ***
-%\usepackage[tight,footnotesize]{subfigure}
-%\usepackage[caption=false]{caption}
-%\usepackage[font=footnotesize]{subfig}
-
-% *** FLOAT PACKAGES ***
-%
-%\usepackage{fixltx2e}
-%\usepackage{stfloats}
-% *** PDF, URL AND HYPERLINK PACKAGES ***
-%\usepackage{url}
-% correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 
@@ -58,10 +32,7 @@
 \title{INDiC: Improved Non intrusive load monitoring using load Division and Calibration}
 
 
-% author names and affiliations
-% use a multiple column layout for up to three different
-% affiliations
-\author{\IEEEauthorblockN{Author1}
+\author{\IEEEauthorblockN{Nipun Batra}
 \IEEEauthorblockA{Indraprastha Institute of Information Technology\\
 India\\
 }
@@ -275,7 +246,7 @@ This step aims to identify the mapping between appliances and mains. Based on do
 \textbf{Appliance Power Calibration}: 
 Power measured by appliance level meters may need calibration due to the following reasons:
 \begin{itemize}
-\item Difference in measurement of different measurement instrument (diagram showing CC, ZWave, etc)
+\item Difference in measurement of different measurement instrument (diagram showing CC, ZWave, etc) \cite{berges2008}
 \item Fluctuation in voltage cause power to fluctuate as well
 \item Missing meta data, whether real or apparent power is being measured at appliance level
 
