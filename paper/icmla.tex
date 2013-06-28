@@ -179,6 +179,9 @@ $Mapping[n] \in {1,2}$ & Mapping of $n^{th}$ appliance to Mains\\
 \hline
 $Downsample(s,filter,$ & Function to downsample a timeseries $s$ to\\
 $interval)$                                        & an $interval$ according to specified $filter$\\
+$Normalize(s,v,$ & Function to normalize a power timeseries $s$\\
+$Rated\_Voltage)$                                 & given voltage timeseries $v$ according to\\
+                                        &the formula: $(\frac{Rated\_Voltage}{v})^2s$\\
 \multirow{2}{*}{$Align([s^1,..s^n],method)$} & Function to align $n$ timeseries accounting\\
                                         &for missing data using specified $method$\\
 \multirow{2}{*}{$Sort([s^1,..s^n],rule,order)$} & Function to sort $n$ timeseries according\\
@@ -353,7 +356,6 @@ Solve combinatorial optimization using equation...
 \end{algorithm}
 
 \section{Evaluation}
-\subsection{About Dataset}
 
 We use Reference Energy Disaggregation Data Set (REDD) \cite{redd} for validating our algorithms. This dataset contains power and voltage data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~0.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. 
 
