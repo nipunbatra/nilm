@@ -153,8 +153,9 @@ $interval)$                                        & an $interval$ according to 
 $Normalize(s,v,$ & Function to normalize a power timeseries $s$\\
 $Rated\_Voltage)$                                 & given voltage timeseries $v$ according to\\
                                         &the formula: $(\frac{Rated\_Voltage}{v})^2s$\\
-\multirow{2}{*}{$Align([s^1,..s^n],method)$} & Function to align $n$ timeseries accounting\\
-                                        &for missing data using specified $method$\\
+\multirow{3}{*}{$Preprocess([s^1,..s^n],method)$} & Function to ensure that $n$ timeseries start and\\
+                                        &end at same times and handling missing\\
+                                        & data using specified $method$\\
 \multirow{2}{*}{$Sort([s^1,..s^n],rule,order)$} & Function to sort $n$ timeseries according\\
                                         &to $rule$ in specified $order$\\
 $Contiguous\_Below\_$ & Function to find contiguous period where time \\
@@ -273,13 +274,17 @@ Find energy distribution by appliance and assign weights (To be used in results)
 \KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F,v$	}
 \KwOut{$y^n,\mu_k^n, Calibrated\: \theta^n$}
 \BlankLine
-\textbf{Align and Downsample}\;
+\textbf{Preprocessing}\;
+\BlankLine
+\nl$\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Preprocess([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
+\BlankLine
+\textbf{Downsampling}
 \BlankLine
 \nl \For {$n \in {1,N}$}
 	{
 	$\theta^n \gets Downsample(\theta^n,mean,1\: minute)$\;
 	}
-\nl$\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Align([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
+
 
 \nl $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
 
