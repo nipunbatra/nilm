@@ -76,31 +76,33 @@ Primary contributions of our work are:
 Open source implementation of the proposed work is released for comparative analysis with other NIALM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. We believe this is the first extensive release of a generic NIALM
 
 \section{Related work}
-NIALM has been well studied in the recent past and survey papers \cite{survey1,survey2,survey3} present its classification across various dimensions. Following are three important classification dimensions:
+\noindent Non-intrusive appliance load monitoring was first studied by Hart~\cite{hart} in the early 1990s by examining signatures in aggregated load to indicate activities of appliances. The problem has been well studied in recent years and survey papers \cite{survey1,survey2,survey3} present its classification across various dimensions including:
 \begin{itemize}
-\item \textbf{Frequency of data collection}: Approaches such as harmonic analysis require data to be sampled at more than a thousand samples a second. Whereas approaches 
-\item \textbf{Supervised/Unsupervised}: 
-\end{itemize}
-When you do the comparison, bring up how is your work different rather than just saying X did A and Y did B.
-\begin{itemize}
-\item Classification of different NIALM approaches - High/Low frequency, Time/Frequency domain analysis, supervised/unsupervised~\cite{survey1,survey2,survey3}.
-
-For a more detailed overview the reader is referred to the above mentioned survey papers.
-
-\item Discuss the modeling approaches that are used
-\begin{itemize}
-\item Additive Factorial HMM
-\item Difference HMM \cite{parson2012_aaai}
-\end{itemize}
-
-\item Datasets used: Recent datasets have spurred this field
-\begin{itemize}
-\item REDD \cite{redd}
-\item Blued \cite{blued_cmu}
-\item Smart* \cite{smart}
-\end{itemize}
+\item \textbf{Frequency of data collection}:[REWRITE] Approaches such as harmonic analysis require data to be sampled at more than a thousand samples a second. Whereas approaches 
+\item \textbf{Supervised/Unsupervised}: Supervised learning techniques include optimization-based methods such as integer programming \cite{Suzuki_08} and genetic algorithms \cite{Baranski_04}. These approaches are compute intensive and appliances with similar or overlapping load signatures are difficult to discern. Machine Learning techniques (such as Artificial Neural Network (ANNs) \cite{Ruzzelli_10} and Hidden Markov Models (HMM)\cite{Zia_11}), on the other hand, have been shown to work well for load disaggregation. Variants such as factorial hidden Markov models (FHMMs) \cite{Ghahramani_97a}, additive FHMMs \cite{Kolter_12}, conditional factorial hidden semi-Markov models \cite{Kim_11} and difference HMMs \cite{parson2012_aaai} have also been applied to the task. In factorial HMMs several models evolve independently and in parallel and the observed output is some joint function of all the hidden states; additive HMMs allow emission of a single real-valued (unobserved) output from each HMM and the output is the sum of these HMMs. The applicability of these sophisticated techniques are generally hindered by the difficulty of inference from models with a large number of HMMs. In this paper, we put forward a simple idea -- the aggregated load can be further split up by knowledge of mains and which appliance is assigned to which main. This would make the task of disaggregation inherently easier and any of the above sophisticated modeling approaches can still be applied to the task\footnote{The use of combinatorial optimization is only for the purpose of illustration and there is clearly no requirement to adhere to this modeling technique alone.}. 
 
 \end{itemize}
+Finally, several datasets have been made available publicly including REDD\cite{redd}, Blued\cite{blued_cmu} and Smart*\cite{smart}. Our empirical analysis is on the REDD data primarily because this dataset has been used extensively in evaluation of NIALM techniques and the performance of our approach is directly comparable to state-of-the-art techniques. 
+%When you do the comparison, bring up how is your work different rather than just saying X did A and Y did B.
+%\begin{itemize}
+%\item Classification of different NIALM approaches - High/Low frequency, Time/Frequency domain analysis, supervised/unsupervised~\cite{survey1,survey2,survey3}.
+
+%For a more detailed overview the reader is referred to the above mentioned survey papers.
+
+%%\item Discuss the modeling approaches that are used
+%%\begin{itemize}
+%%\item Additive Factorial HMM
+%%\item Difference HMM \cite{parson2012_aaai}
+%%\end{itemize}
+
+%\item Datasets used: Recent datasets have spurred this field
+%\begin{itemize}
+%\item REDD \cite{redd}
+%\item Blued \cite{blued_cmu}
+%\item Smart* \cite{smart}
+%\end{itemize}
+
+%\end{itemize}
 
 
 \section{NIALM}
@@ -275,7 +277,7 @@ Find energy distribution by appliance and assign weights (To be used in results)
 
 
 \begin{algorithm}
-\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
+%\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
 \KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F,v$	}
 \KwOut{$y^n,\mu_k^n, Calibrated\: \theta^n$}
 \BlankLine

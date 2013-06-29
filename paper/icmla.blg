@@ -1,19 +1,9 @@
-This is BibTeX, Version 0.99d (TeX Live 2012/Debian)
-Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+This is BibTeX, Version 0.99c (Web2C 7.5.6)
 The top-level auxiliary file: icmla.aux
 The style file: IEEEtran.bst
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
-Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: IEEEabrv.bib
 Database file #2: references.bib
-I was expecting a `,' or a `}'---line 199 of file references.bib
- : 
- : %YEAR=2012
-(Error may have been on previous line)
-I'm skipping whatever remains of this entry
 -- IEEEtran.bst version 1.12 (2007/01/11) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
@@ -21,45 +11,45 @@ Warning--empty journal in blued_cmu
 Warning--empty year in blued_cmu
 
 Done.
-You've used 13 entries,
+You've used 20 entries,
             4024 wiz_defined-function locations,
-            1250 strings with 16614 characters,
-and the built_in function-call counts, 9112 in all, are:
-= -- 714
-> -- 203
-< -- 73
-+ -- 116
-- -- 40
-* -- 437
-:= -- 1370
-add.period$ -- 27
-call.type$ -- 13
-change.case$ -- 12
-chr.to.int$ -- 174
-cite$ -- 15
-duplicate$ -- 661
-empty$ -- 779
-format.name$ -- 43
-if$ -- 2083
+            1296 strings with 18021 characters,
+and the built_in function-call counts, 15377 in all, are:
+= -- 1184
+> -- 358
+< -- 133
++ -- 205
+- -- 64
+* -- 729
+:= -- 2213
+add.period$ -- 42
+call.type$ -- 20
+change.case$ -- 19
+chr.to.int$ -- 330
+cite$ -- 22
+duplicate$ -- 1095
+empty$ -- 1332
+format.name$ -- 74
+if$ -- 3583
 int.to.chr$ -- 0
-int.to.str$ -- 13
-missing$ -- 111
-newline$ -- 62
-num.names$ -- 13
-pop$ -- 270
+int.to.str$ -- 20
+missing$ -- 184
+newline$ -- 83
+num.names$ -- 20
+pop$ -- 459
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 707
+skip$ -- 1199
 stack$ -- 0
-substring$ -- 434
-swap$ -- 510
-text.length$ -- 15
+substring$ -- 799
+swap$ -- 867
+text.length$ -- 23
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 13
+type$ -- 20
 warning$ -- 2
-while$ -- 41
-width$ -- 15
-write$ -- 138
-(There was 1 error message)
+while$ -- 66
+width$ -- 22
+write$ -- 202
+(There were 2 warnings)
