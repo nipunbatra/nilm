@@ -181,6 +181,7 @@ $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 
 This optimization problem resembles subset sum problem \cite{knapsack} and is NP-complete. The state space of this optimization function is $K^N$, which means it is exponential in the number of appliances. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
 
+\textbf{what to use consistently- load division or appliance}
 \textbf{Load division}: In the US, homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains/meters, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains given by where: $\sum\limits_{1}^{p}{N_i}=N$
 After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space, which also leads to an exponential decrease in running time.
 \textbf{Where to write that we can also benefit by parallelizing} 
@@ -194,7 +195,7 @@ After load assignment to different mains, the state spaces for different mains a
 %\end{figure}
 In this section we explain our algorithm- Improved Non intrusive load monitoring using load Division and Calibration (INDiC). While INDiC can be used with any modeling technique such as Hidden Markov Models\cite{rabiner}, combinatorial optimization, etc., we present INDiC-CO (INDiC using Combinatorial optimization as modeling approach). The various steps of INDiC-CO NIALM shown in \algoref{algo:main} are described below. 
 
-\textbf{Preprocessing}: Since multiple data streams (appliances and mains power time series) from varied hardware are used to produce data for NIALM applications, it is highly likely that some hardware malfunctions during the data collection process. In the preprocessing step we ensure that all the time series start and end at the same time. Moreover, small gaps in data collection can be filled using techniques such as forward filling(padding).
+\textbf{Preprocessing}: Since multiple data streams (appliances and mains power time series) from varied hardware are used to produce data for NIALM applications, it is highly likely that some hardware malfunctions during the data collection process. In the preprocessing step we ensure that all the time series start and end at the same time and handle missing data using techniques such as forward filling(padding).
 
 \textbf{Downsampling}: While performing CO it is desired that transients and fluctuations in the power signal are filtered\cite{hart}. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by down sampling. Filters such mean/median can be used to down sample a time series, whereby, where the value assigned to a time window is the mean/median of values occurring during that time window.
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
@@ -203,10 +204,10 @@ In this section we explain our algorithm- Improved Non intrusive load monitoring
 	
     \subfloat[\scriptsize Filtering startup transients]{
     \label{fig:downsample_startup}
-    \includegraphics[scale=0.14]{./figures/downsample_1.png}}
+    \includegraphics[scale=0.12]{./figures/downsample_1.png}}
     \subfloat[\scriptsize Filtering voltage fluctuations and oscillations]{
         \label{fig:downsample_voltage}
-        \includegraphics[scale=0.14]{./figures/downsample_2.png}}
+        \includegraphics[scale=0.12]{./figures/downsample_2.png}}
   	\caption{Effect of downsampling appliance data}
     \label{fig:downsampling}
 \end{figure}
@@ -217,10 +218,10 @@ This step aims to identify the mapping between appliances and mains. Patterns co
 	
     \subfloat[\scriptsize Assigning refrigerator to Mains 2 since refrigerator power $>$ Mains 1 power and on basis of duty cycle]{
     \label{fig:assignment_1}
-    \includegraphics[scale=0.132]{./figures/ref_assign.png}}
+    \includegraphics[scale=0.127]{./figures/ref_assign.png}}
     \subfloat[\scriptsize Calibrating Refrigerator Power consumption]{
         \label{fig:assignment_2}
-        \includegraphics[scale=0.132]{./figures/ref_calibrate.png}}
+        \includegraphics[scale=0.127]{./figures/ref_calibrate.png}}
   	\caption{Calibrating and assigning refrigerator to Mains 2 }
     \label{fig:assignment}
 \end{figure}
