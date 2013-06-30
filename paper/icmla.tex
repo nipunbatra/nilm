@@ -162,13 +162,13 @@ $threshold,interval)$                  &step events in time series $s$ during \\
 
 \textbf{Combinatorial optimization}:
 At a given time an appliance can only be in a single state. Thus,we follow 1-of-K coding scheme for appliance states we have:
-\begin{equation}
-\sum\limits_{k=1}^{k=K} z_{t,k}^n=1
-\end{equation}
+
+$\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$
+
 The power consumption by $n^{th}$ appliance in $k^{th}$ state at time $t$ is given by:
-\begin{equation}
-\hat{\theta}^n_{t,k}=\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n
-\end{equation}
+
+$\hat{\theta}^n_{t,k}=\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$
+
 The overall power consumption of all appliances at a given time $t$ is given by:
 \begin{equation}
 \hat{x}_{t}=\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n
@@ -270,33 +270,36 @@ Find energy distribution by appliance and assign weights (To be used in results)
 	{
 	$\theta^n \gets Downsample(\theta^n,mean,1\: minute)$\;
 	}
+\nl $\theta^{M_1} \gets Downsample(\theta^{M_1},mean,1\: minute)$\;
+\nl $\theta^{M_2} \gets Downsample(\theta^{M_2},mean,1\: minute)$\;
 
 
 \nl $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
-
+\BlankLine
+\textbf{Appliance to Mains mapping}\;
+\BlankLine
 \nl \For{$Appliance\: n \in s$}
 	{
-	\BlankLine
-	\textbf{Appliance to Mains mapping}\;
-	\BlankLine
+	
 \nl	\If {$\theta^n_t > \theta^{M_1}_t\: for\: any\: t \in {1,T}$} 
 		{ $Mapping[n]=2$\;		
 		}  
 \nl	\ElseIf {$\theta^n_t > \theta^{M_2}_t\: for\: any\: t \in {1,T}$}
 		{ $Mapping[n]=1$\;
 		}
-\nl	\ElseIf {$n \in B$}
-		{
-\nl		$w \gets Contiguous\_Below\_Mean (\theta^{M_1}, 2\: hours)$\;
-		}
-\nl	\ElseIf {$n \in F$}
-		{
-		$w \gets Greater\_Than(\theta^n,100)$
-		}
+%\nl	\ElseIf {$n \in B$}
+%		{
+%\nl		$w \gets Contiguous\_Below\_Mean (\theta^{M_1}, 2\: hours)$\;
+%		}
+%\nl	\ElseIf {$n \in F$}
+%		{
+%		$w \gets Greater\_Than(\theta^n,100)$
+%		}
 \nl	\Else{
-\nl		\If {$Step\_Changes(\theta^n,15,w).Times \subset Step\_Changes(\theta^{M_1},15,w).Times \linebreak \&\: 
-		Step\_Changes(\theta^n,15,w).Magnitude \div \linebreak
-		Step\_Changes(\theta^{M_1},15,w).Magnitude \approx Constant\:C$}
+\nl		\If {$Event\_Detection(\theta^n,15).Times \subset Event\_Detection(\theta^{M_1},15,w).Times$ %\linebreak \&\: 
+%		Step\_Changes(\theta^n,15,w).Magnitude \div \linebreak
+%		Step\_Changes(\theta^{M_1},15,w).Magnitude \approx Constant\:C$
+		}
 			{ 
 			$Mapping[n]=1$\;
 			}
@@ -304,18 +307,23 @@ Find energy distribution by appliance and assign weights (To be used in results)
 			$Mapping[n]=2$\;	
 			}	
 		}
+	\nl	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
+	}
 	\BlankLine
 	\textbf{Calibration} \;
 	\BlankLine
+	\For{$n \in {1,N}$}{
+	
 \nl	$\theta^n \gets \theta^n * Step\_Changes(\theta^n,15,w).Magnitude  \linebreak
 			\div Step\_Changes(\theta^{M_{Mapping[n]}},15,w).Magnitude $ \;
 \nl	$\theta^n \gets Normalize(\theta^n,v)$\; 
 	
-\nl	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
+}
 	
 	\BlankLine
 	\textbf{Clustering}\;
 	\BlankLine
+	\For{$n \in {1,N}$}{
 \nl	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
 
 	
