@@ -96,7 +96,7 @@ NIALM is the process of disaggregating the total electrical load into constituen
   	\caption{The process of disaggregation}
     \label{fig:disagg}
 \end{figure}
-We use some terminologies from previous work \cite{redd,parson2012_aaai,hart} and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, the NIALM problem in supervised setting can be formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the labeled power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
+We use some terminologies from previous work \cite{redd,parson2012_aaai,hart} and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, the NIALM problem in supervised setting can be formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
 
 
 \begin{table}
@@ -160,34 +160,31 @@ $threshold,interval)$                  &step events in time series $s$ during \\
 \end{table}
 
 \textbf{Combinatorial optimization}:
-At a given time an appliance can only be in a single state. Thus,we follow 1-of-K coding scheme for appliance states we have:
-
+At a given time an appliance can only be in a single state which is given by:
 $\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$
 
 The power consumption by $n^{th}$ appliance in $k^{th}$ state at time $t$ is given by:
-
 $\hat{\theta}^n_{t,k}=\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$
 
 The overall power consumption of all appliances at a given time $t$ is given by:
-\begin{equation}
-\hat{x}_{t}=\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n
-\end{equation}
+$\hat{x}_{t}=\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$
+
 The error in power signal after the load assignment explained above is given by:
-\begin{equation}
-e_t=|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|
-\end{equation}
-Combinatorial optimization aims to minimize this error term, by the following state assignment scheme:
-\begin{equation}
-z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|
-\end{equation}
+
+$e_t=|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$
+
+Combinatorial optimization tries to find the optimal combination of appliances in different states which will minimize this error term, by the following state assignment scheme:
+$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$
+
 The corresponding predicted power draw by $n^{th}$ appliance is given by:
-\begin{equation}
-y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}
-\end{equation}
+$y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
+
 This optimization problem resembles subset sum problem \cite{knapsack} and is NP-complete. The state space of this optimization function is $K^N$, which means it is exponential in the number of appliances. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
 
-\textbf{Load subdivision}: In the US homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains given by where$\sum\limits_{1}^{p}{N_i}=N$
-After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space. Moreover, this approach owing to the reduction in state space is expected to improve disaggregation results. \textbf{Unsure where to put why Load Division is expected to improve results}
+\textbf{Load division}: In the US, homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains/meters, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains given by where: $\sum\limits_{1}^{p}{N_i}=N$
+After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space, which also leads to an exponential decrease in running time.
+\textbf{Where to write that we can also benefit by parallelizing} 
+%Moreover, this approach owing to the reduction in state space is expected to improve disaggregation results. \textbf{Unsure where to put why Load Division is expected to improve results}
 
 \section{INDiC NIALM}
 %\begin{figure}
