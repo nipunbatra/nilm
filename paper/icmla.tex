@@ -108,20 +108,19 @@ Symbol&Meaning\\
 \hline
 $t\in {1,..T}$& Time slice\\
 $n\in{1,..N}$ & Appliance number\\
-$\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Labeled power sequence for each appliance\\
-$\theta^{M_1}=\{\theta_1^{M_1},...,\theta_T^{M_1}\}$ & Labeled power sequence for Mains 1\\
-$\theta^{M_2}=\{\theta_1^{M_2},...,\theta_T^{M_2}\}$ & Labeled power sequence for Mains 2\\
-$x=\{ x_1,..,x_T\}=$ & Labeled aggregate power sequence\\
+$\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Measured power sequence for each appliance\\
+$\theta^{M_1}=\{\theta_1^{M_1},...,\theta_T^{M_1}\}$ & Measured power sequence for Mains 1\\
+$\theta^{M_2}=\{\theta_1^{M_2},...,\theta_T^{M_2}\}$ & Measured power sequence for Mains 2\\
+$x=\{ x_1,..,x_T\}=$ & Measured aggregate power sequence\\
 $\theta^{M_1}+\theta^{M_2}$ &\\
-$v=\{ v_1,..,v_T\}$ & Labeled voltage time series\\
-$e^{M_1}=\{e_1^{M_1},...,e_T^{M_1}\}$ & Noise power sequence for Mains 1\\
-$e^{M_2}=\{e_1^{M_2},...,e_T^{M_2}\}$ & Noise power sequence for Mains 2\\
+%$v=\{ v_1,..,v_T\}$ & Labeled voltage time series\\
+%$e^{M_1}=\{e_1^{M_1},...,e_T^{M_1}\}$ & Noise power sequence for Mains 1\\
+%$e^{M_2}=\{e_1^{M_2},...,e_T^{M_2}\}$ & Noise power sequence for Mains 2\\
 $e=\{e_1,...,e_T\}$ & Aggregate noise power sequence\\
 $y^n=\{y_1^n,..y_T^n\}$ & Predicted power sequence for $n^{th}$ appliance\\
 $k\in {1,..K}$ & Appliance power state\\
 $z^n=\{z_1^n,..z_T^n\}$ & Appliance state sequence,$z_i^n \in [1,..K]$\\
-$z_{t,k}^n \in{0,1}$ & 1 of K coding for whether $n^{th}$ \\
-&appliance is in $k^{th}$ state at time $t$\\
+$z_{t,k}^n \in{0,1}$ & Whether $n^{th}$ appliance is in $k^{th}$ state at time $t$\\
 $\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance in $k^{th}$ state\\
 $Mapping[n] \in {M^1,M^2}$ & Mapping of $n^{th}$ appliance to Mains\\
 %\hline
@@ -187,10 +186,7 @@ y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}
 \end{equation}
 This optimization problem resembles subset sum problem \cite{knapsack} and is NP-complete. The state space of this optimization function is $K^N$, which means it is exponential in the number of appliances. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
 
-\textbf{Load subdivision}: In the US homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains given by where:
-\begin{equation}
-\sum\limits_{1}^{p}{N_i}=N
-\end{equation}
+\textbf{Load subdivision}: In the US homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains given by where$\sum\limits_{1}^{p}{N_i}=N$
 After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space. Moreover, this approach owing to the reduction in state space is expected to improve disaggregation results. \textbf{Unsure where to put why Load Division is expected to improve results}
 
 \section{INDiC NIALM}
@@ -413,7 +409,7 @@ We had used Combinatorial Optimization which is the simplest NIALM technique to 
 %%\renewcommand{\arraystretch}{1.3}
 %% if using array.sty, it might be a good idea to tweak the value of
 %% \extrarowheight as needed to properly center the text within the cells
-\caption{Calibration Factors, Mains Assignment and States}
+\caption{Mains assignment and appliance states power}
 \label{tab:calibration_factors}
 %\centering
 %%% Some packages, such as MDW tools, offer better commands for making tables
@@ -439,15 +435,15 @@ Kitchen 2&1 & 1&204&1032&1&204&1032 \\
 \end{table}
 
 \begin{table}
-\caption{Mean Normalized Error and RMS error with and without DiCaCo NIALM}
+\caption{MNE and RE with and without INDiC-CO}
 \label{tab:results}
 \begin{tabular}{|p{30pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|}
 \hline
 &\multicolumn{4}{|c|}{Without}&\multicolumn{4}{|c|}{With}\\
-&\multicolumn{4}{|c|}{Recalibration}&\multicolumn{4}{|c|}{Recalibration}\\
+&\multicolumn{4}{|c|}{calibration}&\multicolumn{4}{|c|}{calibration}\\
 \hline
-&\multicolumn{2}{|c|}{Without Load}&\multicolumn{2}{|c|}{With Load}&\multicolumn{2}{|c|}{Without Load}&\multicolumn{2}{|c|}{With Load}\\
-&\multicolumn{2}{|c|}{Division}&\multicolumn{2}{|c|}{Division}&\multicolumn{2}{|c|}{Division}&\multicolumn{2}{|c|}{Division}\\
+&\multicolumn{2}{|c|}{Without load}&\multicolumn{2}{|c|}{With load}&\multicolumn{2}{|c|}{Without load}&\multicolumn{2}{|c|}{With load}\\
+&\multicolumn{2}{|c|}{division}&\multicolumn{2}{|c|}{division}&\multicolumn{2}{|c|}{division}&\multicolumn{2}{|c|}{division}\\
 \hline
 
 Appliance &R.E.&M.N.E.& R.E.&M.N.E.&R.E.&M.N.E.&R.E.& M.N.E.\\
