@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 \documentclass[conference]{IEEEtran}
 \ifCLASSINFOpdf
 
@@ -508,3 +509,496 @@ The authors would like to thank TCS Research and Development for supporting the 
 \end{document}
 
 
+=======
+\documentclass[conference]{IEEEtran}
+\ifCLASSINFOpdf
+
+\newcommand{\redcolor}[1]{\textcolor{red}{#1}}
+
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\algoref}[1]{Algorithm~\ref{#1}}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{blindtext}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{url}
+\usepackage{epstopdf}
+\usepackage{multirow}
+\newcommand{\pushline}{\Indp}
+\else
+\fi
+
+\usepackage[boxed,ruled,vlined]{algorithm2e}
+
+% *** ALIGNMENT PACKAGES ***
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+\title{INDiC: Improved Non intrusive load monitoring using load Division and Calibration}
+
+
+\author{\IEEEauthorblockN{Nipun Batra}
+\IEEEauthorblockA{Indraprastha Institute of Information Technology\\
+India\\
+}
+\and
+\IEEEauthorblockN{Author2}
+\IEEEauthorblockA{Twentieth Century Fox\\
+Springfield, USA\\
+Email: homer@thesimpsons.com}
+\and
+\IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
+\IEEEauthorblockA{Starfleet Academy\\
+San Francisco, California 96678-2391\\
+Telephone: (800) 555--1212\\
+Fax: (888) 555--1212}}
+% make the title area
+\maketitle
+
+
+\begin{abstract}
+%\boldmath
+Non-Intrusive appliance load monitoring (NIALM) is the process of disaggregating the overall electricity usage into constituent appliances. In this paper we extend the Combinatorial Optimization (CO) approach for disaggregation, which was originally proposed in the seminal work on NIALM, in following two ways: 1) Breaking the problem into subproblems and reducing the state space; 2) Applying additional constraints backed by sound domain expertise. We evaluate our approach using REDD dataset and show practical problems which need to be solved while dealing with the dataset. We also propose a metric for evaluating NILM, which we believe overcomes many shortcomings of commonly used metrics.
+\end{abstract}
+\IEEEpeerreviewmaketitle
+
+
+
+\section{Introduction}
+% no \IEEEPARstart
+\begin{itemize}
+\item Motivate the importance of energy consumption in building
+\item Motivate that appliance level information is crucial - detailed feedback and optimized decision making \cite{darby}
+\item Challenges with getting appliance level information - introduce NIALM~\cite{hart}
+\item introduce your proposed approach
+\item Enumerate the contributions
+\end{itemize}
+
+Primary contributions of our work are:
+\begin{itemize}
+\item Fill it up with 2-3 crisp points
+\end{itemize}
+Open source implementation of the proposed work is released for comparative analysis with other NIALM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. We believe this is the first extensive release of a generic NIALM
+
+\section{Related work}
+\noindent Non-intrusive appliance load monitoring was first studied by Hart~\cite{hart} in the early 1990s by examining signatures in aggregated load to indicate activities of appliances. The problem has been well studied in recent years and survey papers \cite{survey1,survey2,survey3} present its classification across various dimensions including:
+\begin{itemize}
+\item \textbf{Frequency of data collection}:[REWRITE] Approaches such as harmonic analysis require data to be sampled at more than a thousand samples a second. Whereas approaches 
+\item \textbf{Supervised/Unsupervised}: Supervised learning techniques include optimization-based methods such as integer programming \cite{Suzuki_08} and genetic algorithms \cite{Baranski_04}. These approaches are compute intensive and appliances with similar or overlapping load signatures are difficult to discern. Machine Learning techniques (such as Artificial Neural Network (ANNs) \cite{Ruzzelli_10} and Hidden Markov Models (HMM)\cite{Zia_11}), on the other hand, have been shown to work well for load disaggregation. Variants such as factorial hidden Markov models (FHMMs) \cite{Ghahramani_97a}, additive FHMMs \cite{Kolter_12}, conditional factorial hidden semi-Markov models \cite{Kim_11} and difference HMMs \cite{parson2012_aaai} have also been applied to the task. In factorial HMMs several models evolve independently and in parallel and the observed output is some joint function of all the hidden states; additive HMMs allow emission of a single real-valued (unobserved) output from each HMM and the output is the sum of these HMMs. The applicability of these sophisticated techniques are generally hindered by the difficulty of inference from models with a large number of HMMs. In this paper, we put forward a simple idea -- the aggregated load can be further split up by knowledge of mains and which appliance is assigned to which main. This would make the task of disaggregation inherently easier and any of the above sophisticated modeling approaches can still be applied to the task\footnote{The use of combinatorial optimization is only for the purpose of illustration and there is clearly no requirement to adhere to this modeling technique alone.}. 
+
+\end{itemize}
+Finally, several datasets have been made available publicly including REDD\cite{redd}, Blued\cite{blued_cmu} and Smart*\cite{smart}. Our empirical analysis is on the REDD data primarily because this dataset has been used extensively in evaluation of NIALM techniques and the performance of our approach is directly comparable to state-of-the-art techniques.
+
+\section{NIALM}
+NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}. A typical NIALM setup involves instrumenting the power mains with smart meters and individual appliances with appliance meters for ground truth. \figref{fig:disagg} shows the house mains disaggregated into 3 appliances.
+
+\begin{figure} 
+	
+    \subfloat[\scriptsize Aggregate Power]{
+    \includegraphics[scale=0.18]{./figures/before_disagg.png}}
+    \subfloat[\scriptsize Disaggregated Power]{
+        \includegraphics[scale=0.18]{./figures/after_disagg.png}}
+  	\caption{The process of disaggregation}
+    \label{fig:disagg}
+\end{figure}
+We use some terminologies from previous work \cite{redd,parson2012_aaai,hart} and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, the NIALM problem in supervised setting can be formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
+
+
+\begin{table}
+\caption{Terminologies and Functions}
+\label{tab:terms}
+\begin{tabular}{|l|l|}
+\hline
+Symbol&Meaning\\
+\hline
+$t\in {1,..T}$& Time slice\\
+$n\in{1,..N}$ & Appliance number\\
+$\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Measured power sequence for each appliance\\
+$\theta^{M_1}=\{\theta_1^{M_1},...,\theta_T^{M_1}\}$ & Measured power sequence for Mains 1\\
+$\theta^{M_2}=\{\theta_1^{M_2},...,\theta_T^{M_2}\}$ & Measured power sequence for Mains 2\\
+$x=\{ x_1,..,x_T\}=$ & Measured aggregate power sequence\\
+$\theta^{M_1}+\theta^{M_2}$ &\\
+%$v=\{ v_1,..,v_T\}$ & Labeled voltage time series\\
+%$e^{M_1}=\{e_1^{M_1},...,e_T^{M_1}\}$ & Noise power sequence for Mains 1\\
+%$e^{M_2}=\{e_1^{M_2},...,e_T^{M_2}\}$ & Noise power sequence for Mains 2\\
+$e=\{e_1,...,e_T\}$ & Aggregate noise power sequence\\
+$y^n=\{y_1^n,..y_T^n\}$ & Predicted power sequence for $n^{th}$ appliance\\
+$k\in {1,..K}$ & Appliance power state\\
+$z^n=\{z_1^n,..z_T^n\}$ & Appliance state sequence,$z_i^n \in [1,..K]$\\
+$z_{t,k}^n \in{0,1}$ & Whether $n^{th}$ appliance is in $k^{th}$ state at time $t$\\
+$\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance in $k^{th}$ state\\
+$Mapping[n] \in {M^1,M^2}$ & Mapping of $n^{th}$ appliance to Mains\\
+%\hline
+%\multirow{2}{*}{$B$} & List of background appliances (which can run\\
+% 					 &without human intervention) eg. refrigerator\\
+%\multirow{2}{*}{$F$} & List of foreground appliances (which are \\ 
+% 					 &operated by humans) eg. light, microwave\\
+\hline
+\hline
+$Downsample(s,filter,$ & Function to downsample a timeseries $s$ to\\
+$interval)$                                        & an $interval$ according to specified $filter$\\
+%$Normalize(s,v,$ & Function to normalize a power timeseries $s$\\
+%$Rated\_Voltage)$                                 & given voltage timeseries $v$ according to\\
+%                                    &the formula: $(\frac{Rated\_Voltage}{v})^2s$\\
+\hline
+$Preprocess([s^1,..s^n]$ & Function to ensure that $n$ timeseries start and\\
+$,method)$                                        &end at same times and handling missing\\
+                                        & data using specified $method$\\
+\hline                                        
+$Sort([s^1,..s^n],$ & Function to sort $n$ timeseries according\\
+$parameter,order)$  &to $parameter$ in specified $order$\\
+%$Contiguous\_Below\_$ & Function to find contiguous period where time \\
+%$Mean(s,min\_period)$                  &series $s$ is below its mean \\
+%                                       &for atleast $min\_period$\\
+\hline
+$Event\_Detection(s,$ & Function returning magnitude and times of \\
+$threshold,interval)$                  &step events in time series $s$ during \\
+                              &an $interval$ , whose absolute value is \\
+                              & greater than $threshold$\\
+%\multirow{2}{*}{$Greater\_Than(s,threshold)$} & Function to return times when timeseries $s$ is\\
+%                                        &greater than $threshold$\\                                                                                                    
+                                                                               
+
+\hline
+%
+\end{tabular}
+\end{table}
+
+\textbf{Combinatorial optimization}:
+At a given time an appliance can only be in a single state which is given by:
+$\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$
+
+The power consumption by $n^{th}$ appliance in $k^{th}$ state at time $t$ is given by:
+$\hat{\theta}^n_{t,k}=\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$
+
+The overall power consumption of all appliances at a given time $t$ is given by:
+$\hat{x}_{t}=\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$
+
+The error in power signal after the load assignment explained above is given by:
+
+$e_t=|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$
+
+Combinatorial optimization tries to find the optimal combination of appliances in different states which will minimize this error term, by the following state assignment scheme:
+$z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$
+
+The corresponding predicted power draw by $n^{th}$ appliance is given by:
+$y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
+
+This optimization problem resembles subset sum problem \cite{knapsack} and is NP-complete. The state space of this optimization function is $K^N$, which means it is exponential in the number of appliances. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
+
+\textbf{what to use consistently- load division or appliance}
+\textbf{Load division}: In the US, homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains/meters, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains given by where: $\sum\limits_{1}^{p}{N_i}=N$
+After load assignment to different mains, the state spaces for different mains are given by $K^{N_1}..K^{p}$. As a practical example, if a home has two mains and 20 appliances equally distributed across the two mains, state space before load division is given by $2^{20}$ and after load division is $2^{10}$. Thus, there is an exponential reduction in state space, which also leads to an exponential decrease in running time.
+\textbf{Where to write that we can also benefit by parallelizing} 
+%Moreover, this approach owing to the reduction in state space is expected to improve disaggregation results. \textbf{Unsure where to put why Load Division is expected to improve results}
+
+\section{INDiC NIALM}
+%\begin{figure}
+%\centering \includegraphics[scale=0.1]{./figures/algo_3.png}
+%\caption{Divide and Conquer NIALM}
+%   \label{fig:algorithm}
+%\end{figure}
+In this section we explain our algorithm- Improved Non intrusive load monitoring using load Division and Calibration (INDiC). While INDiC can be used with any modeling technique such as Hidden Markov Models\cite{rabiner}, combinatorial optimization, etc., we present INDiC-CO (INDiC using Combinatorial optimization as modeling approach). The various steps of INDiC-CO NIALM shown in \algoref{algo:main} are described below. 
+
+\textbf{Preprocessing}: Since multiple data streams (appliances and mains power time series) from varied hardware are used to produce data for NIALM applications, it is highly likely that some hardware malfunctions during the data collection process. In the preprocessing step we ensure that all the time series start and end at the same time and handle missing data using techniques such as forward filling(padding).
+
+\textbf{Downsampling}: While performing CO it is desired that transients and fluctuations in the power signal are filtered\cite{hart}. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by down sampling. Filters such mean/median can be used to down sample a time series, whereby, where the value assigned to a time window is the mean/median of values occurring during that time window.
+%To overcome these we downsampled our data to one minute resolution using mean filter. 
+
+\begin{figure} 
+	
+    \subfloat[\scriptsize Filtering startup transients]{
+    \label{fig:downsample_startup}
+    \includegraphics[scale=0.12]{./figures/downsample_1.png}}
+    \subfloat[\scriptsize Filtering voltage fluctuations and oscillations]{
+        \label{fig:downsample_voltage}
+        \includegraphics[scale=0.12]{./figures/downsample_2.png}}
+  	\caption{Effect of downsampling appliance data}
+    \label{fig:downsampling}
+\end{figure}
+
+\textbf{Assigning Loads to Mains\footnote{While we provide methods for 2 Mains, it can be easily extended}}:
+This step aims to identify the mapping between appliances and mains. Patterns corresponding to appliances having higher peak power are generally easier to extract from main signal, thus we sort the appliance in decreasing order of peak power. usage are easier to Based on domain expertise we label the appliances in a home into background (loads which run independently throughout the day without user interference) such as refrigerator, and foreground (loads which are highly correlated with human usage) such as stove. Background loads are easier to detect since they are On even during periods of low human activity. Also loads with higher mean power consumption are easier to identify and thus we sort background loads based on power in descending order. For all such background loads we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). \figref{fig:assignment_1} shows how based on refrigerator duty cycle it is mapped to Mains 2. On similar lines assignment of foreground loads can be done.
+\begin{figure} 
+	
+    \subfloat[\scriptsize Assigning refrigerator to Mains 2 since refrigerator power $>$ Mains 1 power and on basis of duty cycle]{
+    \label{fig:assignment_1}
+    \includegraphics[scale=0.127]{./figures/ref_assign.png}}
+    \subfloat[\scriptsize Calibrating Refrigerator Power consumption]{
+        \label{fig:assignment_2}
+        \includegraphics[scale=0.127]{./figures/ref_calibrate.png}}
+  	\caption{Calibrating and assigning refrigerator to Mains 2 }
+    \label{fig:assignment}
+\end{figure}
+
+\textbf{Appliance Power Calibration}: 
+Power measured by appliance level meters may need calibration due to the following reasons:
+\begin{itemize}
+\item Difference in measurement of different measurement instrument (diagram showing CC, ZWave, etc) \cite{berges2008}
+\item Fluctuation in voltage cause power to fluctuate as well
+\item Missing meta data, whether real or apparent power is being measured at appliance level
+
+\end{itemize}Since different hardware is used for measuring appliance and mains data there may be a need to calibrate the two. Since mains data is usually collected using better precision hardware, we keep mains data as a reference and calibrate appliance data against it. In practice we found appliance level monitors to usually provide only real power whereas the mains monitors can provide much more like reactive and active power. Like the previous step, time instances when an appliance in a particular mains is single used are identified. The ratio of mains and appliance power step changes occurring this window serve as the calibration factor for that appliance. Further each appliance power is corrected with the corresponding calibration factor.
+
+\textbf{Clustering to identify appliance states}:
+\begin{enumerate}
+\item Step changes occurring in Mains vs Appliances
+\item Isolating single appliance usage
+We use \cite{kmeansplusplus} to run our clustering
+\end{enumerate}
+Appliance states identification using clustering (Possibly talk about unbalanced data, but leave it for future work)
+State space creation
+Applying CO for different mains
+Find energy distribution by appliance and assign weights (To be used in results)
+
+
+
+
+\begin{algorithm}
+\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
+\KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F,v$	}
+\KwOut{$y^n,\mu_k^n, Calibrated\: \theta^n$}
+\BlankLine
+\textbf{Preprocessing}\;
+\BlankLine
+\nl$\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Preprocess([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
+\BlankLine
+\textbf{Downsampling}
+\BlankLine
+\nl \For {$n \in {1,N}$}
+	{
+	$\theta^n \gets Downsample(\theta^n,mean,1\: minute)$\;
+	}
+\nl $\theta^{M_1} \gets Downsample(\theta^{M_1},mean,1\: minute)$\;
+\nl $\theta^{M_2} \gets Downsample(\theta^{M_2},mean,1\: minute)$\;
+
+
+\nl $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
+\BlankLine
+\textbf{Appliance to Mains mapping}\;
+\BlankLine
+\nl \For{$Appliance\: n \in s$}
+	{
+	
+\nl	\If {$\theta^n_t > \theta^{M_1}_t\: for\: any\: t \in {1,T}$} 
+		{ $Mapping[n]=2$\;		
+		}  
+\nl	\ElseIf {$\theta^n_t > \theta^{M_2}_t\: for\: any\: t \in {1,T}$}
+		{ $Mapping[n]=1$\;
+		}
+%\nl	\ElseIf {$n \in B$}
+%		{
+%\nl		$w \gets Contiguous\_Below\_Mean (\theta^{M_1}, 2\: hours)$\;
+%		}
+%\nl	\ElseIf {$n \in F$}
+%		{
+%		$w \gets Greater\_Than(\theta^n,100)$
+%		}
+\nl	\Else{
+\nl		\If {$Event\_Detection(\theta^n,15).Times \subset Event\_Detection(\theta^{M_1},15,w).Times$ %\linebreak \&\: 
+%		Step\_Changes(\theta^n,15,w).Magnitude \div \linebreak
+%		Step\_Changes(\theta^{M_1},15,w).Magnitude \approx Constant\:C$
+		}
+			{ 
+			$Mapping[n]=1$\;
+			}
+\nl		\Else{
+			$Mapping[n]=2$\;	
+			}	
+		}
+	\nl	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
+	}
+	\BlankLine
+	\textbf{Calibration} \;
+	\BlankLine
+	\For{$n \in {1,N}$}{
+	
+\nl	$\theta^n \gets \theta^n * Step\_Changes(\theta^n,15,w).Magnitude  \linebreak
+			\div Step\_Changes(\theta^{M_{Mapping[n]}},15,w).Magnitude $ \;
+\nl	$\theta^n \gets Normalize(\theta^n,v)$\; 
+	
+}
+	
+	\BlankLine
+	\textbf{Clustering}\;
+	\BlankLine
+	\For{$n \in {1,N}$}{
+\nl	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
+
+	
+	}
+\nl Solve combinatorial optimization using equations 1-6
+
+\nl \Return{$y^n$}\;
+\caption{INDiC-CO}
+\label{algo:main}
+\end{algorithm}
+
+\section{Evaluation}
+
+We use Reference Energy Disaggregation Data Set (REDD) \cite{redd} for validating our algorithms. This dataset contains power and voltage data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~0.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. 
+
+%\figref{fig:breakdown} shows 6 hourly breakdown of energy consumption across the different mains in Home 2 .
+
+
+%\begin{figure} 
+%	
+%    \subfloat[\scriptsize Mains 1]{
+%    \includegraphics[scale=0.1]{./figures/mains_1_6hr.png}}
+%    \subfloat[\scriptsize Mains 2]{
+%        \includegraphics[scale=0.1]{./figures/mains_2_6hr.png}}
+%  	\caption{6 hourly energy usage breakdown Home 2}
+%    \label{fig:breakdown}
+%\end{figure}
+%
+\subsection{Evaluation Metric}
+
+Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state. This does not tell how badly the prediction is misclassifying state 1 (On). 
+%Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches.
+Thus, we use the following metrics which have been used in the past work \cite{parson2012_aaai,redd}:
+\begin{itemize}
+\item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by:
+\begin{equation}
+MNE(n)=\frac{\sum\limits_{t=1}^{T}|\theta_t^n-y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
+\end{equation} 
+\item \textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice $t$ given by:
+\begin{equation}
+RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
+\end{equation}
+
+\end{itemize} 
+Since both these quantities represent error, the lesser they are the better is the prediction.
+\begin{figure}
+\centering \includegraphics[scale=0.2]{./figures/confusion_stove.png}
+\caption{Confusion Matrix showing predicted state accuracy for Stove}
+   \label{fig:confusion}
+\end{figure}
+
+
+
+\subsection{Empirical Analysis}
+We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances). We believe that the same analysis can be easily repeated across multiple homes. We aligned the data and downsampled it to one minute using mean filter. Since we had two weeks of clean data, we used the first week as the train set and the second week as the test set. We used INDiC algorithm described earlier to assign loads to different mains and calibrate appliance data. \tabref{tab:calibration_factors} shows the assignment of loads to different mains. Further this table also shows the learnt power states of these appliance via k-means++ clustering (which for several reasons is considered better than k-means) \cite{kmeansplusplus}. Refrigerator and lighting showed significant difference in power states post calibration. Based on prior experience and appliance circuity, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power. These loads constitute a major chunk of Mains 2 power. \figref{fig:calibration} shows the reduction in unassigned power due to calibrating these two appliances. Two loads - washer dryer and disposal did not have significant usage and we chose not to consider them in the analysis. 
+
+To show the significance of load division and calibration, we applied Combinatorial optimization on the test set, considering 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division. These results are presented in \tabref{tab:results}. For the overall dataset, it can be seen that MNE reduces from 187\% to 39\%, RE reduces from 478 W to 168 W, after applying INDiC. All appliances show reduction in MNE and RE after applying INDiC. However, there is significant improvement in correctly predicting refrigerator and lighting. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction pre and post applying INDiC. It can be seen that after applying INDiC there is a vast improvement in predicting refrigerator's state 0 and 1.
+
+We had used Combinatorial Optimization which is the simplest NIALM technique to show the improvements which can be made by load division and appliance calibration. We believe that using state of the art NIALM algorithms will improve the results by leaps and bounds.
+
+%\item Overall results in \tabref{tab:results}, first column NILM without dividing into mains and without recalibration, last column with DiCaCo NIALM. Vast reduction in R.E. and M.N.E , especially for most appliance contributing most like refrigerator and lighting	
+%\item Confusion matrix showing a large improvement in refrigerator recognition in \figref{fig:confusion_ref}
+%\end{itemize}
+
+\begin{figure} 
+	
+    \subfloat[\scriptsize Without applying calibration]{
+    \includegraphics[scale=0.2]{./figures/breakdown_before_calibration.png}}
+    \subfloat[\scriptsize After applying calibration]{
+        \includegraphics[scale=0.2]{./figures/breakdown_after_calibration.png}}
+  	\caption{Mains 2 Break down by load}
+    \label{fig:calibration}
+\end{figure}
+\begin{figure} 
+	
+    \subfloat[\scriptsize Without applying DiCaCo]{
+    \includegraphics[scale=0.15]{./figures/confusion_before_dicaco.png}}
+    \subfloat[\scriptsize After applying DiCaCo]{
+        \includegraphics[scale=0.15]{./figures/confusion_after_dicaco.png}}
+  	\caption{Confusion Matrix for refrigerator disaggregation}
+    \label{fig:confusion_ref}
+\end{figure}
+
+%\item Table on Calibration factors
+\begin{table}
+%%% increase table row spacing, adjust to taste
+%%\renewcommand{\arraystretch}{1.3}
+%% if using array.sty, it might be a good idea to tweak the value of
+%% \extrarowheight as needed to properly center the text within the cells
+\caption{Mains assignment and appliance states power}
+\label{tab:calibration_factors}
+%\centering
+%%% Some packages, such as MDW tools, offer better commands for making tables
+%%% than the plain LaTeX2e tabular which is used here.
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Appliance & Mains & \multicolumn{6}{|c|}{States Power (W)}\\
+\hline
+&&\multicolumn{3}{|c|}{Pre calibration}&\multicolumn{3}{|c|}{Post calibration}\\
+\hline
+Refrigerator & 2& 7&162&423 & 9&210&423\footnote{Could not be calibrated}\\
+Microwave &2& 10&832&1730& 10&832&1730\\
+Lighting & 2& 9&96&156&10&110&178\\
+Dishwasher & 1& 0&256& 1195 & 0&256& 1195\\
+Stove& 1 & 0&374&-& 0&374&-\\
+Kitchen & 1& 5&727&-&5&727&-\\
+Kitchen 2&1 & 1&204&1032&1&204&1032 \\
+%
+%
+\hline
+%
+\end{tabular}
+\end{table}
+
+\begin{table}
+\caption{MNE and RE with and without INDiC-CO}
+\label{tab:results}
+\begin{tabular}{|p{30pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|}
+\hline
+&\multicolumn{4}{|c|}{Without}&\multicolumn{4}{|c|}{With}\\
+&\multicolumn{4}{|c|}{calibration}&\multicolumn{4}{|c|}{calibration}\\
+\hline
+&\multicolumn{2}{|c|}{Without load}&\multicolumn{2}{|c|}{With load}&\multicolumn{2}{|c|}{Without load}&\multicolumn{2}{|c|}{With load}\\
+&\multicolumn{2}{|c|}{division}&\multicolumn{2}{|c|}{division}&\multicolumn{2}{|c|}{division}&\multicolumn{2}{|c|}{division}\\
+\hline
+
+Appliance &R.E.&M.N.E.& R.E.&M.N.E.&R.E.&M.N.E.&R.E.& M.N.E.\\
+&Watts&\%&Watts&\%&Watts&\%&Watts&\%\\
+\hline
+Refrigerator & 136 &109 & 71 & 32 & 130 &95  &59 &21\\
+Microwave    & 102 &98  & 97 & 110& 104 &97  &96 &109\\
+Lighting     & 51  &164 & 48 & 195& 44  &83  &38 &60\\
+Dishwasher   & 406 &2947& 63 & 100& 377 &2517&63 &100\\
+Stove        & 77  &1191& 36 & 281& 75  &1118&36 &281\\
+Kitchen      & 64  &182 & 58 & 168& 69  &196 &58 &168\\
+Kitchen 2    & 95  &267 & 91 & 117& 92  &230 &91 &117\\
+\hline
+Overall      &478  &187 &161 &  58& 450 &157 &168&39\\
+
+\hline
+
+\end{tabular}
+\end{table}
+
+
+
+
+
+\section{Conclusion and Future Work}
+The conclusion goes here.
+We also provide mains load assignment of all 6 homes from REDD to further the research in this direction.
+
+\begin{itemize}
+
+\item Applying model on noisy datasets
+\item 2 D CO (when Real and Reactive Power are known)
+\item Factoring in Time of Day etc.
+\item Factoring in Appliance Correlation
+\item Factor in switch continuity, essentially leads to Factorial HMM
+\item Distributed NILM
+\item Adaptive Learning
+\end{itemize}
+
+\section*{Acknowledgment}
+The authors would like to thank TCS Research and Development for supporting the first author through PhD. fellowship. We would also like to thank NSF- DEITy for funding the project.
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,references}
+
+\end{document}
+
+
+>>>>>>> dfe5c0e477e0f0341e877de830a3f410f10e7a3a
