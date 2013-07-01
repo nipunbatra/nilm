@@ -124,54 +124,70 @@ We use some terminologies from previous work \cite{redd,parson2012_aaai,hart} an
 \label{tab:terms}
 \begin{tabular}{|l|l|}
 \hline
-Symbol&Meaning\\
+Symbol&Meaning\\[0.1cm]
 \hline
-$t\in {1,..T}$& Time slice\\
-$n\in{1,..N}$ & Appliance number\\
-$\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Measured power sequence for each appliance\\
-$\theta^{M_1}=\{\theta_1^{M_1},...,\theta_T^{M_1}\}$ & Measured power sequence for Mains 1\\
-$\theta^{M_2}=\{\theta_1^{M_2},...,\theta_T^{M_2}\}$ & Measured power sequence for Mains 2\\
-$x=\{ x_1,..,x_T\}=$ & Measured aggregate power sequence\\
-$\theta^{M_1}+\theta^{M_2}$ &\\
-%$v=\{ v_1,..,v_T\}$ & Labeled voltage time series\\
-%$e^{M_1}=\{e_1^{M_1},...,e_T^{M_1}\}$ & Noise power sequence for Mains 1\\
-%$e^{M_2}=\{e_1^{M_2},...,e_T^{M_2}\}$ & Noise power sequence for Mains 2\\
-$e=\{e_1,...,e_T\}$ & Aggregate noise power sequence\\
-$y^n=\{y_1^n,..y_T^n\}$ & Predicted power sequence for $n^{th}$ appliance\\
-$k\in {1,..K}$ & Appliance power state\\
-$z^n=\{z_1^n,..z_T^n\}$ & Appliance state sequence,$z_i^n \in [1,..K]$\\
-$z_{t,k}^n \in{0,1}$ & Whether $n^{th}$ appliance is in $k^{th}$ state at time $t$\\
-$\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance in $k^{th}$ state\\
-$Mapping[n] \in {M^1,M^2}$ & Mapping of $n^{th}$ appliance to Mains\\
+$t\in {1,..T}$& Time slice\\[0.1cm]
+\hline
+$n\in{1,..N}$ & Appliance number\\[0.1cm]
+\hline
+$\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Measured power sequence for $n^{th}$ appliance\\[0.1cm]
+\hline
+$\theta^{M_1}=\{\theta_1^{M_1},...,\theta_T^{M_1}\}$ & Measured power sequence for Mains 1\\[0.1cm]
+\hline
+$\theta^{M_2}=\{\theta_1^{M_2},...,\theta_T^{M_2}\}$ & Measured power sequence for Mains 2\\[0.1cm]
+\hline
+$x=\{ x_1,..,x_T\}=$ & Measured aggregate power sequence\\[0.1cm]
+$\theta^{M_1}+\theta^{M_2}$ &\\[0.1cm]
+\hline
+%$v=\{ v_1,..,v_T\}$ & Labeled voltage time series\\[0.1cm]
+%$e^{M_1}=\{e_1^{M_1},...,e_T^{M_1}\}$ & Noise power sequence for Mains 1\\[0.1cm]
+%$e^{M_2}=\{e_1^{M_2},...,e_T^{M_2}\}$ & Noise power sequence for Mains 2\\[0.1cm]
+$e=\{e_1,...,e_T\}$ & Aggregate noise power sequence\\[0.1cm]
+\hline
+$y^n=\{y_1^n,..y_T^n\}$ & Predicted power sequence for $n^{th}$ appliance\\[0.1cm]
+\hline
+$k\in {1,..K}$ & Appliance power state\\[0.1cm]
+\hline
+$z^n=\{z_1^n,..z_T^n\}$ & Appliance state sequence for $n^{th}$ \\[0.1cm]
+& appliance,$z_i^n \in [1,..K]$\\[0.1cm]
+\hline
+$z_{t,k}^n \in{0,1}$ & Whether $n^{th}$ appliance is in $k^{th}$ state at time $t$\\[0.1cm]
+\hline 
+$\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance in $k^{th}$ state\\[0.1cm]
+\hline
+$\theta^n_{k^1,k^2}$& Measured power sequence when $n^{th}$ appliance \\[0.1cm]
+& transitions from $k^1$ to $k^2$ state\\[0.1cm]
+\hline
+$Mapping[n] \in {M^1,M^2}$ & Mapping of $n^{th}$ appliance to Mains\\[0.1cm]
+\hline
 %\hline
-%\multirow{2}{*}{$B$} & List of background appliances (which can run\\
-% 					 &without human intervention) eg. refrigerator\\
-%\multirow{2}{*}{$F$} & List of foreground appliances (which are \\ 
-% 					 &operated by humans) eg. light, microwave\\
+%\multirow{2}{*}{$B$} & List of background appliances (which can run\\[0.1cm]
+% 					 &without human intervention) eg. refrigerator\\[0.1cm]
+%\multirow{2}{*}{$F$} & List of foreground appliances (which are \\[0.1cm] 
+% 					 &operated by humans) eg. light, microwave\\[0.1cm]
 \hline
 \hline
-$Downsample(s,filter,$ & Function to downsample a timeseries $s$ to\\
-$interval)$                                        & an $interval$ according to specified $filter$\\
-%$Normalize(s,v,$ & Function to normalize a power timeseries $s$\\
-%$Rated\_Voltage)$                                 & given voltage timeseries $v$ according to\\
-%                                    &the formula: $(\frac{Rated\_Voltage}{v})^2s$\\
+$Downsample(s,filter,$ & Function to downsample a timeseries $s$ to\\[0.1cm]
+$resolution)$                                        & a $resolution$ according to specified $filter$\\[0.1cm]
+%$Normalize(s,v,$ & Function to normalize a power timeseries $s$\\[0.1cm]
+%$Rated\_Voltage)$                                 & given voltage timeseries $v$ according to\\[0.1cm]
+%                                    &the formula: $(\frac{Rated\_Voltage}{v})^2s$\\[0.1cm]
 \hline
-$Preprocess([s^1,..s^n]$ & Function to ensure that $n$ timeseries start and\\
-$,method)$                                        &end at same times and handling missing\\
-                                        & data using specified $method$\\
+$Preprocess([s^1,..s^n]$ & Function to ensure that $n$ timeseries start and\\[0.1cm]
+$,method)$                                        &end at same times and handling missing\\[0.1cm]
+                                        & data using specified $method$\\[0.1cm]
 \hline                                        
-$Sort([s^1,..s^n],$ & Function to sort $n$ timeseries according\\
-$parameter,order)$  &to $parameter$ in specified $order$\\
-%$Contiguous\_Below\_$ & Function to find contiguous period where time \\
-%$Mean(s,min\_period)$                  &series $s$ is below its mean \\
-%                                       &for atleast $min\_period$\\
+$Sort([s^1,..s^n],$ & Function to sort $n$ timeseries according\\[0.1cm]
+$parameter,order)$  &to $parameter$ in specified $order$\\[0.1cm]
+%$Contiguous\_Below\_$ & Function to find contiguous period where time \\[0.1cm]
+%$Mean(s,min\_period)$                  &series $s$ is below its mean \\[0.1cm]
+%                                       &for atleast $min\_period$\\[0.1cm]
 \hline
-$Event\_Detection(s,$ & Function returning magnitude and times of \\
-$threshold,interval)$                  &step events in time series $s$ during \\
-                              &an $interval$ , whose absolute value is \\
-                              & greater than $threshold$\\
-%\multirow{2}{*}{$Greater\_Than(s,threshold)$} & Function to return times when timeseries $s$ is\\
-%                                        &greater than $threshold$\\                                                                                                    
+$Event\_Detection(s,$ & Function returning magnitude and times of \\[0.1cm]
+$threshold)$                  &step events in time series whose absolute $s$ \\[0.1cm]
+                             & value is greater than $threshold$\\[0.1cm]
+%\multirow{2}{*}{$Greater\_Than(s,threshold)$} & Function to return times when timeseries $s$ is\\[0.1cm]
+%                                        &greater than $threshold$\\[0.1cm]                                                                                                    
                                                                                
 
 \hline
@@ -272,7 +288,7 @@ Find energy distribution by appliance and assign weights (To be used in results)
 \begin{algorithm}
 \DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
 \KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F,v$	}
-\KwOut{$y^n,\mu_k^n, Calibrated\: \theta^n$}
+\KwOut{$y^n,\mu_k^n$}
 \BlankLine
 \textbf{Preprocessing}\;
 \BlankLine
@@ -310,7 +326,7 @@ Find energy distribution by appliance and assign weights (To be used in results)
 %		$w \gets Greater\_Than(\theta^n,100)$
 %		}
 \nl	\Else{
-\nl		\If {$Event\_Detection(\theta^n,15).Times \subset Event\_Detection(\theta^{M_1},15,w).Times$ %\linebreak \&\: 
+\nl		\If {$Event\_Detection(\theta^n,15).Times \subset Event\_Detection(\theta^{M_1},15).Times$ %\linebreak \&\: 
 %		Step\_Changes(\theta^n,15,w).Magnitude \div \linebreak
 %		Step\_Changes(\theta^{M_1},15,w).Magnitude \approx Constant\:C$
 		}
@@ -323,28 +339,37 @@ Find energy distribution by appliance and assign weights (To be used in results)
 		}
 	\nl	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
 	}
+	
+		
+		\BlankLine
+		\textbf{Clustering}\;
+		\BlankLine
+	\nl	\For{$n \in {1,N}$}{
+	\nl	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
+	}
 	\BlankLine
 	\textbf{Calibration} \;
 	\BlankLine
-	\For{$n \in {1,N}$}{
-	
-\nl	$\theta^n \gets \theta^n * Step\_Changes(\theta^n,15,w).Magnitude  \linebreak
-			\div Step\_Changes(\theta^{M_{Mapping[n]}},15,w).Magnitude $ \;
-\nl	$\theta^n \gets Normalize(\theta^n,v)$\; 
+\nl	\For{$n \in {1,N}$}{
+\nl	\For{$k \in {2,K}$}{
+	\nl	$\mu_k^n \gets \frac{\mu_k^n * Step\_Changes(\theta^n_{k-1,k},15).Magnitude}
+				{Step\_Changes(\theta^{M_{Mapping[n]}}_{k-1,k},15).Magnitude} $ \;
+	}
+%	
+%\nl	$\theta^n \gets \frac{\theta^n * Step\_Changes(\theta^n,15,w).Magnitude}
+%			{Step\_Changes(\theta^{M_{Mapping[n]}},15,w).Magnitude} $ \;
+%\nl	$\theta^n \gets Normalize(\theta^n,v)$\; 
 	
 }
-	
-	\BlankLine
-	\textbf{Clustering}\;
-	\BlankLine
-	\For{$n \in {1,N}$}{
-\nl	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
 
-	
-	}
-\nl Solve combinatorial optimization using equations 1-6
 
-\nl \Return{$y^n$}\;
+\BlankLine
+\textbf{Combinatorial optimization} \;
+\BlankLine	
+	
+\nl Solve combinatorial optimization as described in Section III
+
+\nl \Return{$y^n,\mu_k^n$}\;
 \caption{INDiC-CO}
 \label{algo:main}
 \end{algorithm}
