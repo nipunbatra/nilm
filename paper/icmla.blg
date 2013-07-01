@@ -1,5 +1,4 @@
-This is BibTeX, Version 0.99d (TeX Live 2012/Debian)
-Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+This is BibTeX, Version 0.99c (Web2C 7.5.6)
 The top-level auxiliary file: icmla.aux
 The style file: IEEEtran.bst
 Reallocated singl_function (elt_size=4) to 100 items from 50.
@@ -9,10 +8,90 @@ Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: IEEEabrv.bib
 Database file #2: references.bib
-I was expecting a `,' or a `}'---line 231 of file references.bib
+Repeated entry---line 238 of file references.bib
+ : @inproceedings{parson2012_aaai
+ :                               ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 244 of file references.bib
+ : @article{berges2008
+ :                    ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 254 of file references.bib
+ : @book{knapsack
+ :               ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 260 of file references.bib
+ : @inproceedings{redd
+ :                    ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 268 of file references.bib
+ : @inproceedings{smart
+ :                     ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 274 of file references.bib
+ : @article{blued_cmu
+ :                   ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 320 of file references.bib
+ : @inproceedings{rabiner
+ :                       ,
+I'm skipping whatever remains of this entry
+I was expecting a `,' or a `}'---line 332 of file references.bib
  : 
  : %YEAR=2012
 (Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Repeated entry---line 335 of file references.bib
+ : @article{hart
+ :              ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 346 of file references.bib
+ : @article{darby
+ :               ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 353 of file references.bib
+ : @article{survey1
+ :                 ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 360 of file references.bib
+ : @article{survey2
+ :                 ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 371 of file references.bib
+ : @article{survey3
+ :                 ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 382 of file references.bib
+ : @inproceedings{kmeansplusplus
+ :                              ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 391 of file references.bib
+ : @inproceedings{Suzuki_08
+ :                         ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 399 of file references.bib
+ : @inproceedings{Baranski_04
+ :                           ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 408 of file references.bib
+ : @inproceedings{Ruzzelli_10
+ :                           ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 416 of file references.bib
+ : @inproceedings{Zia_11
+ :                      ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 424 of file references.bib
+ : @inproceedings{Ghahramani_97a
+ :                              ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 432 of file references.bib
+ : @article{Kolter_12
+ :                   ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 442 of file references.bib
+ : @inproceedings{Kim_11
+ :                      ,
 I'm skipping whatever remains of this entry
 -- IEEEtran.bst version 1.12 (2007/01/11) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
@@ -21,26 +100,26 @@ Warning--empty journal in blued_cmu
 Warning--empty year in blued_cmu
 
 Done.
-You've used 22 entries,
+You've used 20 entries,
             4024 wiz_defined-function locations,
-            1307 strings with 18440 characters,
-and the built_in function-call counts, 16971 in all, are:
-= -- 1304
-> -- 394
-< -- 146
-+ -- 225
-- -- 70
-* -- 800
-:= -- 2437
-add.period$ -- 46
-call.type$ -- 22
-change.case$ -- 21
-chr.to.int$ -- 363
-cite$ -- 24
-duplicate$ -- 1209
-empty$ -- 1483
-format.name$ -- 81
-if$ -- 3964
+            1296 strings with 18021 characters,
+and the built_in function-call counts, 15377 in all, are:
+= -- 1184
+> -- 358
+< -- 133
++ -- 205
+- -- 64
+* -- 729
+:= -- 2213
+add.period$ -- 42
+call.type$ -- 20
+change.case$ -- 19
+chr.to.int$ -- 330
+cite$ -- 22
+duplicate$ -- 1095
+empty$ -- 1332
+format.name$ -- 74
+if$ -- 3583
 int.to.chr$ -- 0
 int.to.str$ -- 22
 missing$ -- 204
@@ -62,4 +141,4 @@ warning$ -- 2
 while$ -- 75
 width$ -- 24
 write$ -- 220
-(There was 1 error message)
+(There were 21 error messages)
