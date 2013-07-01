@@ -105,7 +105,7 @@ Open source implementation of the proposed work is released for comparative anal
 
 %\end{itemize}
 \section{NIALM}
-NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}. A typical NIALM setup involves instrumenting the power mains with smart meters and individual appliances with appliance meters for ground truth. \figref{fig:disagg} shows the house mains disaggregated into 3 appliances.
+\noindent NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}. A typical NIALM setup involves instrumenting the power mains with smart meters and individual appliances with appliance meters for ground truth. \figref{fig:disagg} shows the house mains disaggregated into 3 appliances.
 
 \begin{figure} 
 	
@@ -116,7 +116,7 @@ NIALM is the process of disaggregating the total electrical load into constituen
   	\caption{The process of disaggregation}
     \label{fig:disagg}
 \end{figure}
-We use some terminologies from previous work \cite{redd,parson2012_aaai,hart} and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, the NIALM problem in supervised setting can be formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
+\noindent We use some terminologies from previous work \cite{redd,parson2012_aaai,hart} and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, the NIALM problem in supervised setting can be formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
 
 
 \begin{table}
@@ -158,7 +158,8 @@ $\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance in $k^{th}$ sta
 $\theta^n_{k^1,k^2}$& Measured power sequence when $n^{th}$ appliance \\[0.1cm]
 & transitions from $k^1$ to $k^2$ state\\[0.1cm]
 \hline
-$Mapping[n] \in {M^1,M^2}$ & Mapping of $n^{th}$ appliance to Mains\\[0.1cm]
+$Mapping[n] \in {M_i}$ & Mapping of $n^{th}$ appliance to $i^{th}$ Mains\\[0.1cm]
+where $i \in {1,2}$ & \\
 \hline
 %\hline
 %\multirow{2}{*}{$B$} & List of background appliances (which can run\\[0.1cm]
@@ -195,30 +196,34 @@ $threshold)$                  &step events in time series whose absolute $s$ \\[
 \end{tabular}
 \end{table}
 
-\textbf{Combinatorial optimization}:
-At a given time an appliance can only be in a single state which is given by:
-$\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$
+\noindent \textbf{Combinatorial optimization}: At a given time an appliance can only be in a single state which is given by:
 
-The power consumption by $n^{th}$ appliance in $k^{th}$ state at time $t$ is given by:
+$\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$ 
+
+\noindent The power consumption by $n^{th}$ appliance in $k^{th}$ state at time $t$ is given by:
+
 $\hat{\theta}^n_{t,k}=\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$
 
-The overall power consumption of all appliances at a given time $t$ is given by:
+\noindent The overall power consumption of all appliances at a given time $t$ is given by:
+
 $\hat{x}_{t}=\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$
 
-The error in power signal after the load assignment explained above is given by:
+\noindent The error in power signal after the load assignment explained above is given by:
 
 $e_t=|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$
 
-Combinatorial optimization tries to find the optimal combination of appliances in different states which will minimize this error term, by the following state assignment scheme:
+\noindent Combinatorial optimization tries to find the optimal combination of appliances in different states which will minimize this error term, by the following state assignment scheme:
+
 $z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$
 
-The corresponding predicted power draw by $n^{th}$ appliance is given by:
+\noindent The corresponding predicted power draw by $n^{th}$ appliance is given by:
+
 $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 
-This optimization problem resembles subset sum problem \cite{knapsack} and is NP-complete. The state space size of this optimization function is $K^N$, which means it is exponential in the number of appliances. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
+\noindent This optimization problem resembles subset sum problem \cite{knapsack} and is NP-complete. The state space size of this optimization function is $K^N$, which means it is exponential in the number of appliances. Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
 
 
-\textbf{Load division}: In the US, homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains/meters, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains where: $\sum\limits_{1}^{p}{N_i}=N$
+\noindent \textbf{Load division}: In the US, homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains/meters, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. We assign $N_i$ different loads to $p$ different mains where: $\sum\limits_{1}^{p}{N_i}=N$
 After load assignment to different mains, the state space size for different mains are given by $K^{N_1}..K^{p}$. This leads to an exponential reduction in state space, which also leads to an exponential decrease in running time. As a practical example, if a home has two mains and 20 loads equally distributed across the two mains, state space size before load division is given by $2^{20}$ and after load division is $2^{10}$. 
 \textbf{Where to write that we can also benefit by parallelizing} 
 %Moreover, this approach owing to the reduction in state space is expected to improve disaggregation results. \textbf{Unsure where to put why Load Division is expected to improve results}
@@ -229,11 +234,11 @@ After load assignment to different mains, the state space size for different mai
 %\caption{Divide and Conquer NIALM}
 %   \label{fig:algorithm}
 %\end{figure}
-In this section we explain our algorithm- Improved Non intrusive load monitoring using load Division and Calibration (INDiC). While INDiC can be used with any modeling technique such as Hidden Markov Models\cite{rabiner}, combinatorial optimization, etc., we present INDiC-CO (INDiC using Combinatorial optimization as modeling approach). The various steps of INDiC-CO NIALM shown in \algoref{algo:main} are described below. 
+\noindent In this section we explain our algorithm- Improved Non intrusive load monitoring using load Division and Calibration (INDiC). While INDiC can be used with any modeling technique described in Section II we present INDiC-CO (INDiC using Combinatorial optimization as modeling approach). The various steps of INDiC-CO NIALM shown in \algoref{algo:main} are described below. 
 
-\textbf{Preprocessing}: Since multiple data streams (appliances and mains power time series) from varied hardware are used to produce data for NIALM applications, it is highly likely that some hardware malfunctions during the data collection process. In the preprocessing step we ensure that all the time series start and end at the same time and handle missing data using techniques such as forward filling(padding).
+\noindent\textbf{Preprocessing}: Since multiple data streams (appliances and mains power time series) from varied hardware are measured, it is highly likely that some hardware malfunctions during the data collection process. In the preprocessing step we ensure that all the time series start and end at the same time and handle missing data using techniques such as forward filling (padding).
 
-\textbf{Downsampling}: While performing CO it is desired that transients and fluctuations in the power signal are filtered\cite{hart}. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of loads. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by down sampling. Filters such mean/median can be used to down sample a time series, where the value assigned to a time window is the mean/median of values occurring during that time window.
+\noindent\textbf{Downsampling}: While performing CO it is desired that transients and fluctuations in the power signal are filtered\cite{hart}. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of appliances. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by down sampling. Filters such as mean/median can be used to down sample a time series to a time window, where the value assigned to a time window is the mean/median of values occurring during that time window in the original series.
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
 
 \begin{figure} 
@@ -248,46 +253,42 @@ In this section we explain our algorithm- Improved Non intrusive load monitoring
     \label{fig:downsampling}
 \end{figure}
 
-\textbf{Assigning Loads to Mains\footnote{While we provide methods for 2 Mains, the approach can be easily extended}}:
-This step aims to identify the mapping between appliances and mains. Patterns corresponding to appliances having higher peak power are generally easier to extract from main signal, thus we sort the appliance in decreasing order of peak power. For all such background loads we see if the mean power of the appliance is greater than mean power of any mains for all time instances. If so, we can safely assign the appliance to the other mains. If this step is unable to provide conclusive evidence we look at the periodicity associated with such background loads during periods of low or no human activity (such as night time). \figref{fig:assignment_1} shows how based on refrigerator duty cycle it is mapped to Mains 2. On similar lines assignment of foreground loads can be done.
+\noindent\textbf{Assigning Loads to Mains\footnote{While our approach is fine tuned for 2 Mains it can be easily extended to support further load division}}:
+This step aims to identify the mapping between appliances and mains. Patterns corresponding to appliances having higher peak power are generally easier to extract from main signal, thus we sort the appliance in decreasing order of peak power. Starting from the appliance having highest peak load we compare its power at all times with both mains. If at any time the power of the appliance is greater than either mains, we can assign the appliance to the other mains. However, if we are not able to assign an appliance to mains this way, we find the times when events (absolute change in power is greater than a threshold of 15 Watts) occur in the appliance power series. This should be a subset of times of events occurring in one of the mains to which this appliance is assigned. The threshold of 15 Watts is to ensure that minor voltage fluctuations are not counted as events. After an appliance has been assigned to a mains, its power sequence is subtracted from the corresponding mains to simplify mains assignment for remaining appliances. \figref{fig:assignment_1} shows how refrigerator is assigned to mains 2 since during this time interval its power is more than that of mains 1. Also, one may verify it by observing that the events in mains 2 and refrigerator power series occur at same time.
 \begin{figure} 
 	
-    \subfloat[\scriptsize Assigning refrigerator to Mains 2 since refrigerator power $>$ Mains 1 power and on basis of duty cycle]{
+    \subfloat[\scriptsize Assigning refrigerator to Mains 2 since refrigerator power $>$ Mains 1 power and events in Mains 2 and refrigerator occur at same time]{
     \label{fig:assignment_1}
-    \includegraphics[scale=0.127]{./figures/ref_assign.png}}
-    \subfloat[\scriptsize Calibrating Refrigerator Power consumption]{
+    \includegraphics[scale=0.12]{./figures/ref_assign.png}}
+     \hspace{2pt}
+    \subfloat[\scriptsize Calibrating refrigerator power consumption]{
         \label{fig:assignment_2}
-        \includegraphics[scale=0.127]{./figures/ref_calibrate.png}}
+       
+        \includegraphics[scale=0.12]{./figures/ref_calibrate.png}}
   	\caption{Calibrating and assigning refrigerator to Mains 2 }
     \label{fig:assignment}
 \end{figure}
 
-\textbf{Appliance Power Calibration}: 
+\noindent\textbf{Clustering}: We use prior knowledge about number of states ($K$) of an appliance to cluster its power draw into different states. We chose kmeans++\cite{kmeansplusplus} as our clustering approach owing to its scalability and the improvements it offers over kmeans in terms of speed and accuracy.
+
+
+\noindent\textbf{Appliance Power Calibration}: 
 Power measured by appliance level meters may need calibration due to the following reasons:
 \begin{itemize}
 \item Difference in measurement of different measurement instrument (diagram showing CC, ZWave, etc) \cite{berges2008}
-\item Fluctuation in voltage cause power to fluctuate as well
+\item Fluctuation in voltage causes power to fluctuate as well
 \item Missing meta data, whether real or apparent power is being measured at appliance level
 
-\end{itemize}Since different hardware is used for measuring appliance and mains data there may be a need to calibrate the two. Since mains data is usually collected using better precision hardware, we keep mains data as a reference and calibrate appliance data against it. In practice we found appliance level monitors to usually provide only real power whereas the mains monitors can provide much more like reactive and active power. Like the previous step, time instances when an appliance in a particular mains is single used are identified. The ratio of mains and appliance power step changes occurring this window serve as the calibration factor for that appliance. Further each appliance power is corrected with the corresponding calibration factor.
+\end{itemize} In comparison to appliance data, mains data is usually measured using better precision hardware. Thus, we keep mains data as a reference and calibrate appliance data against it. Since in OFF states (state 1) appliance power consumption is almost zero, it does not require any calibration. We find out times when appliance transitions from a lower state to a higher state. During these times, we find the ratio of the magnitude of power change occurring in the assigned mains and the appliance. This ratio serves as a corrective multiplicative factor for a particular  state of an appliance. Cluster centroids obtained in the previous step are multiplied by this factor to obtain calibrated cluster centroids.
 
-\textbf{Clustering to identify appliance states}:
-\begin{enumerate}
-\item Step changes occurring in Mains vs Appliances
-\item Isolating single appliance usage
-We use \cite{kmeansplusplus} to run our clustering
-\end{enumerate}
-Appliance states identification using clustering (Possibly talk about unbalanced data, but leave it for future work)
-State space creation
-Applying CO for different mains
-Find energy distribution by appliance and assign weights (To be used in results)
+\noindent\textbf{Combinatorial optimization}: Combinatorial optimization is now performed separately for both mains as per the description in Section III.
 
 
 
 
 \begin{algorithm}
 \DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
-\KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2},B,F,v$	}
+\KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2}$	}
 \KwOut{$y^n,\mu_k^n$}
 \BlankLine
 \textbf{Preprocessing}\;
@@ -312,10 +313,10 @@ Find energy distribution by appliance and assign weights (To be used in results)
 	{
 	
 \nl	\If {$\theta^n_t > \theta^{M_1}_t\: for\: any\: t \in {1,T}$} 
-		{ $Mapping[n]=2$\;		
+		{ $Mapping[n]=M_2$\;		
 		}  
 \nl	\ElseIf {$\theta^n_t > \theta^{M_2}_t\: for\: any\: t \in {1,T}$}
-		{ $Mapping[n]=1$\;
+		{ $Mapping[n]=M_1$\;
 		}
 %\nl	\ElseIf {$n \in B$}
 %		{
@@ -331,29 +332,32 @@ Find energy distribution by appliance and assign weights (To be used in results)
 %		Step\_Changes(\theta^{M_1},15,w).Magnitude \approx Constant\:C$
 		}
 			{ 
-			$Mapping[n]=1$\;
+			$Mapping[n]=M_1$\;
 			}
 \nl		\Else{
-			$Mapping[n]=2$\;	
+			$Mapping[n]=M_2$\;	
 			}	
 		}
-	\nl	$\theta^{M_{Mapping[n]}} \gets \theta^{M_{Mapping[n]}} - \theta^n $ \;
+	\nl	$\theta^{Mapping[n]} \gets \theta^{Mapping[n]} - \theta^n $ \;
 	}
+	\BlankLine
+	\textbf{Divide data into train and test set}\;
+	\BlankLine
 	
 		
 		\BlankLine
-		\textbf{Clustering}\;
+		\textbf{Clustering on train set}\;
 		\BlankLine
 	\nl	\For{$n \in {1,N}$}{
 	\nl	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
 	}
 	\BlankLine
-	\textbf{Calibration} \;
+	\textbf{Calibration on train set} \;
 	\BlankLine
 \nl	\For{$n \in {1,N}$}{
 \nl	\For{$k \in {2,K}$}{
 	\nl	$\mu_k^n \gets \frac{\mu_k^n * Step\_Changes(\theta^n_{k-1,k},15).Magnitude}
-				{Step\_Changes(\theta^{M_{Mapping[n]}}_{k-1,k},15).Magnitude} $ \;
+				{Step\_Changes(\theta^{Mapping[n]}_{k-1,k},15).Magnitude} $ \;
 	}
 %	
 %\nl	$\theta^n \gets \frac{\theta^n * Step\_Changes(\theta^n,15,w).Magnitude}
@@ -364,7 +368,7 @@ Find energy distribution by appliance and assign weights (To be used in results)
 
 
 \BlankLine
-\textbf{Combinatorial optimization} \;
+\textbf{Combinatorial optimization on test set} \;
 \BlankLine	
 	
 \nl Solve combinatorial optimization as described in Section III
@@ -376,7 +380,7 @@ Find energy distribution by appliance and assign weights (To be used in results)
 
 \section{Evaluation}
 
-We use Reference Energy Disaggregation Data Set (REDD) \cite{redd} for validating our algorithms. This dataset contains power and voltage data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~0.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. 
+We use Reference Energy Disaggregation Data Set (REDD) \cite{redd} for validating our algorithms. This dataset contains power data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~0.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. 
 
 %\figref{fig:breakdown} shows 6 hourly breakdown of energy consumption across the different mains in Home 2 .
 
@@ -393,21 +397,28 @@ We use Reference Energy Disaggregation Data Set (REDD) \cite{redd} for validatin
 %
 \subsection{Evaluation Metric}
 
-Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. It can be seen from \figref{fig:confusion} that since stove is mostly in state 0 (Off), accuracy will be largely decided by accuracy for this state. This does not tell how badly the prediction is misclassifying state 1 (On). 
+\noindent Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. We illustrate this with the help of a confusion matrix whose [m,n] entry in indicates the number of times appliance in state $m$ is predicted to be in state $n$. It can be seen from the confusion matrix in \figref{fig:confusion} that since stove is mostly in state 1 (Off), accuracy will be largely decided by accuracy for this state. This will overshadow the accuracy for state 2 (On) which is unintended.
 %Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches.
 Thus, we use the following metrics which have been used in the past work \cite{parson2012_aaai,redd}:
-\begin{itemize}
-\item \textbf{Mean Normalized Error (MNE \%)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by:
+
+\noindent\textbf{Mean Normalized Error (MNE\%)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by:
+\begin{equation}
+MNE(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n-\sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
+\end{equation} 
+
+\noindent above metric will give a 0 MNE for cases such as follows: $y^n=[0,10,0,10]$ and $\theta^n=[10,0,10,0]$, which can be misleading. Thus, we propose a modified Mean Normalized Error metric further referred as MNE which is sensitive to such cases.
 \begin{equation}
 MNE(n)=\frac{\sum\limits_{t=1}^{T}|\theta_t^n-y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
 \end{equation} 
-\item \textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice $t$ given by:
+\noindent Since it is a known fact that $|\sum a-\sum b| \le \sum|a-b|$ where $a$ and $b$ are vectors containing floating point numbers, our results might look worse than if the original definition of MNE were used.
+
+\noindent\textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice $t$ given by:
 \begin{equation}
 RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 \end{equation}
 
-\end{itemize} 
-Since both these quantities represent error, the lesser they are the better is the prediction.
+
+\noindent Both these quantities represent error, the lesser they are the better is the prediction.
 \begin{figure}
 \centering \includegraphics[scale=0.2]{./figures/confusion_stove.png}
 \caption{Confusion Matrix showing predicted state accuracy for Stove}
@@ -417,11 +428,11 @@ Since both these quantities represent error, the lesser they are the better is t
 
 
 \subsection{Empirical Analysis}
-We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances). We believe that the same analysis can be easily repeated across multiple homes. We aligned the data and downsampled it to one minute using mean filter. Since we had two weeks of clean data, we used the first week as the train set and the second week as the test set. We used INDiC algorithm described earlier to assign loads to different mains and calibrate appliance data. \tabref{tab:calibration_factors} shows the assignment of loads to different mains. Further this table also shows the learnt power states of these appliance via k-means++ clustering (which for several reasons is considered better than k-means) \cite{kmeansplusplus}. Refrigerator and lighting showed significant difference in power states post calibration. Based on prior experience and appliance circuity, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power. These loads constitute a major chunk of Mains 2 power. \figref{fig:calibration} shows the reduction in unassigned power due to calibrating these two appliances. Two loads - washer dryer and disposal did not have significant usage and we chose not to consider them in the analysis. 
+\noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances). We believe that the same analysis can be easily repeated across multiple homes. We preprocessed the data and downsampled it to one minute using mean filter. Since we had two weeks of clean data, we used the first week as the train set and the second week as the test set. We used INDiC-CO algorithm described earlier to assign loads to different mains and calibrate appliance data. \tabref{tab:calibration_factors} shows the assignment of loads to different mains. Further this table also shows the learnt power states of these appliance via k-means++ clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on prior experience and appliance circuity, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power. These loads constitute a major chunk of Mains 2 power. \figref{fig:calibration} shows the reduction in unassigned power due to calibrating these two appliances. Two appliances - washer dryer and disposal are ignored from the analysis since washer dryer had a peak power consumption of 8 W (which means it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%. 
 
-To show the significance of load division and calibration, we applied Combinatorial optimization on the test set, considering 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division. These results are presented in \tabref{tab:results}. For the overall dataset, it can be seen that MNE reduces from 187\% to 39\%, RE reduces from 478 W to 168 W, after applying INDiC. All appliances show reduction in MNE and RE after applying INDiC. However, there is significant improvement in correctly predicting refrigerator and lighting. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction pre and post applying INDiC. It can be seen that after applying INDiC there is a vast improvement in predicting refrigerator's state 0 and 1.
-
-We had used Combinatorial Optimization which is the simplest NIALM technique to show the improvements which can be made by load division and appliance calibration. We believe that using state of the art NIALM algorithms will improve the results by leaps and bounds.
+\noindent To show the significance of load division and calibration, we considered 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division (INDiC-CO). These results are presented in \tabref{tab:results}. For the overall dataset, it can be seen that MNE reduces from 187\% to 39\%, RE reduces from 478 W to 168 W, after applying INDiC-CO. All appliances show reduction in MNE and RE after applying INDiC-CO. However, there is significant improvement in correctly predicting refrigerator and lighting. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction pre and post applying INDiC-CO. It can be seen that after applying INDiC-CO there is a vast improvement in predicting refrigerator's state 1 and 2.
+%
+%\noindent We had used Combinatorial Optimization which is the simplest NIALM technique to show the improvements which can be made by load division and appliance calibration. We believe that using state of the art NIALM algorithms will improve the results by leaps and bounds.
 
 %\item Overall results in \tabref{tab:results}, first column NILM without dividing into mains and without recalibration, last column with DiCaCo NIALM. Vast reduction in R.E. and M.N.E , especially for most appliance contributing most like refrigerator and lighting	
 %\item Confusion matrix showing a large improvement in refrigerator recognition in \figref{fig:confusion_ref}
