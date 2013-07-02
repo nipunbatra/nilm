@@ -1,4 +1,5 @@
-This is BibTeX, Version 0.99c (Web2C 7.5.6)
+This is BibTeX, Version 0.99d (TeX Live 2012/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: icmla.aux
 The style file: IEEEtran.bst
 Reallocated singl_function (elt_size=4) to 100 items from 50.
@@ -8,88 +9,88 @@ Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: IEEEabrv.bib
 Database file #2: references.bib
-Repeated entry---line 238 of file references.bib
+Repeated entry---line 243 of file references.bib
  : @inproceedings{parson2012_aaai
  :                               ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 244 of file references.bib
+Repeated entry---line 255 of file references.bib
  : @article{berges2008
  :                    ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 254 of file references.bib
+Repeated entry---line 275 of file references.bib
  : @book{knapsack
  :               ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 260 of file references.bib
+Repeated entry---line 287 of file references.bib
  : @inproceedings{redd
  :                    ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 268 of file references.bib
+Repeated entry---line 303 of file references.bib
  : @inproceedings{smart
  :                     ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 274 of file references.bib
+Repeated entry---line 315 of file references.bib
  : @article{blued_cmu
  :                   ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 320 of file references.bib
- : @inproceedings{rabiner
- :                       ,
+Repeated entry---line 351 of file references.bib
+ : @article {evans09
+ :                  ,
 I'm skipping whatever remains of this entry
-I was expecting a `,' or a `}'---line 332 of file references.bib
+I was expecting a `,' or a `}'---line 431 of file references.bib
  : 
  : %YEAR=2012
 (Error may have been on previous line)
 I'm skipping whatever remains of this entry
-Repeated entry---line 335 of file references.bib
+Repeated entry---line 437 of file references.bib
  : @article{hart
  :              ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 346 of file references.bib
+Repeated entry---line 459 of file references.bib
  : @article{darby
  :               ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 353 of file references.bib
+Repeated entry---line 473 of file references.bib
  : @article{survey1
  :                 ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 360 of file references.bib
+Repeated entry---line 487 of file references.bib
  : @article{survey2
  :                 ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 371 of file references.bib
+Repeated entry---line 509 of file references.bib
  : @article{survey3
  :                 ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 382 of file references.bib
+Repeated entry---line 531 of file references.bib
  : @inproceedings{kmeansplusplus
  :                              ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 391 of file references.bib
+Repeated entry---line 549 of file references.bib
  : @inproceedings{Suzuki_08
  :                         ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 399 of file references.bib
+Repeated entry---line 565 of file references.bib
  : @inproceedings{Baranski_04
  :                           ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 408 of file references.bib
+Repeated entry---line 583 of file references.bib
  : @inproceedings{Ruzzelli_10
  :                           ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 416 of file references.bib
+Repeated entry---line 599 of file references.bib
  : @inproceedings{Zia_11
  :                      ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 424 of file references.bib
+Repeated entry---line 615 of file references.bib
  : @inproceedings{Ghahramani_97a
  :                              ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 432 of file references.bib
+Repeated entry---line 631 of file references.bib
  : @article{Kolter_12
  :                   ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 442 of file references.bib
+Repeated entry---line 651 of file references.bib
  : @inproceedings{Kim_11
  :                      ,
 I'm skipping whatever remains of this entry
@@ -100,26 +101,26 @@ Warning--empty journal in blued_cmu
 Warning--empty year in blued_cmu
 
 Done.
-You've used 20 entries,
+You've used 22 entries,
             4024 wiz_defined-function locations,
-            1296 strings with 18021 characters,
-and the built_in function-call counts, 15377 in all, are:
-= -- 1184
-> -- 358
-< -- 133
-+ -- 205
-- -- 64
-* -- 729
-:= -- 2213
-add.period$ -- 42
-call.type$ -- 20
-change.case$ -- 19
-chr.to.int$ -- 330
-cite$ -- 22
-duplicate$ -- 1095
-empty$ -- 1332
-format.name$ -- 74
-if$ -- 3583
+            1308 strings with 18432 characters,
+and the built_in function-call counts, 16614 in all, are:
+= -- 1277
+> -- 395
+< -- 138
++ -- 223
+- -- 72
+* -- 788
+:= -- 2406
+add.period$ -- 46
+call.type$ -- 22
+change.case$ -- 21
+chr.to.int$ -- 339
+cite$ -- 24
+duplicate$ -- 1193
+empty$ -- 1446
+format.name$ -- 84
+if$ -- 3869
 int.to.chr$ -- 0
 int.to.str$ -- 22
 missing$ -- 204
@@ -129,16 +130,16 @@ pop$ -- 510
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1327
+skip$ -- 1296
 stack$ -- 0
-substring$ -- 878
-swap$ -- 954
+substring$ -- 822
+swap$ -- 934
 text.length$ -- 25
 text.prefix$ -- 0
 top$ -- 5
 type$ -- 22
 warning$ -- 2
-while$ -- 75
+while$ -- 71
 width$ -- 24
 write$ -- 220
 (There were 21 error messages)

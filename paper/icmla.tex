@@ -16,6 +16,10 @@
 \usepackage{epstopdf}
 \usepackage{multirow}
 \newcommand{\pushline}{\Indp}
+
+\newcommand{\indic}{INDiC}
+\newcommand{\indicns}{INDiC}
+
 \else
 \fi
 
@@ -60,20 +64,18 @@ Non-Intrusive appliance load monitoring (NIALM) is the process of disaggregating
 
 
 \section{Introduction}
-% no \IEEEPARstart
-\begin{itemize}
-\item Motivate the importance of energy consumption in building
-\item Motivate that appliance level information is crucial - detailed feedback and optimized decision making \cite{darby}
-\item Challenges with getting appliance level information - introduce NIALM~\cite{hart}
-\item introduce your proposed approach
-\item Enumerate the contributions
-\end{itemize}
+\noindent Buildings account for significant proportion of overall energy use in both the developing (e.g. 47\% of total energy in India~\cite{evans09}) and the developed (e.g. 41\% and 45\% in US and UK respectively) countries. Modest improvements in building energy use can result in significant aggregate impact at the national scale. While several automation and management systems have been proposed for improving the operational efficiency of building systems, such systems typically lack the ability to provide detailed consumption information (e.g. appliance level consumption). Prior work~\cite{darby} has shown that better feedback systems, enabling appliance level consumption, that provide insights about occupant's energy usage information further encourages energy saving behavior resulting in 5-15\% savings in electricity usage.
 
-Primary contributions of our work are:
+\noindent Measuring each appliance's consumption separately, for providing such a feedback, is both prohibitively expensive and difficult to manage. Alternatively, prior research has proposed Non Intrusive Appliance Load Monitoring (NIALM) that involves separating the aggregated electricity consumption obtained at the meter level into individual appliance consumption. Several modeling and inference approaches have been proposed (e.g. Factorial Hidden Markov Model~\cite{Ghahramani_97a}, Combinatorial Optimization~\cite{hart}) in the past to address NIALM with varied level of accuracy. NIALM work typically assumes that all the loads are assigned to the same meter. However, many practical scenarios (e.g. use of 2-phase supply in many homes in USA and 3-phase supply for many homes in India) involve load division across different phases coming at the home level. Automated assignment of different loads in a home to each phase followed by NIALM application on each phase separately can reduce the overall modeling and inference complexity. 
+
+\noindent Further, the measurements, both at the meter level and at the appliance level, are often taken with different equipments (Current Transformers, in-line measurements, ICs\footnote{Example IC for power measurement is Maxim 78M6612}) each with their own accuracy levels. Calibrating these diverse measurements will be beneficial for NIALM modeling and inference. Grid conditions such as voltage fluctuations further motivate calibration. Motivated by these practical scenarios, we propose \indic - \textbf{I}mproved \textbf{N}IALM using load \textbf{Di}vision and \textbf{C}alibration. Specific research condtributions of our work are:
 \begin{itemize}
-\item Fill it up with 2-3 crisp points
+\item Novel approach named \indic that involves two simple pre-processing steps - Load Division (i.e. automated assignment of different loads in a home to each of the separate Mains) and Calibration (accounting for varied measurement accuracy across different equipments), that can be applied in a generic manner across several proposed NIALM modeling and inference approaches to further improve their accuracy. 
+\item Extensive empirical validation, using publicly available REDD~\cite{redd} dataset, establishing the effectiveness of \indicns, specifically for Combinatorial Optimization based NIALM. 
+\item Release of open source implementation of the proposed work for comparative analysis with other NIALM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. 
 \end{itemize}
-Open source implementation of the proposed work is released for comparative analysis with other NIALM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. We believe this is the first extensive release of a generic NIALM
+\noindent We believe that this is the first extensive release of a generic NIALM code base that can be used across many of the publicly available datasets and with several existing NIALM modeling and inference approaches.
+
 
 \section{Related work}
 \noindent Non-intrusive appliance load monitoring was first studied by Hart~\cite{hart} in the early 1990s by examining signatures in aggregated load to indicate activities of appliances. The problem has been well studied in recent years (\cite{survey1,survey2,survey3}) and NIALM systems can broadly be divided into two categories based on whether supervised or unsupervised disaggregation methods are used.
@@ -230,8 +232,23 @@ $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 %Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past \cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
 
 
-\noindent \textbf{Load division}: In the US, homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains/meters, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. Assuming that a home has $p$ mains/meters, out of a total of $N$ loads in the home we assign $N_i$ loads to $i^{th}$ mains where: $\sum\limits_{1}^{p}{N_i}=N$
-After load assignment to different mains, the state space size for $i^{th}$ mains is given by $K^{N_i}$. This leads to an exponential reduction in state space. As a practical example, if a home has two mains and 20 loads equally distributed across the two mains, state space size before load division is given by $2^{20}$ and after load division is $2^{10}$. 
+\noindent \textbf{Load division}: In the US, homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains/meters, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. Assuming that a home has $p$ mains/meters, out of a total of $N$ loads in the home we assign $N_i$ loads to $i^{th}$ mains where $Mapping[n]$ indicates the mapping of an appliance to a mains.
+After load assignment to different mains, the state space size for $i^{th}$ mains is given by $K^{N_i}$. This leads to an exponential reduction in state space. As a practical example, if a home has two mains and 20 loads equally distributed across the two mains, state space size before load division is given by $2^{20}$ and after load division is $2^{10}$. CO formulation for $i^{th}$ mains after load division is given by the following optimization function: 
+$z_t=arg min_{z_t}|\theta^{M_i}-\sum\limits_{n=1}^{N_i}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n| \:where\: i\in {1,p}$
+
+\noindent The corresponding predicted appliance power sequence for appliances belonging to $i^{th}$ mains is given by:
+$y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
+
+\noindent The optimization is subject to the following constraints. Firstly, sum of loads assigned to different mains must be equal to the total number of loads. This is given by: $\sum\limits_{1}^{p}{N_i}=N$
+
+\noindent Secondly, at a given time, an appliance can only be in a single state which is given by: $\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$ 
+
+\noindent Thirdly, an appliance can belong to one and only one mains. Thus, Mapping[n] is a one to one function.
+
+\noindent Fourthly, the sum of power of appliance assigned to $i^{th}$ mains is always lesser than or equal to the power of the corresponding mains, which is given by $e_t$ term for $i^{th}$ mains to be non negative.
+
+
+
 %\textbf{Where to write that we can also benefit by parallelizing} 
 %Moreover, this approach owing to the reduction in state space is expected to improve disaggregation results. \textbf{Unsure where to put why Load Division is expected to improve results}
 
