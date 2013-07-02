@@ -110,9 +110,10 @@ Open source implementation of the proposed work is released for comparative anal
 \begin{figure} 
 	
     \subfloat[\scriptsize Aggregate Power]{
-    \includegraphics[scale=0.18]{./figures/before_disagg.png}}
+    \includegraphics[scale=0.145]{./figures/before_disagg_2.png}}
+%    \hspace{-1.3em}
     \subfloat[\scriptsize Disaggregated Power]{
-        \includegraphics[scale=0.18]{./figures/after_disagg.png}}
+        \includegraphics[scale=0.145]{./figures/after_disagg_2.png}}
   	\caption{The process of disaggregation}
     \label{fig:disagg}
 \end{figure}
@@ -299,10 +300,10 @@ Power measured by appliance level meters may need calibration due to the followi
 \BlankLine
 \nl \For {$n \in {1,N}$}
 	{
-	$\theta^n \gets Downsample(\theta^n,mean,1\: minute)$\;
+	$\theta^n \gets Downsample(\theta^n,mean,resolution)$\;
 	}
-\nl $\theta^{M_1} \gets Downsample(\theta^{M_1},mean,1\: minute)$\;
-\nl $\theta^{M_2} \gets Downsample(\theta^{M_2},mean,1\: minute)$\;
+\nl $\theta^{M_1} \gets Downsample(\theta^{M_1},mean,resolution)$\;
+\nl $\theta^{M_2} \gets Downsample(\theta^{M_2},mean,resolution)$\;
 
 
 \nl $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
@@ -327,7 +328,7 @@ Power measured by appliance level meters may need calibration due to the followi
 %		$w \gets Greater\_Than(\theta^n,100)$
 %		}
 \nl	\Else{
-\nl		\If {$Event\_Detection(\theta^n,15).Times \subset Event\_Detection(\theta^{M_1},15).Times$ %\linebreak \&\: 
+\nl		\If {$Event\_Detection(\theta^n,threshold).Times \subset Event\_Detection(\theta^{M_1},threshold).Times$ %\linebreak \&\: 
 %		Step\_Changes(\theta^n,15,w).Magnitude \div \linebreak
 %		Step\_Changes(\theta^{M_1},15,w).Magnitude \approx Constant\:C$
 		}
@@ -349,15 +350,15 @@ Power measured by appliance level meters may need calibration due to the followi
 		\textbf{Clustering on train set}\;
 		\BlankLine
 	\nl	\For{$n \in {1,N}$}{
-	\nl	$\mu_k^n \gets Cluster(\theta^n,K,kmeans++) \: for\: k \in {1,K} $\;
+	\nl	$\mu_k^n \gets Cluster(\theta^n,K,clustering\_algorithm) \: for\: k \in {1,K} $\;
 	}
 	\BlankLine
 	\textbf{Calibration on train set} \;
 	\BlankLine
 \nl	\For{$n \in {1,N}$}{
 \nl	\For{$k \in {2,K}$}{
-	\nl	$\mu_k^n \gets \frac{\mu_k^n * Step\_Changes(\theta^n_{k-1,k},15).Magnitude}
-				{Step\_Changes(\theta^{Mapping[n]}_{k-1,k},15).Magnitude} $ \;
+	\nl	$\mu_k^n \gets \frac{\mu_k^n * Step\_Changes(\theta^n_{k-1,k},threshold).Magnitude}
+				{Step\_Changes(\theta^{Mapping[n]}_{k-1,k},threshold).Magnitude} $ \;
 	}
 %	
 %\nl	$\theta^n \gets \frac{\theta^n * Step\_Changes(\theta^n,15,w).Magnitude}
