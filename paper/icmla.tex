@@ -267,12 +267,14 @@ $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 
 \begin{figure} 
 	
-    \subfloat[\scriptsize Filtering startup transients]{
+    \subfloat[\scriptsize When the compressor of refrigerator is turned on it consumes a very high starting power for a few seconds. This figure shows how these starting peak power can be filtered by downsampling to a suitable resolution]{
     \label{fig:downsample_startup}
-    \includegraphics[scale=0.12]{./figures/downsample_1.png}}
-    \subfloat[\scriptsize Filtering voltage fluctuations and oscillations]{
+    
+    \includegraphics[scale=0.11]{./figures/downsample_1.png}}
+    \hspace{1em}
+    \subfloat[\scriptsize Due to voltage fluctuations and oscillations the power consumed by an appliance can vary. This figure shows how these fluctuations can be reduced by downsampling to a suitable resolution]{
         \label{fig:downsample_voltage}
-        \includegraphics[scale=0.12]{./figures/downsample_2.png}}
+        \includegraphics[scale=0.11]{./figures/downsample_2.png}}
   	\caption{Effect of downsampling appliance data}
     \label{fig:downsampling}
 \end{figure}
