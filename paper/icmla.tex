@@ -105,7 +105,8 @@ Open source implementation of the proposed work is released for comparative anal
 
 %\end{itemize}
 \section{NIALM}
-\noindent NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}. A typical NIALM setup involves instrumenting the power mains with smart meters and individual appliances with appliance meters for ground truth. \figref{fig:disagg} shows the house mains disaggregated into 3 appliances.
+%\noindent NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}.
+\noindent A typical NIALM setup involves measuring the power mains with smart meters and individual appliances with appliance meters for ground truth. The NIALM problem in supervised setting is formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ (measured via appliance meters) and the total aggregate power sequence $x$ (measured via smart meters). Remaining terminologies and functions are defined in \tabref{tab:terms} \cite{redd,parson2012_aaai,hart}. \figref{fig:disagg} shows the process of disaggregation applied to a house mains, whereby the consumption patterns of 3 appliances: refrigerator, lighting and microwave can be seen. It must be highlighted that it is improbable to instrument all the appliances in a home, thus, there will be some unaccounted power, which can also be seen in the figure.
 
 \begin{figure} 
 	
@@ -117,7 +118,7 @@ Open source implementation of the proposed work is released for comparative anal
   	\caption{Disaggregating a home's electrical mains into 3 appliances: refrigerator, lighting and microwave. Some power is unaccounted as complete information about all appliances is not available.}
     \label{fig:disagg}
 \end{figure}
-\noindent We use some terminologies from previous work \cite{redd,parson2012_aaai,hart} and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, the NIALM problem in supervised setting can be formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ and the total aggregate power sequence $x$.
+%\noindent We use some terminologies from previous work  and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, 
 
 
 \begin{table}
