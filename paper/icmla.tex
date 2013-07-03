@@ -168,7 +168,13 @@ $\theta^n_{k^1,k^2}$& Measured power sequence when $n^{th}$ appliance \\[0.1cm]
 \hline
 $Mapping[n] \in {M_i}$ & Mapping of $n^{th}$ appliance to $i^{th}$ Mains\\[0.1cm]
 where $i \in {1,2}$ & \\
+\hline 
+$s_t$ & Value of a timeseries $s$ at time $t$ \\
 \hline
+$Event(s,threshold)$ & An event in timeseries $s$ occurs \\
+&when $|s_t-s_{t-1}|>threshold$\\
+& An event has an associated $time$ $t$\\
+& and $magnitude$ $|s_t-s_{t-1}|$\\
 %\hline
 %\multirow{2}{*}{$B$} & List of background appliances (which can run\\[0.1cm]
 % 					 &without human intervention) eg. refrigerator\\[0.1cm]
@@ -182,7 +188,7 @@ $resolution)$                                        & a $resolution$ according 
 %$Rated\_Voltage)$                                 & given voltage timeseries $v$ according to\\[0.1cm]
 %                                    &the formula: $(\frac{Rated\_Voltage}{v})^2s$\\[0.1cm]
 \hline
-$Preprocess([s^1,..s^n]$ & Function to ensure that $n$ timeseries start and\\[0.1cm]
+$Timeseries\_sync([s^1,..s^n]$ & Function to ensure that $n$ timeseries start and\\[0.1cm]
 $,method)$                                        &end at same times and handling missing\\[0.1cm]
                                         & data using specified $method$\\[0.1cm]
 \hline                                        
@@ -193,8 +199,9 @@ $parameter,order)$  &to $parameter$ in specified $order$\\[0.1cm]
 %                                       &for atleast $min\_period$\\[0.1cm]
 \hline
 $Event\_Detection(s,$ & Function returning magnitude and times of \\[0.1cm]
-$threshold)$                  &step events in time series whose absolute $s$ \\[0.1cm]
-                             & value is greater than $threshold$\\[0.1cm]
+$threshold)$                  &$Events(s,threshold)$ in timeseries $s$\\[0.1cm]
+
+                             
 %\multirow{2}{*}{$Greater\_Than(s,threshold)$} & Function to return times when timeseries $s$ is\\[0.1cm]
 %                                        &greater than $threshold$\\[0.1cm]                                                                                                    
                                                                                
@@ -288,7 +295,7 @@ $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 \end{figure}
 
 \noindent\textbf{Assigning Loads to Mains\footnote{While our approach is fine tuned for 2 Mains it can be easily extended to support further load division}}:
-This step aims to identify the mapping between appliances and mains. Patterns corresponding to appliances having higher peak power are generally easier to extract from main signal, thus we sort the appliance in decreasing order of peak power. Starting from the appliance having highest peak load we compare its power at all times with both mains. If at any time the power of the appliance is greater than either mains, we can assign the appliance to the other mains. However, if we are not able to assign an appliance to mains this way, we find the times when events (absolute change in power is greater than a threshold of 15 Watts) occur in the appliance power series. This should be a subset of times of events occurring in one of the mains to which this appliance is assigned. The threshold of 15 Watts is to ensure that minor voltage fluctuations are not counted as events. After an appliance has been assigned to a mains, its power sequence is subtracted from the corresponding mains to simplify mains assignment for remaining appliances. \figref{fig:assignment_1} shows how refrigerator is assigned to mains 2 since during this time interval its power is more than that of mains 1. Also, one may verify it by observing that the events in mains 2 and refrigerator power series occur at same time.
+This step aims to identify the mapping ($Mapping[n]$) between appliances and mains. Since an appliance can belong to a single mains, $Mapping[n]$ is a one-to-one function from an appliance $n$ to a mains. Patterns corresponding to appliances having higher peak power are generally easier to extract from main signal, thus we sort the appliance in decreasing order of peak power. Starting from the appliance having highest peak load we compare its power at all times with the power of a mains. If at any time the power of the appliance is greater than the power of a mains, we can assign the appliance to the other mains. However, if we are not able to assign an appliance to mains this way, we find the times when $Events$ occur in the appliance power series. This should be a subset of times of $Events$ occurring in one of the mains to which this appliance is assigned. The threshold used to find events should be suitably chosen to ensure that minor voltage fluctuations are not counted as events. After an appliance has been assigned to a mains, its power sequence is subtracted from the corresponding mains to simplify mains assignment for remaining appliances. \figref{fig:assignment_1} shows how refrigerator is assigned to mains 2 since during this time interval its power is more than that of mains 1. Also, one may verify it by observing that the events in mains 2 and refrigerator power series occur at same time.
 \begin{figure} 
 	
     \subfloat[\scriptsize Assigning refrigerator to Mains 2 since refrigerator power $>$ Mains 1 power and events in Mains 2 and refrigerator occur at same time]{
@@ -303,14 +310,13 @@ This step aims to identify the mapping between appliances and mains. Patterns co
     \label{fig:assignment}
 \end{figure}
 
-\noindent\textbf{Clustering}: We use prior knowledge about number of states ($K$) of an appliance to cluster its power draw into different states. We chose kmeans++\cite{kmeansplusplus} as our clustering approach owing to its scalability and the improvements it offers over kmeans in terms of speed and accuracy.
-
+\noindent\textbf{Clustering}: Prior knowledge and appliance circuitry\cite{ting2005} are used to identify the number of states associated with an appliance. For instance, a refrigerator is a compressor based device and exhibits three states in increasing order of power demand (compressor Off, compressor ON, defrost mode). We use state of the art clustering techniques to cluster appliances' power draw.
 
 \noindent\textbf{Appliance Power Calibration}: 
 Power measured by appliance level meters may need calibration due to the following reasons:
 \begin{itemize}
-\item Difference in measurement of different measurement instrument (diagram showing CC, ZWave, etc) \cite{berges2008}
-\item Fluctuation in voltage causes power to fluctuate as well
+\item Different hardware report different measurement for same appliance \cite{berges2008}
+\item Fluctuation in voltage causes power to fluctuate as well\cite{hart}
 \item Missing meta data, whether real or apparent power is being measured at appliance level
 
 \end{itemize} In comparison to appliance data, mains data is usually measured using better precision hardware. Thus, we keep mains data as a reference and calibrate appliance data against it. Since in OFF states (state 1) appliance power consumption is almost zero, it does not require any calibration. We find out times when appliance transitions from a lower state to a higher state. During these times, we find the ratio of the magnitude of power change occurring in the assigned mains and the appliance. This ratio serves as a corrective multiplicative factor for a particular  state of an appliance. Cluster centroids obtained in the previous step are multiplied by this factor to obtain calibrated cluster centroids.
@@ -325,9 +331,9 @@ Power measured by appliance level meters may need calibration due to the followi
 \KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2}$	}
 \KwOut{$y^n,\mu_k^n$}
 \BlankLine
-\textbf{Preprocessing}\;
+\textbf{Time series synchronization}\;
 \BlankLine
-\nl$\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Preprocess([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
+\nl$\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2} \gets Timeseries\_sync([\theta^1,..\theta^n,\theta^{M_1},\theta^{M_2}],forward\: fill)$\;
 \BlankLine
 \textbf{Downsampling}
 \BlankLine
@@ -388,10 +394,10 @@ Power measured by appliance level meters may need calibration due to the followi
 	\BlankLine
 	\textbf{Calibration on train set} \;
 	\BlankLine
-\nl	\For{$n \in {1,N}$}{
+\nl	\For{$n \in {1,N}$}{    
 \nl	\For{$k \in {2,K}$}{
-	\nl	$\mu_k^n \gets \frac{\mu_k^n * Step\_Changes(\theta^n_{k-1,k},threshold).Magnitude}
-				{Step\_Changes(\theta^{Mapping[n]}_{k-1,k},threshold).Magnitude} $ \;
+	\nl	$\mu_k^n \gets \frac{\mu_k^n *Event\_Detection(\theta^{Mapping[n]}_{k-1,k},threshold).Magnitude}
+				{ Event\_Detection(\theta^n_{k-1,k},threshold).Magnitude} $ \;
 	}
 %	
 %\nl	$\theta^n \gets \frac{\theta^n * Step\_Changes(\theta^n,15,w).Magnitude}
