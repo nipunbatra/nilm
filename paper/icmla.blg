@@ -62,6 +62,10 @@ Repeated entry---line 371 of file references.bib
  : @article{survey3
  :                 ,
 I'm skipping whatever remains of this entry
+Repeated entry---line 382 of file references.bib
+ : @inproceedings{kmeansplusplus
+ :                              ,
+I'm skipping whatever remains of this entry
 Repeated entry---line 391 of file references.bib
  : @inproceedings{Suzuki_08
  :                         ,
@@ -97,45 +101,45 @@ Warning--empty journal in blued_cmu
 Warning--empty year in blued_cmu
 
 Done.
-You've used 22 entries,
+You've used 23 entries,
             4024 wiz_defined-function locations,
-            1308 strings with 18407 characters,
-and the built_in function-call counts, 16532 in all, are:
-= -- 1266
-> -- 403
-< -- 134
-+ -- 225
-- -- 75
-* -- 786
-:= -- 2399
-add.period$ -- 45
-call.type$ -- 22
-change.case$ -- 21
-chr.to.int$ -- 327
-cite$ -- 24
-duplicate$ -- 1190
-empty$ -- 1440
-format.name$ -- 87
-if$ -- 3847
+            1314 strings with 18638 characters,
+and the built_in function-call counts, 17503 in all, are:
+= -- 1342
+> -- 422
+< -- 145
++ -- 237
+- -- 77
+* -- 830
+:= -- 2526
+add.period$ -- 48
+call.type$ -- 23
+change.case$ -- 22
+chr.to.int$ -- 357
+cite$ -- 25
+duplicate$ -- 1255
+empty$ -- 1526
+format.name$ -- 90
+if$ -- 4080
 int.to.chr$ -- 0
-int.to.str$ -- 22
-missing$ -- 207
-newline$ -- 89
-num.names$ -- 22
-pop$ -- 519
+int.to.str$ -- 23
+missing$ -- 216
+newline$ -- 92
+num.names$ -- 23
+pop$ -- 542
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1289
+skip$ -- 1365
 stack$ -- 0
-substring$ -- 794
-swap$ -- 927
-text.length$ -- 25
+substring$ -- 865
+swap$ -- 983
+text.length$ -- 26
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 22
+type$ -- 23
 warning$ -- 2
-while$ -- 71
-width$ -- 24
-write$ -- 220
-(There were 20 error messages)
+while$ -- 76
+width$ -- 25
+write$ -- 229
+(There were 21 error messages)

@@ -300,12 +300,12 @@ This step aims to identify the mapping ($Mapping[n]$) between appliances and mai
 	
     \subfloat[\scriptsize Assigning refrigerator to Mains 2 since refrigerator power $>$ Mains 1 power and events in Mains 2 and refrigerator occur at same time]{
     \label{fig:assignment_1}
-    \includegraphics[scale=0.12]{./figures/ref_assign.png}}
+    \includegraphics[scale=0.125]{./figures/calib.png}}
      \hspace{2pt}
-    \subfloat[\scriptsize Calibrating refrigerator power consumption]{
+    \subfloat[\scriptsize It can be seen that the magntude of event in mains 2 is significantly more than that in refrigerator. The ratio of these magntiudes is multiplied to refrigerator's power in this state (shown by black dotted line) to obtain calibrated power in this state (shown by yellow dotted line)]{
         \label{fig:assignment_2}
        
-        \includegraphics[scale=0.12]{./figures/ref_calibrate.png}}
+        \includegraphics[scale=0.125]{./figures/calib_4.png}}
   	\caption{Calibrating and assigning refrigerator to Mains 2 }
     \label{fig:assignment}
 \end{figure}
@@ -319,7 +319,8 @@ Power measured by appliance level meters may need calibration due to the followi
 \item Fluctuation in voltage causes power to fluctuate as well\cite{hart}
 \item Missing meta data, whether real or apparent power is being measured at appliance level
 
-\end{itemize} In comparison to appliance data, mains data is usually measured using better precision hardware. Thus, we keep mains data as a reference and calibrate appliance data against it. Since in OFF states (state 1) appliance power consumption is almost zero, it does not require any calibration. We find out times when appliance transitions from a lower state to a higher state. During these times, we find the ratio of the magnitude of power change occurring in the assigned mains and the appliance. This ratio serves as a corrective multiplicative factor for a particular  state of an appliance. Cluster centroids obtained in the previous step are multiplied by this factor to obtain calibrated cluster centroids.
+\end{itemize} In comparison to appliance data, mains data is usually measured using better precision hardware. Thus, we keep mains data as a reference and calibrate appliance data against it. In the clustering step, value of appliance power at each time is associated with corresponding cluster state ($k \in {1,K}$). Since in Off state ($k$=1) appliance power consumption is almost zero, it does not require any calibration. We find out $Event$ times when appliance transitions from a lower state($k$) to a higher state($k+1$). During these times, we find the ratio of the magnitude of power change occurring in the assigned mains and the appliance. This ratio serves as a corrective multiplicative factor for a particular  state of an appliance. Cluster centroids obtained in the previous step are multiplied by this factor to obtain calibrated cluster centroids.
+This process is shown in \figref{fig:assignment_2} where it is found that before calibration refrigerator power in state 2 was 162 W, after calibration with mains 2, it is found to be 210 W, where the calibration factor was found to be 1.3)
 
 \noindent\textbf{Combinatorial optimization}: Combinatorial optimization is now performed separately for both mains as per the description in Section III.
 
@@ -345,11 +346,11 @@ Power measured by appliance level meters may need calibration due to the followi
 \nl $\theta^{M_2} \gets Downsample(\theta^{M_2},mean,resolution)$\;
 
 
-\nl $s \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
+\nl $j \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
 \BlankLine
 \textbf{Appliance to Mains mapping}\;
 \BlankLine
-\nl \For{$Appliance\: n \in s$}
+\nl \For{$Appliance\: n \in j$}
 	{
 	
 \nl	\If {$\theta^n_t > \theta^{M_1}_t\: for\: any\: t \in {1,T}$} 
@@ -420,7 +421,9 @@ Power measured by appliance level meters may need calibration due to the followi
 
 \section{Evaluation}
 
-We use Reference Energy Disaggregation Data Set (REDD) \cite{redd} for validating our algorithms. This dataset contains power data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~0.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. 
+\noindent We use Reference Energy Disaggregation Data Set (REDD) \cite{redd} for validating our algorithms based on metrics such as Mean normalized error (MNE) and RMS error (RE) proposed in previous work.
+\subsection{About dataset}
+\noindent REDD contains power data for mains (2 phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (Mains at 1 Hz, appliances at ~0.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. 
 
 %\figref{fig:breakdown} shows 6 hourly breakdown of energy consumption across the different mains in Home 2 .
 
@@ -446,7 +449,7 @@ Thus, we use the following metrics which have been used in the past work \cite{p
 MNE(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n-\sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
 \end{equation} 
 
-\noindent above metric will give a 0 MNE for cases such as follows: $y^n=[0,10,0,10]$ and $\theta^n=[10,0,10,0]$, which can be misleading. Thus, we propose a modified Mean Normalized Error metric further referred as MNE which is sensitive to such cases.
+\noindent The above metric will give a 0\% MNE for cases such as follows: $y^n=[0,10,0,10]$ and $\theta^n=[10,0,10,0]$, which can be misleading. Thus, we propose a modified Mean Normalized Error metric further referred as MNE which is sensitive to such cases.
 \begin{equation}
 MNE(n)=\frac{\sum\limits_{t=1}^{T}|\theta_t^n-y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
 \end{equation} 
@@ -460,7 +463,7 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 
 \noindent Both these quantities represent error, the lesser they are the better is the prediction.
 \begin{figure}
-\centering \includegraphics[scale=0.2]{./figures/confusion_stove.png}
+\centering \includegraphics[scale=0.15]{./figures/confusion_stove.png}
 \caption{Confusion Matrix showing predicted state accuracy for Stove}
    \label{fig:confusion}
 \end{figure}
@@ -468,9 +471,9 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 
 
 \subsection{Empirical Analysis}
-\noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances). We believe that the same analysis can be easily repeated across multiple homes. We preprocessed the data and downsampled it to one minute using mean filter. Since we had two weeks of clean data, we used the first week as the train set and the second week as the test set. We used INDiC-CO algorithm described earlier to assign loads to different mains and calibrate appliance data. \tabref{tab:calibration_factors} shows the assignment of loads to different mains. Further this table also shows the learnt power states of these appliance via k-means++ clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on prior experience and appliance circuity, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power. These loads constitute a major chunk of Mains 2 power. \figref{fig:calibration} shows the reduction in unassigned power due to calibrating these two appliances. Two appliances - washer dryer and disposal are ignored from the analysis since washer dryer had a peak power consumption of 8 W (which means it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%. 
+\noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances)\footnote{Highest accuracy has been reported for this Home in previous work\cite{redd}}. We believe that the same analysis can be easily repeated across multiple homes. Timeseries synchronization was applied since the appliance level data collection begun about 6 hours after mains data collection. Moreover, there were small intervals of missing data, which we filled using forward filling. Two appliances - washer dryer and disposal were ignored from further analysis since washer dryer had a peak power consumption of 8 W (which means it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%.  We downsampled this time synchronized data to one minute resolution using mean filter. 1 minute is a sufficient resolution to get rid of startup transients and voltage fluctuations. As per the Appliance to Mains step in INDiC-CO algorithm described earlier we assigned loads to the two different mains.  \tabref{tab:calibration_factors} shows the assignment of loads to different mains. Further this table also shows the learnt power states of these appliance via KMeans++\footnote{We used DBScan, SOM, EM and Hierarchial clustering apart from KMeans++, but found KMeans++ to be most scalable} \cite{kmeansplusplus} clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on prior experience and appliance circuity\cite{ting2005}, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power. These two loads constitute a major chunk of mains 2 power. \figref{fig:calibration} shows the reduction in unassigned power due to calibrating these two appliances. 
 
-\noindent To show the significance of load division and calibration, we considered 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division (INDiC-CO). These results are presented in \tabref{tab:results}. For the overall dataset, it can be seen that MNE reduces from 187\% to 39\%, RE reduces from 478 W to 168 W, after applying INDiC-CO. All appliances show reduction in MNE and RE after applying INDiC-CO. However, there is significant improvement in correctly predicting refrigerator and lighting. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction pre and post applying INDiC-CO. It can be seen that after applying INDiC-CO there is a vast improvement in predicting refrigerator's state 1 and 2.
+\noindent To show the significance of load division and calibration as a preprocessing step to NIALM algorithm, we considered 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division (INDiC). The results after applying INDIC-CO are presented in \tabref{tab:results}. For the overall dataset, it can be seen that MNE reduces from 187\% to 39\%, RE reduces from 478 W to 168 W, after applying INDiC-CO. All appliances show reduction in MNE and RE after applying INDiC-CO. However, there is significant improvement in correctly predicting refrigerator and lighting. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction pre and post applying INDiC-CO. It can be seen that after applying INDiC there is a vast improvement in predicting refrigerator's state 1 and 2.
 %
 %\noindent We had used Combinatorial Optimization which is the simplest NIALM technique to show the improvements which can be made by load division and appliance calibration. We believe that using state of the art NIALM algorithms will improve the results by leaps and bounds.
 
@@ -496,6 +499,25 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
   	\caption{Confusion Matrix for refrigerator disaggregation}
     \label{fig:confusion_ref}
 \end{figure}
+%\item Table on Calibration factors
+
+%\begin{table}[!htb]
+%%    \caption{Global caption}
+%    \begin{minipage}{.5\linewidth}
+%      \caption{}
+%      \centering
+%        \begin{tabular}{ll}
+%            1 & 2
+%        \end{tabular}
+%    \end{minipage}%
+%    \begin{minipage}{.5\linewidth}
+%      \centering
+%        \caption{}
+%        \begin{tabular}{ll}
+%            3 & 4
+%        \end{tabular}
+%    \end{minipage} 
+%\end{table}
 
 %\item Table on Calibration factors
 \begin{table}
