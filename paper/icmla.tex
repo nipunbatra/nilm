@@ -108,16 +108,16 @@ Non-Intrusive appliance load monitoring (NIALM) is the process of disaggregating
 %\end{itemize}
 \section{NIALM}
 %\noindent NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}.
-\noindent A typical NIALM setup involves measuring the power mains with smart meters and individual appliances with appliance meters for ground truth. The NIALM problem in supervised setting is formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ (measured via appliance meters) and the total aggregate power sequence $x$ (measured via smart meters). Remaining terminologies and functions are defined in \tabref{tab:terms} \cite{redd,parson2012_aaai,hart}. \figref{fig:disagg} shows the process of disaggregation applied to a house mains, whereby the consumption patterns of 3 appliances: refrigerator, lighting and microwave can be seen. It must be highlighted that it is improbable to instrument all the appliances in a home, thus, there will be some unaccounted power, which can also be seen in the figure.
+\noindent A typical NIALM setup involves measuring the power mains with smart meters and individual appliances with appliance meters for ground truth. The NIALM problem in supervised setting is formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ (measured via appliance meters) and the total aggregate power sequence $x$ (measured via smart meters). Remaining terminologies and functions are defined in \tabref{tab:terms} \cite{redd,parson2012_aaai,hart}. \figref{fig:disagg} shows the process of disaggregation applied to a house mains, whereby the consumption patterns of 3 appliances: refrigerator, lighting and microwave can be seen. It must be highlighted that it is improbable to instrument all the appliances in a home, thus, there will be some unaccounted power, which can also be seen in the figure. We now explain Combinatorial optimization which was proposed by Hart \cite{hart} for solving NIALM.
 
 \begin{figure} 
 	
-    \subfloat[\scriptsize Aggregate Power]{
+    \subfloat[\scriptsize Aggregate home power measured by smart meter]{
     \includegraphics[scale=0.145]{./figures/before_disagg_2.png}}
 %    \hspace{-1.3em}
-    \subfloat[\scriptsize Disaggregated Power]{
+    \subfloat[\scriptsize Aggregate home power disaggregated into 3 appliances: refrigerator, lighting and microwave. Some power is unaccounted as complete information about all appliances is not available. ]{
         \includegraphics[scale=0.145]{./figures/after_disagg_2.png}}
-  	\caption{Disaggregating a home's electrical mains into 3 appliances: refrigerator, lighting and microwave. Some power is unaccounted as complete information about all appliances is not available.}
+  	\caption{Disaggregating a home's electrical mains}
     \label{fig:disagg}
 \end{figure}
 %\noindent We use some terminologies from previous work  and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, 
@@ -233,15 +233,23 @@ $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 
 
 \noindent \textbf{Load division}: In the US, homes have 2 electrical mains corresponding to different phases. Many Asian countries have multiple meters per home. Different loads are electrically connected to different mains/meters. Since an NIALM deployment requires monitoring different electrical mains/meters, we leverage the load division to perform disaggregation on these mains separately to improve load disaggregation. Assuming that a home has $p$ mains/meters, out of a total of $N$ loads in the home we assign $N_i$ loads to $i^{th}$ mains where $Mapping[n]$ indicates the mapping of an appliance to a mains.
-After load assignment to different mains, the state space size for $i^{th}$ mains is given by $K^{N_i}$. This leads to an exponential reduction in state space. As a practical example, if a home has two mains and 20 loads equally distributed across the two mains, state space size before load division is given by $2^{20}$ and after load division is $2^{10}$. CO formulation for $i^{th}$ mains after load division is given by the following optimization function: 
+After load assignment to different mains, the state space size for $i^{th}$ mains is given by $K^{N_i}$. This leads to an exponential reduction in state space. As a practical example, if a home has two mains and 20 loads equally distributed across the two mains, state space size before load division is given by $2^{20}$ and after load division is $2^{10}$.
+
+\noindent CO formulation for $i^{th}$ mains after load division is given by the following optimization function: 
+
 $z_t=arg min_{z_t}|\theta^{M_i}-\sum\limits_{n=1}^{N_i}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n| \:where\: i\in {1,p}$
 
 \noindent The corresponding predicted appliance power sequence for appliances belonging to $i^{th}$ mains is given by:
+
 $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 
-\noindent The optimization is subject to the following constraints. Firstly, sum of number of loads assigned to different mains must be equal to the total number of loads. This is given by: $\sum\limits_{1}^{p}{N_i}=N$
+\noindent The optimization is subject to the following constraints. Firstly, sum of number of loads assigned to different mains must be equal to the total number of loads. This is given by:
 
-\noindent Secondly, at a given time, an appliance can only be in a single state which is given by: $\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$ 
+ $\sum\limits_{1}^{p}{N_i}=N$
+
+\noindent Secondly, at a given time, an appliance can only be in a single state which is given by:
+
+ $\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$ 
 
 \noindent Thirdly, an appliance can belong to one and only one mains. Thus, Mapping[n] is a one to one function.
 
@@ -258,9 +266,9 @@ $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
 %\caption{Divide and Conquer NIALM}
 %   \label{fig:algorithm}
 %\end{figure}
-\noindent In this section we explain our algorithm- Improved Non intrusive load monitoring using load Division and Calibration (INDiC). While INDiC can be used with any modeling technique described in Section II we present INDiC-CO (INDiC using Combinatorial optimization as modeling approach). The various steps of INDiC-CO NIALM shown in \algoref{algo:main} are described below. 
+\noindent In this section we explain our algorithm- Improved Non intrusive load monitoring using load Division and Calibration (\indic). \indic provides preprocessing procedures which can simplify NIALM. These procedures can broadly be classified as data cleaning (time series synchronization, downsampling and calibration) and problem division into subproblems (assigning loads to mains). \indic can be used with any modeling technique described in Section II. Here, we present INDiC-CO (INDiC using Combinatorial optimization as modeling approach). CO proposed by Hart\cite{hart} is the simplest NIALM approach and by preprocessing using \indic  its shortcomings can be overcome. The various steps of INDiC-CO NIALM shown in \algoref{algo:main} are described below. 
 
-\noindent\textbf{Preprocessing}: Since multiple data streams (appliances and mains power time series) from varied hardware are measured, it is highly likely that some hardware malfunctions during the data collection process. In the preprocessing step we ensure that all the time series start and end at the same time and handle missing data using techniques such as forward filling (padding).
+\noindent\textbf{Time series synchronization}: Mains power and appliance power data are measured using different hardware\footnote{In REDD\cite{redd} TED meters(http://goo.gl/CEu2y) are used to measure mains and Power House Dynamics(http://goo.gl/9VQba) to measure appliance circuits}. It is highly likely that some hardware malfunctions during the data collection process. In this step we ensure that the mains power and appliance power time series start and end at the same time. Further missing data is handled using techniques such as forward filling (padding)\footnote{http://goo.gl/FfR6o}.
 
 \noindent\textbf{Downsampling}: While performing CO it is desired that transients and fluctuations in the power signal are filtered\cite{hart}. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of appliances. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by down sampling. Filters such as mean/median can be used to down sample a time series to a time window, where the value assigned to a time window is the mean/median of values occurring during that time window in the original series.
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
@@ -562,9 +570,9 @@ We also provide mains load assignment of all 6 homes from REDD to further the re
 \item Distributed NILM
 \item Adaptive Learning
 \end{itemize}
-
-\section*{Acknowledgment}
-The authors would like to thank TCS Research and Development for supporting the first author through PhD. fellowship. We would also like to thank NSF- DEITy for funding the project.
+%
+%\section*{Acknowledgment}
+%The authors would like to thank TCS Research and Development for supporting the first author through PhD. fellowship. We would also like to thank NSF- DEITy for funding the project.
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,references}
 
