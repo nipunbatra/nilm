@@ -15,7 +15,11 @@
 \usepackage{url}
 \usepackage{epstopdf}
 \usepackage{multirow}
+\usepackage{xcolor,colortbl}
+
 \newcommand{\pushline}{\Indp}
+\definecolor{Gray}{gray}{0.91}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
 
 \newcommand{\indic}{INDiC }
 \newcommand{\indicns}{INDiC }
@@ -113,7 +117,7 @@ Buildings Non-Intrusive appliance load monitoring (NIALM) is the process of disa
 	
     \subfloat[\scriptsize Aggregate home power measured by smart meter]{
     \includegraphics[scale=0.145]{./figures/before_disagg_2.png}}
-%    \hspace{-1.3em}
+%    \hspace{0.2pt}
     \subfloat[\scriptsize Aggregate home power disaggregated into 3 appliances: refrigerator, lighting and microwave. Some power is unaccounted as complete information about all appliances is not available. ]{
         \includegraphics[scale=0.145]{./figures/after_disagg_2.png}}
      \vspace{-8pt}
@@ -289,7 +293,7 @@ $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$
     \label{fig:downsample_startup}
     
     \includegraphics[scale=0.11]{./figures/downsample_1.png}}
-    \hspace{1em}
+    \hspace{1pt}
     \subfloat[\scriptsize Due to voltage fluctuations and oscillations the power consumed by an appliance can vary. This figure shows how these fluctuations can be reduced by downsampling to a suitable resolution]{
         \label{fig:downsample_voltage}
         \includegraphics[scale=0.11]{./figures/downsample_2.png}}
@@ -471,13 +475,19 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 
 
 \noindent Both these quantities represent error, the lesser they are the better is the prediction.
-\begin{figure}
-\centering \includegraphics[scale=0.15]{./figures/confusion_stove.png}
-\vspace{-8pt}
-\caption{Confusion Matrix showing predicted state accuracy for Stove}
-   \label{fig:confusion}
-   \vspace{-20pt}
-\end{figure}
+%\begin{table}
+%\begin{tabular}{content...}
+%content...
+%\end{tabular}
+%\end{table}
+
+%\begin{figure}
+%\centering \includegraphics[scale=0.15]{./figures/confusion_stove.png}
+%\vspace{-8pt}
+%\caption{Confusion Matrix showing predicted state accuracy for Stove}
+%   \label{fig:confusion}
+%   \vspace{-20pt}
+%\end{figure}
 
 
 
@@ -496,6 +506,7 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 	
     \subfloat[\scriptsize Without applying calibration, more than one-thirds of total power in mains 2 is unaccounted. This can significantly reduce accuracy when any NIALM model is applied]{
     \includegraphics[scale=0.2]{./figures/breakdown_before_calibration.png}}
+    \hspace{1pt}
     \subfloat[\scriptsize After applying calibration, unaccounted power reduces to less than 10\% of mains 2 power. The contribution of refrigerator and lighting to overall mains 2 power increaes. ]{
         \includegraphics[scale=0.2]{./figures/breakdown_after_calibration.png}}
   	\caption{Mains 2 Break down by load}
@@ -503,36 +514,80 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
     \label{fig:calibration}
     \vspace{-20pt}
 \end{figure}
+
+
+% % % % % % Confusion Matrix Result Images % % % % % % % % % % % % % %
+
 \begin{figure} 
 	
-    \subfloat[\scriptsize Without applying DiCaCo]{
-    \includegraphics[scale=0.15]{./figures/confusion_before_dicaco.png}}
-    \subfloat[\scriptsize After applying DiCaCo]{
-        \includegraphics[scale=0.15]{./figures/confusion_after_dicaco.png}}
+    \subfloat[\scriptsize Confusion matrix for refrigerator after applying CO based NIALM. State 2 is predicted to be in state 3 more than in state 2]{
+    \includegraphics[scale=0.355]{./figures/confusion_before_big.png}}
+    \hspace{2pt}
+    \subfloat[\scriptsize Confusion matrix for refrigerator after applying INDiC-CO based NIALM. There are more instances along the diogonal sginfifying improvement in prediction. State 2 shows significant improvements.]{
+        \includegraphics[scale=0.355]{./figures/confusion_after_big.png}}
         \vspace{-8pt}
-  	\caption{Confusion Matrix for refrigerator disaggregation}
+  	\caption{Confusion Matrices for refrigerator disaggregation. [m,n] in the matrix represents appliance's $m^{th}$ state to be predicted as $n^{th}$ state. Grey cells along the diagonal show true positive.}
   	
     \label{fig:confusion_ref}
     \vspace{-20pt}
 \end{figure}
-%\item Table on Calibration factors
 
+
+% % % % % Confusion Matrix results in table % % % % % % % % % % % % % % % % % % % % % % % % % %
 %\begin{table}[!htb]
-%%    \caption{Global caption}
-%    \begin{minipage}{.5\linewidth}
-%      \caption{}
-%      \centering
-%        \begin{tabular}{ll}
-%            1 & 2
-%        \end{tabular}
-%    \end{minipage}%
-%    \begin{minipage}{.5\linewidth}
-%      \centering
-%        \caption{}
-%        \begin{tabular}{ll}
-%            3 & 4
-%        \end{tabular}
-%    \end{minipage} 
+%    \caption{Confusion Matrices for NIALM. [m,n] in the matrix represents appliance's $m^{th}$ state to be predicted as $n^{th}$ state. Grey cells along the diagonal show true positive.}
+%%    \begin{minipage}{.28\linewidth}
+%%      \caption{}
+%%      \centering
+%%      \tabcolsep=0.07cm
+%%        \begin{tabular}{|l|l|l|l|}
+%%        \hline
+%%                  & \# of &  &\\
+%%             St-& usage& 1 & 2\\
+%%             ate     & events&&\\
+%%         \hline
+%%         1&10049&\cellcolor{gray!25}9616&443\\
+%%         \hline
+%%         2&21&11&\cellcolor{gray!25}10\\
+%%         \hline
+%%        \end{tabular}
+%%    \end{minipage}%    
+%           \begin{minipage}{.45\linewidth}
+%           \centering
+%             \caption{Confusion matrix for refrigerator after applying CO based NIALM. State 2 is predicted to be in state 3 more than in state 2}
+%             \tabcolsep=0.07cm
+%             \begin{tabular}{|l|l|l|l|l|}
+%                     \hline
+%                               & \# of &  &&\\
+%                          St-& usage& 1 & 2& 3\\
+%                          ate     & events&&&\\
+%                      \hline
+%                      1&5070&\cellcolor{gray!25}4259&213&598\\
+%                      \hline
+%                      2&4810&40&\cellcolor{gray!25}2158&2612\\
+%                      \hline
+%                      3&200&0&0&\cellcolor{gray!25}200\\
+%                      \hline
+%                 \end{tabular}
+%             \end{minipage}
+%             \begin{minipage}{.45\linewidth}
+%                            \centering
+%                              \caption{}
+%                              \tabcolsep=0.07cm
+%                              \begin{tabular}{|l|l|l|l|l|}
+%                                      \hline
+%                                                & \# of &  &&\\
+%                                           St-& usage& 1 & 2& 3\\
+%                                           ate     & events&&&\\
+%                                       \hline
+%                                       1&5070&\cellcolor{gray!25}4457&513&100\\
+%                                       \hline
+%                                       2&4810&193&\cellcolor{gray!25}4368&349\\
+%                                       \hline
+%                                       3&200&4&10&\cellcolor{gray!25}186\\
+%                                       \hline
+%                                  \end{tabular}
+%                              \end{minipage}  
 %\end{table}
 
 %\item Table on Calibration factors
@@ -541,7 +596,7 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 %%\renewcommand{\arraystretch}{1.3}
 %% if using array.sty, it might be a good idea to tweak the value of
 %% \extrarowheight as needed to properly center the text within the cells
-\caption{Mains assignment and appliance states power}
+\caption{Mains assignment and appliance states power. Lighting and refrigerator power shows change after calibration}
 \vspace{-8pt}
 \label{tab:calibration_factors}
 %\centering
@@ -568,10 +623,10 @@ Kitchen 2&1 & 1&204&1032&1&204&1032 \\
 \end{table}
 
 \begin{table}
-\caption{MNE and RE with and without INDiC-CO}
+\caption{MNE and RE for CO based NIALM with and without INDiC. Results for INDiC-CO are highlighted in grey}
 \vspace{-8pt}
 \label{tab:results}
-\begin{tabular}{|p{30pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|}
+\begin{tabular}{|p{30pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|p{12pt}|p{14pt}|a|a|}
 \hline
 &\multicolumn{4}{|c|}{Without}&\multicolumn{4}{|c|}{With}\\
 &\multicolumn{4}{|c|}{calibration}&\multicolumn{4}{|c|}{calibration}\\
