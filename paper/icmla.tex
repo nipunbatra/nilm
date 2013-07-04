@@ -73,8 +73,8 @@ Buildings across the world contribute significantly to overall energy consumptio
 
 \noindent Further, the measurements, both at the meter level and at the appliance level, are often taken with different equipments (Current Transformers, in-line measurements, ICs\footnote{Example IC for power measurement is Maxim 78M6612}) each with their own accuracy levels. Calibrating these diverse measurements will be beneficial for NIALM modeling and inference. Grid conditions such as voltage fluctuations further motivate calibration. Motivated by these practical scenarios, we propose \indic - \textbf{I}mproved \textbf{N}IALM using load \textbf{Di}vision and \textbf{C}alibration. Specific research contributions of our work are:
 \begin{itemize}
-\item Novel approach named \indic that involves two simple pre-processing steps - Load Division (i.e. automated assignment of different loads in a home to each of the separate Mains) and Calibration (accounting for varied measurement accuracy across different equipments), that can be applied in a generic manner across several proposed NIALM modeling and inference approaches to further improve their accuracy. 
-\item Extensive empirical validation, using publicly available REDD~\cite{redd} dataset, establishing the effectiveness of \indicns, specifically for Combinatorial Optimization based NIALM. 
+\item Novel approach named INDiC that involves two simple pre-processing steps - Load division (i.e. automated assignment of different loads in a home to each of the separate mains) and calibration (accounting for varied measurement accuracy across different equipments), that can be applied in a generic manner across several proposed NIALM modeling and inference approaches to further improve their accuracy. 
+\item Extensive empirical validation, using publicly available REDD~\cite{redd} dataset, establishing the effectiveness of INDiC as a preprocessing step, specifically for Combinatorial Optimization based NIALM. 
 \item Release of open source implementation of the proposed work\footnote{Add link to website} for comparative analysis with other NIALM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. 
 \end{itemize}
 \noindent We believe that this is the first extensive release of a generic NIALM code base that can be used across many of the publicly available datasets and with several existing NIALM modeling and inference approaches.
@@ -207,6 +207,10 @@ $parameter,order)$  &to $parameter$ in specified $order$\\[0.1cm]
 \hline
 $Event\_Detection(s,$ & Function returning magnitude and times of \\[0.1cm]
 $threshold)$                  &$Events(s,threshold)$ in timeseries $s$\\[0.1cm]
+\hline
+$Cluster(s,K,$& Function to divide timeseries $s$ into\\[0.1cm]
+$clustering\_algorithm$&$K$ clusters based on $clustering\_algorithm$ \\
+\hline
 
                              
 %\multirow{2}{*}{$Greater\_Than(s,threshold)$} & Function to return times when timeseries $s$ is\\[0.1cm]
