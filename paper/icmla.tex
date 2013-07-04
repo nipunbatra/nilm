@@ -21,8 +21,8 @@
 \definecolor{Gray}{gray}{0.91}
 \newcolumntype{a}{>{\columncolor{Gray}}c}
 
-\newcommand{\indic}{INDiC }
-\newcommand{\indicns}{INDiC }
+\newcommand{\indic}{INDiC}
+\newcommand{\indicns}{INDiC}
 
 \else
 \fi
@@ -60,7 +60,7 @@ Fax: (888) 555--1212}}
 
 \begin{abstract}
 %\boldmath
-Buildings Non-Intrusive appliance load monitoring (NIALM) is the process of disaggregating the overall electricity usage into constituent appliances. In this paper we extend the Combinatorial Optimization (CO) approach for disaggregation, which was originally proposed in the seminal work on NIALM, in following two ways: 1) Breaking the problem into subproblems and reducing the state space; 2) Applying additional constraints backed by sound domain expertise. We evaluate our approach using REDD dataset and show practical problems which need to be solved while dealing with the dataset. We also propose a metric for evaluating NILM, which we believe overcomes many shortcomings of commonly used metrics.
+Buildings across the world contribute significantly to overall energy consumption. Providing detailed feedback in the form of appliance level consumption to building occupants has been earlier proven to reduce electricity consumption. Non-intrusive appliance load monitoring (NIALM) is the process of disaggregating the overall home electricity usage measured at the meter level into constituent appliances. NIALM has been used in the past to provide detailed appliance level feedback with minimum in-home intrusion. In this paper we present \textbf{I}mproved \textbf{N}IALM using load \textbf{Di}vision and \textbf{C}alibration (\indic) which provides preprocessing steps to simplify NIALM by dividing the appliances across multiple instrumented points (meters/phases) and calibrating measured appliance power. We evaluate \indic using Combinatorial Optimization based NIALM which shows significant improvement by preprocessing with \indic.
 \end{abstract}
 \IEEEpeerreviewmaketitle
 
@@ -69,9 +69,9 @@ Buildings Non-Intrusive appliance load monitoring (NIALM) is the process of disa
 \section{Introduction}
 \noindent Buildings account for significant proportion of overall energy use in both the developing (e.g. 47\% of total energy in India~\cite{evans09}) and the developed (e.g. 41\% and 45\% in US and UK respectively) countries. Modest improvements in building energy use can result in significant aggregate impact at the national scale. While several automation and management systems have been proposed for improving the operational efficiency of building systems, such systems typically lack the ability to provide detailed consumption information (e.g. appliance level consumption). Prior work~\cite{darby} has shown that better feedback systems, enabling appliance level consumption, that provide insights about occupant's energy usage information further encourages energy saving behavior resulting in 5-15\% savings in electricity usage.
 
-\noindent Measuring each appliance's consumption separately, for providing such a feedback, is both prohibitively expensive and difficult to manage. Alternatively, prior research has proposed Non Intrusive Appliance Load Monitoring (NIALM) that involves separating the aggregated electricity consumption obtained at the meter level into individual appliance consumption. Several modeling and inference approaches have been proposed (e.g. Factorial Hidden Markov Model~\cite{Ghahramani_97a}, Combinatorial Optimization~\cite{hart}) in the past to address NIALM with varied level of accuracy. NIALM work typically assumes that all the loads are assigned to the same meter. However, many practical scenarios (e.g. use of 2-phase supply in many homes in USA and 3-phase supply for many homes in India) involve load division across different phases coming at the home level. Automated assignment of different loads in a home to each phase followed by NIALM application on each phase separately can reduce the overall modeling and inference complexity. 
+\noindent Measuring each appliance's consumption separately, for providing such a feedback, is both prohibitively expensive and difficult to manage. Alternatively, prior research has proposed Non Intrusive Appliance Load Monitoring (NIALM) that involves disaggregating the aggregated electricity consumption obtained at the meter level into individual appliance consumption. Several modeling and inference approaches have been proposed (e.g. Factorial Hidden Markov Model~\cite{Ghahramani_97a}, Combinatorial Optimization~\cite{hart}) in the past to address NIALM with varied level of accuracy. NIALM work typically assumes that all the loads are assigned to the same meter. However, many practical scenarios (e.g. use of 2-phase supply in many homes in USA and 3-phase supply for many homes in India) involve load division across different phases coming at the home level. Automated assignment of different loads in a home to each phase followed by NIALM application on each phase separately can reduce the overall modeling and inference complexity. 
 
-\noindent Further, the measurements, both at the meter level and at the appliance level, are often taken with different equipments (Current Transformers, in-line measurements, ICs\footnote{Example IC for power measurement is Maxim 78M6612}) each with their own accuracy levels. Calibrating these diverse measurements will be beneficial for NIALM modeling and inference. Grid conditions such as voltage fluctuations further motivate calibration. Motivated by these practical scenarios, we propose \indic - \textbf{I}mproved \textbf{N}IALM using load \textbf{Di}vision and \textbf{C}alibration. Specific research condtributions of our work are:
+\noindent Further, the measurements, both at the meter level and at the appliance level, are often taken with different equipments (Current Transformers, in-line measurements, ICs\footnote{Example IC for power measurement is Maxim 78M6612}) each with their own accuracy levels. Calibrating these diverse measurements will be beneficial for NIALM modeling and inference. Grid conditions such as voltage fluctuations further motivate calibration. Motivated by these practical scenarios, we propose \indic - \textbf{I}mproved \textbf{N}IALM using load \textbf{Di}vision and \textbf{C}alibration. Specific research contributions of our work are:
 \begin{itemize}
 \item Novel approach named \indic that involves two simple pre-processing steps - Load Division (i.e. automated assignment of different loads in a home to each of the separate Mains) and Calibration (accounting for varied measurement accuracy across different equipments), that can be applied in a generic manner across several proposed NIALM modeling and inference approaches to further improve their accuracy. 
 \item Extensive empirical validation, using publicly available REDD~\cite{redd} dataset, establishing the effectiveness of \indicns, specifically for Combinatorial Optimization based NIALM. 
@@ -120,10 +120,10 @@ Buildings Non-Intrusive appliance load monitoring (NIALM) is the process of disa
 %    \hspace{0.2pt}
     \subfloat[\scriptsize Aggregate home power disaggregated into 3 appliances: refrigerator, lighting and microwave. Some power is unaccounted as complete information about all appliances is not available. ]{
         \includegraphics[scale=0.145]{./figures/after_disagg_2.png}}
-     \vspace{-8pt}
+%     \vspace{-8pt}
   	\caption{Disaggregating a home's electrical mains}
     \label{fig:disagg}
-    \vspace{-8pt}
+%    \vspace{-8pt}
 \end{figure}
 %\noindent We use some terminologies from previous work  and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, 
 
@@ -453,9 +453,9 @@ This process is shown in \figref{fig:assignment_2} where it is found that before
 %
 \subsection{Evaluation Metric}
 
-\noindent Commonly used metrics such as accuracy, sensitivity and specificity can be misleading when applied to NIALM. We illustrate this with the help of a confusion matrix whose [m,n] entry in indicates the number of times appliance in state $m$ is predicted to be in state $n$. It can be seen from the confusion matrix in \figref{fig:confusion} that since stove is mostly in state 1 (Off), accuracy will be largely decided by accuracy for this state. This will overshadow the accuracy for state 2 (On) which is unintended.
+%\noindent Commonly used metrics such as accuracy can be misleading when applied to NIALM. We illustrate this with the help of a confusion matrix whose [m,n] entry in indicates the number of times appliance in state $m$ is predicted to be in state $n$. It can be seen from the confusion matrix in \figref{fig:confusion} that since stove is mostly in state 1 (Off), accuracy will be largely decided by accuracy for this state. This will overshadow the accuracy for state 2 (On) which is unintended.
 %Armel et. al \cite{survey1} discuss the lack of a common metric while comparing NIALM approaches.
-Thus, we use the following metrics which have been used in the past work \cite{parson2012_aaai,redd}:
+We use the following metrics which have been used in the past work \cite{parson2012_aaai,redd}:
 
 \noindent\textbf{Mean Normalized Error (MNE\%)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by:
 \begin{equation}
@@ -466,7 +466,7 @@ MNE(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n-\sum\limits_{t=1}^{T}y_t^n|}{\sum\
 \begin{equation}
 MNE(n)=\frac{\sum\limits_{t=1}^{T}|\theta_t^n-y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
 \end{equation} 
-\noindent Since it is a known fact that $|\sum a-\sum b| \le \sum|a-b|$ where $a$ and $b$ are vectors containing floating point numbers, our results might look worse than if the original definition of MNE were used.
+\noindent Since it is a known fact that $|\sum a-\sum b| \le \sum|a-b|$ where $a$ and $b$ are vectors containing floating point numbers, our results might look worse than if the original definition of MNE were used. 
 
 \noindent\textbf{RMS Error (RE Watts)}: RMS error in power assignment to an appliance $n$ per time slice $t$ given by:
 \begin{equation}
@@ -529,7 +529,7 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
   	\caption{Confusion Matrices for refrigerator disaggregation. [m,n] in the matrix represents appliance's $m^{th}$ state to be predicted as $n^{th}$ state. Grey cells along the diagonal show true positive.}
   	
     \label{fig:confusion_ref}
-    \vspace{-20pt}
+    \vspace{-4pt}
 \end{figure}
 
 
@@ -608,9 +608,9 @@ Appliance & Mains & \multicolumn{6}{|c|}{States Power (W)}\\
 \hline
 &&\multicolumn{3}{|c|}{Pre calibration}&\multicolumn{3}{|c|}{Post calibration}\\
 \hline
-Refrigerator & 2& 7&162&423 & 9&210&423\footnote{Could not be calibrated}\\
+Refrigerator & 2& 7&162&423 & 7&210&423\footnote{Could not be calibrated}\\
 Microwave &2& 10&832&1730& 10&832&1730\\
-Lighting & 2& 9&96&156&10&110&178\\
+Lighting & 2& 9&96&156&9&110&178\\
 Dishwasher & 1& 0&256& 1195 & 0&256& 1195\\
 Stove& 1 & 0&374&-& 0&374&-\\
 Kitchen & 1& 5&727&-&5&727&-\\
@@ -657,20 +657,11 @@ Overall      &478  &187 &161 &  58& 450 &157 &168&39\\
 
 
 
-\section{Conclusion and Future Work}
-\noindent In this paper we present \indic which consists of preprocessing steps which can reduce the complexity of disaggregation by dividing the loads across mains and calibrating appliance power. We empirically show the improvements in disaggregation when \indic is used to divide home's appliances across 2 mains and further calibrating appliance power from a home in REDD dataset. In the future we intend to apply \indic as a preprocessing step to other classes of NIALM approaches. We plan to look into additional features such as correlation between multiple appliance usage, taking time of day into account. We also intend to apply \indic on other datasets, especially the ones from developing countries where loads are significantly different from the ones used in developed countries.
+\section{Conclusions and Future Work}
+\noindent In this paper we present \indic which consists of preprocessing steps to reduce the complexity of disaggregation by dividing the loads across mains and calibrating appliance power. We empirically show the improvements in disaggregation when \indic is used to divide home's appliances across 2 mains and further calibrating appliance power from a home in REDD dataset. In the future we intend to apply \indic as a preprocessing step to other classes of NIALM approaches. We plan to look into additional features such as correlation between multiple appliance usage, taking time of day into account. We also intend to apply \indic on other datasets, especially the ones from developing countries where loads are significantly different from the ones used in developed countries.
 
-%\begin{itemize}
-%
-%\item Applying model on noisy datasets
-%\item 2 D CO (when Real and Reactive Power are known)
-%\item Factoring in Time of Day etc.
-%\item Factoring in Appliance Correlation
-%\item Factor in switch continuity, essentially leads to Factorial HMM
-%\item Distributed NILM
-%\item Adaptive Learning
-%\end{itemize}
-%
+
+% % % % % Acknowledgment- Commented in this draft
 %\section*{Acknowledgment}
 %The authors would like to thank TCS Research and Development for supporting the first author through PhD. fellowship. We would also like to thank NSF- DEITy for funding the project.
 \bibliographystyle{IEEEtran}
