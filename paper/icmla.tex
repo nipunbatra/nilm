@@ -78,7 +78,7 @@ electricity consumption. Non-intrusive appliance load monitoring (NIALM) is the 
 \item Extensive empirical validation, using publicly available REDD~~\cite{redd} dataset, establishing the effectiveness of \indic as a preprocessing step, specifically for Combinatorial Optimization based NIALM. 
 \item Release of open source implementation of the proposed work\footnote{Add link to website} for comparative analysis with other NIALM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. 
 \end{itemize}
-\noindent We believe that this is the first extensive release of a generic NIALM code base that can be used across many of the publicly available datasets and with several existing NIALM modeling and inference approaches.
+\noindent We believe that this is the first extensive release of a generic NIALM code base that can be used across many of the publicly available datasets and with several existing NIALM modeling and inference approaches. \redcolor{We would like to bring to notice that we use the words appliance(s) and load(s) interchangeably throughout this paper.}
 
 
 \section{Related work}
@@ -121,10 +121,10 @@ electricity consumption. Non-intrusive appliance load monitoring (NIALM) is the 
 %    \hspace{0.2pt}
     \subfloat[\scriptsize Aggregate home power disaggregated into 3 appliances: refrigerator, lighting and microwave. Some power is unaccounted as complete information about all appliances is not available. ]{
         \includegraphics[scale=0.145]{./figures/after_disagg_2.png}}
-%     \vspace{-8pt}
+    \vspace{-8pt}
     \caption{Disaggregating a home's electrical mains}
     \label{fig:disagg}
-%    \vspace{-8pt}
+    \vspace{-8pt}
 \end{figure}
 %\noindent We use some terminologies from previous work  and extend them for our analysis in \tabref{tab:terms}. Based on these terminologies, 
 
@@ -222,6 +222,7 @@ $clustering\_algorithm$&$K$ clusters based on $clustering\_algorithm$ \\
 \hline
 %
 \end{tabular}
+\vspace{-8pt}
 \end{table}
 
 \noindent \textbf{Combinatorial Optimization (CO)}: At a given time an appliance can only be in a single state which can be mathematically written as:$\sum\limits_{k=1}^{k=K} z_{t,k}^n=1$. The power consumption by $n^{th}$ appliance in $k^{th}$ state at time $t$ is given by: $\hat{\theta}^n_{t,k}=\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$. The overall power consumption of all appliances at a given time $t$ is given by: $\hat{x}_{t}=\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K} z_{t,k}^n \mu_k^n$. The error in power signal (unaccounted power) after the load assignment explained above is given by: $e_t=|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$.
@@ -302,6 +303,7 @@ This step aims to identify the mapping ($Mapping[n]$) between appliances and mai
 \caption{Clustering refrigerator power consumption into three states. The lowest power state(blue) corresponds to compressor being off. In intermediate state(yellow) the compressor is on. In the third state(green) defrosting is being done.}
 \vspace{-8pt}
    \label{fig:clustering}
+   \vspace{-8pt}
 \end{figure}
 
 \noindent\textbf{Clustering}: Prior knowledge and appliance circuitry~\cite{ting2005} are used to identify the number of states associated with an appliance. For instance, a refrigerator is a compressor based appliance and exhibits three states in increasing order of power demand (compressor Off, compressor On, defrost mode). Corresponding cluster assignment is shown in \figref{fig:clustering}. We use state of the art clustering techniques to cluster appliances' power draw using prior knowledge about number of appliance states.
@@ -310,7 +312,7 @@ This step aims to identify the mapping ($Mapping[n]$) between appliances and mai
 \vspace{-8pt}
 \caption{Need for calibration. There is a difference in about 10 W in measurements reported by jPlug and Current Cost. jPlug gives comparable results to whole home smart meter EM6400.}
 \vspace{-20pt}
-   \label{fig:algorithm}
+   \label{fig:calibration}
 \end{figure}
 
 \noindent\textbf{Appliance Power Calibration}: 
@@ -483,7 +485,7 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 
 
 \subsection{Empirical Analysis}
-\noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances)\footnote{Highest accuracy has been reported for this Home in previous work~\cite{redd}.}. We believe that the same analysis can be easily repeated across multiple homes. Timeseries synchronization was applied since the appliance level data collection begun about 6 hours after mains data collection. Moreover, there were small intervals of missing data, which we filled using forward filling. Two appliances - washer dryer and disposal were ignored from further analysis since washer dryer had a peak power consumption of 8 W (which means it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%.  We downsampled this time synchronized data to one minute resolution using mean filter. 1 minute is a sufficient resolution to get rid of startup transients and voltage fluctuations. Event detection as explained in section IV is an important part of \indic. A threshold of 30 W was chosen for event detection as that shall ensure that their are no false events (occurring due to minor power fluctuations). As per the Appliance to Mains step in \indicns-CO algorithm described earlier we assigned loads to the two different mains.  \tabref{tab:calibration_factors} shows the assignment of loads to different mains. Further this table also shows the learnt power states of these appliance via KMeans++\footnote{We have used DBScan, SOM, EM, Mini Batch KMeans and Hierarchial clustering algorithms also, but found KMeans++ to be most scalable.}~\cite{kmeansplusplus} clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on prior experience and appliance circuity~\cite{ting2005}, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power. These two loads constitute a major chunk of mains 2 power. \figref{fig:calibration} shows the reduction in unassigned power due to calibrating these two appliances. 
+\noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances)\footnote{Highest accuracy has been reported for this Home in previous work~\cite{redd}.}. We believe that the same analysis can be easily repeated across multiple homes. Timeseries synchronization was applied since the appliance level data collection begun about 6 hours after mains data collection. Moreover, there were small intervals of missing data, which we filled using forward filling. Two appliances - washer dryer and disposal were ignored from further analysis since washer dryer had a peak power consumption of 8 W (which means it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%.  We downsampled this time synchronized data to one minute resolution using mean filter. 1 minute is a sufficient resolution to get rid of startup transients and voltage fluctuations. Event detection as explained in section IV is an important part of \indic. A threshold of 30 W was chosen for event detection as that shall ensure that their are no false events (occurring due to minor power fluctuations). As per the Appliance to Mains step in \indicns-CO algorithm described earlier we assigned loads to the two different mains.  \tabref{tab:calibration_factors} shows the assignment of loads to different mains. Further this table also shows the learnt power states of these appliance via KMeans++\footnote{We have used DBScan, SOM, EM, Mini Batch KMeans and Hierarchial clustering algorithms also, but found KMeans++ to be most scalable.}~\cite{kmeansplusplus} clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on prior experience and appliance circuity~\cite{ting2005}, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power. These two loads constitute a major chunk of mains 2 power. \figref{fig:breakdown} shows the reduction in unassigned power due to calibrating these two appliances. 
 
 \noindent To show the significance of load division and calibration as a preprocessing step to NIALM algorithm, we considered 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division (\indicns). The results after applying \indicns-CO are presented in \tabref{tab:results}. For the overall dataset, it can be seen that MNE reduces from 187\% to 39\%, RE reduces from 478 W to 168 W, after applying \indicns-CO. All appliances show reduction in MNE and RE after applying \indicns-CO. However, there is significant improvement in correctly predicting refrigerator and lighting. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction using CO (without and with \indicns). It can be seen that after applying \indic out of the 4810 instances of refrigerator in state 2, 4368 are correctly identified. Before applying \indic
 only 2158 instances were correctly identified.
@@ -503,8 +505,8 @@ only 2158 instances were correctly identified.
         \includegraphics[scale=0.2]{./figures/breakdown_after_calibration.png}}
     \caption{Mains 2 Break down by load}
     \vspace{-8pt}
-    \label{fig:calibration}
-    \vspace{-20pt}
+    \label{fig:breakdown}
+    \vspace{-8pt}
 \end{figure}
 
 
@@ -654,7 +656,9 @@ Overall      &478  &187 &161 &  58& 450 &157 &168&39\\
 
 
 \section{Conclusions and Future Work}
-\noindent In this paper we present \indic  which consists of preprocessing steps to reduce the complexity of disaggregation by dividing the loads across mains and calibrating appliance power. We empirically show the improvements in disaggregation when \indic is used to divide home's appliances across 2 mains and further calibrating appliance power from a home in REDD dataset. In the future we intend to apply \indic as a preprocessing step to other classes of NIALM approaches. We plan to look into additional features such as correlation between multiple appliance usage, taking time of day into account. We also intend to apply \indic on other datasets, especially the ones from developing countries where loads are significantly different from the ones used in developed countries.
+\noindent In this paper we present \indic, which consists of novel preprocessing steps to reduce the complexity of NIALM by dividing the loads across mains and calibrating appliance power with corresponding mains. We have shown how NIALM problem can be subdivided into number of mains in the home. Further, we showed the need to calibrate appliance power data. \indic was applied as a preprocessing step on data from a real home from REDD dataset and we showed the improvements in disaggregation accuracy as per reduction in MNE and RE.
+
+\noindent In the future we intend to apply \indic as a preprocessing step to other classes of NIALM approaches. We plan to look into additional features such as correlation between multiple appliance usage, taking time of day into account. We also intend to apply \indic on other datasets, especially the ones from developing countries where loads are significantly different from the ones used in developed countries.
 
 
 % % % % % Acknowledgment- Commented in this draft
