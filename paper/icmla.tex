@@ -37,7 +37,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{\indicns: Improved Non-Intrusive load monitoring using Division and Calibration}
+\title{\indicns: Improved Non-Intrusive load monitoring using load Division and Calibration}
 
 
 \author{\IEEEauthorblockN{Nipun Batra}
@@ -256,7 +256,7 @@ $z_t=arg min_{z_t}|\theta^{M_i}-\sum\limits_{n=1}^{N_i}\sum\limits_{k=1}^{K}z_{t
 %\caption{Divide and Conquer NIALM}
 %   \label{fig:algorithm}
 %\end{figure}
-\noindent In this section we describe our algorithm- Improved Non intrusive load monitoring using Division and Calibration (\indicns). \indic provides preprocessing procedures which can simplify NIALM. These procedures can broadly be classified as data cleaning (time series synchronization, downsampling and calibration) and problem division into subproblems (assigning loads to mains). \indic can be used with any modeling technique described in Section II. Here, we present \indicns-CO (\indic using Combinatorial optimization as modeling approach). CO proposed by Hart~\cite{hart} is the simplest NIALM approach and by preprocessing using \indic its shortcomings can be overcome. The various steps of \indicns-CO NIALM shown in \algoref{algo:main} are described below. 
+\noindent In this section we describe our algorithm- Improved NIALM using load Division and Calibration (\indicns). \indic provides preprocessing procedures which can simplify NIALM. These procedures can broadly be classified as data cleaning (time series synchronization, downsampling and calibration) and problem division into subproblems (assigning loads to mains). \indic can be used with any modeling technique described in Section II. Here, we present \indicns-CO (\indic using Combinatorial optimization as modeling approach). CO proposed by Hart~\cite{hart} is the simplest NIALM approach and by preprocessing using \indic its shortcomings can be overcome. The various steps of \indicns-CO NIALM shown in \algoref{algo:main} are described below. 
 
 \noindent\textbf{Time series synchronization}: Mains power and appliance power data are measured using different hardware\footnote{In REDD~\cite{redd} TED meters(http://goo.gl/CEu2y) are used to measure mains and Power House Dynamics(http://goo.gl/9VQba) to measure appliance circuits}. It is highly likely that some hardware malfunctions during the data collection process. In this step we ensure that the mains power and appliance power time series start and end at the same time. Further missing data is handled using techniques such as forward filling (padding)\footnote{http://goo.gl/FfR6o}.
 
@@ -296,13 +296,28 @@ This step aims to identify the mapping ($Mapping[n]$) between appliances and mai
     \vspace{-20pt}
     \label{fig:assignment}
 \end{figure}
+\begin{figure}
+\centering \includegraphics[scale=0.12]{./figures/clustering.png}
+\vspace{-8pt}
+\caption{Clustering refrigerator power consumption into three states. The lowest power state(blue) corresponds to compressor being off. In intermediate state(yellow) the compressor is on. In the third state(green) defrosting is being done.}
+\vspace{-8pt}
+   \label{fig:clustering}
+\end{figure}
 
-\noindent\textbf{Clustering}: Prior knowledge and appliance circuitry~\cite{ting2005} are used to identify the number of states associated with an appliance. For instance, a refrigerator is a compressor based appliance and exhibits three states in increasing order of power demand (compressor Off, compressor On, defrost mode). We use state of the art clustering techniques to cluster appliances' power draw using prior knowledge about number of appliance states.
+\noindent\textbf{Clustering}: Prior knowledge and appliance circuitry~\cite{ting2005} are used to identify the number of states associated with an appliance. For instance, a refrigerator is a compressor based appliance and exhibits three states in increasing order of power demand (compressor Off, compressor On, defrost mode). Corresponding cluster assignment is shown in \figref{fig:clustering}. We use state of the art clustering techniques to cluster appliances' power draw using prior knowledge about number of appliance states.
+\begin{figure}
+\centering \includegraphics[scale=0.12]{./figures/calibration.png}
+\vspace{-8pt}
+\caption{Need for calibration. There is a difference in about 10 W in measurements reported by jPlug and Current Cost. jPlug gives comparable results to whole home smart meter EM6400.}
+\vspace{-20pt}
+   \label{fig:algorithm}
+\end{figure}
 
 \noindent\textbf{Appliance Power Calibration}: 
 Power measured by appliance level meters may need calibration due to the following reasons:
 \begin{itemize}
-\item Different hardware report different measurement for same appliance~\cite{berges2008}
+\item Different hardware report different measurement for same appliance~\cite{berges2008}. We measured our refrigerator power with 3 different hardware: i) jPlug\footnote{Give its URL after seeking permission from RS}; ii) Current Cost CT\footnote{\url{http://www.currentcost.net/transmitterspec.html
+}}; iii) EM6400 smart meter\footnote{\url{http://goo.gl/Oi98q}}. While the first two are appliance level monitors, EM6400 being a smart meter is more accurate. The difference in power measurement by these 3 hardware is shown in \figref{fig:calibration}.
 \item Fluctuation in voltage causes power to fluctuate as well~\cite{hart}
 \item Missing meta data, whether real or apparent power is being measured at appliance level
 
@@ -578,13 +593,16 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 %\centering
 %%% Some packages, such as MDW tools, offer better commands for making tables
 %%% than the plain LaTeX2e tabular which is used here.
+\begin{minipage}{\columnwidth}
+
+
 \begin{tabular}{|c|c|c|c|c|c|c|c|}
 \hline
 Appliance & Mains & \multicolumn{6}{|c|}{States Power (W)}\\
 \hline
 &&\multicolumn{3}{|c|}{Pre calibration}&\multicolumn{3}{|c|}{Post calibration}\\
 \hline
-Refrigerator & 2& 7&162&423 & 7&210&423\footnote{Could not be calibrated}\\
+Refrigerator & 2& 7&162&423 & 7&210&423\footnote{There were not enough instances of refrigerator in state 3 to calibrate it}\\
 Microwave &2& 10&832&1730& 10&832&1730\\
 Lighting & 2& 9&96&156&9&110&178\\
 Dishwasher & 1& 0&256& 1195 & 0&256& 1195\\
@@ -596,6 +614,7 @@ Kitchen 2&1 & 1&204&1032&1&204&1032 \\
 \hline
 %
 \end{tabular}
+\end{minipage}
 \end{table}
 
 \begin{table}
