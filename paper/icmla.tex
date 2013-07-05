@@ -37,7 +37,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{INDiC: Improved Non intrusive load monitoring using load Division and Calibration}
+\title{INDiC: Improved Non-Intrusive load monitoring using Division and Calibration}
 
 
 \author{\IEEEauthorblockN{Nipun Batra}
@@ -60,7 +60,8 @@ Fax: (888) 555--1212}}
 
 \begin{abstract}
 %\boldmath
-Buildings across the world contribute significantly to overall energy consumption. Providing detailed feedback in the form of appliance level consumption to building occupants has been earlier proven to reduce electricity consumption. Non-intrusive appliance load monitoring (NIALM) is the process of disaggregating the overall home electricity usage measured at the meter level into constituent appliances. NIALM has been used in the past to provide detailed appliance level feedback with minimum in-home intrusion. In this paper we present \textbf{I}mproved \textbf{N}IALM using load \textbf{Di}vision and \textbf{C}alibration (\indic) which provides preprocessing steps to simplify NIALM by dividing the appliances across multiple instrumented points (meters/phases) and calibrating measured appliance power. We evaluate \indic using Combinatorial Optimization based NIALM which shows significant improvement by preprocessing with \indic.
+The residential sector contributes significantly to overall energy consumption in most parts of the world. This is a growing concern as energy resources are limited and increased energy demands negatively impacts the environment \cite{survey2}. Providing detailed feedback in the form of appliance level consumption to building occupants improves awareness and paves the way for reduction in 
+electricity consumption. Non-intrusive appliance load monitoring (NIALM) is the process of disaggregating the overall home electricity usage measured at the meter level into constituent appliances with minimum in-home intrusion. In this paper we present \textbf{I}mproved \textbf{N}on-Intrusive load monitoring using \textbf{Di}vision and \textbf{C}alibration (\indic) which provides preprocessing steps to simplify NIALM by dividing the appliances across multiple instrumented points (meters/phases) and calibrating appliance power. The technique is presented in the Combinatorial Optimization (CO) framework and evaluated on the popular REDD dataset. Empirical results suggest significant improvement both in computation time and accuracy by using \indic.
 \end{abstract}
 \IEEEpeerreviewmaketitle
 
@@ -111,7 +112,7 @@ Buildings across the world contribute significantly to overall energy consumptio
 %\end{itemize}
 \section{NIALM}
 %\noindent NIALM is the process of disaggregating the total electrical load into constituent appliances \cite{hart}.
-\noindent A typical NIALM setup involves measuring the power mains with smart meters and individual appliances with appliance meters for ground truth. The NIALM problem in supervised setting is formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ (measured via appliance meters) and the total aggregate power sequence $x$ (measured via smart meters). Remaining terminologies and functions are defined in \tabref{tab:terms} \cite{redd,parson2012_aaai,hart}. \figref{fig:disagg} shows the process of disaggregation applied to a house mains, whereby the consumption patterns of 3 appliances: refrigerator, lighting and microwave can be seen. It must be highlighted that it is improbable to instrument all the appliances in a home, thus, there will be some unaccounted power, which can also be seen in the figure. We now explain Combinatorial optimization which was proposed by Hart \cite{hart} for solving NIALM.
+\noindent A typical NIALM setup involves measuring the power mains with smart meters and individual appliances with appliance meters for ground truth. The NIALM problem in the supervised setting is formulated as predicting the power sequence for $n^{th}$ appliance, $y^n$, given the measured power sequence for each appliance $\theta^n$ (measured via appliance meters) and the total aggregate power sequence $x$ (measured via smart meters). Remaining terminologies and functions are defined in \tabref{tab:terms} \cite{redd,parson2012_aaai,hart}. \figref{fig:disagg} shows the process of disaggregation applied to a house mains, whereby the consumption patterns of 3 appliances: refrigerator, lighting and microwave can be seen. It must be highlighted that it is improbable to instrument all the appliances in a home, thus, there will be some unaccounted power, which can also be seen in the figure. We now explain Combinatorial optimization which was proposed by Hart \cite{hart} for solving NIALM.
 
 \begin{figure} 
 	
@@ -344,7 +345,7 @@ This process is shown in \figref{fig:assignment_2} where it is found that before
 
 
 \begin{algorithm}[ht!]
-\DontPrintSemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
+\dontprintsemicolon % Some LaTeX compilers require you to use \dontprintsemicolon instead 
 \KwIn{$x,\theta^n,\theta^{M_1},\theta^{M_2}$	}
 \KwOut{$y^n,\mu_k^n$}
 \BlankLine
