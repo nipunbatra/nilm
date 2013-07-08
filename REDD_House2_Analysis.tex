@@ -120,34 +120,15 @@
 
 \begin{document}
 
-\section{Non Intrusive Load Monitoring on REDD dataset}
-\paragraph{Version 0.2}
-Changelog
-
-\begin{itemize}
-\item
-  Now uses Pandas for resampling, indexing, and most other Time Series
-  operations.This fixes a bug earlier, where we downsampled based on the
-  number of samples and not on the basis of time
-\item
-  Added breakdown by time analsyis showing daily variation and 6 hourly
-  variation, also weekday vs weekend
-\item
-  Added pie-chart breakdown by appliance analysis
-\item
-  Added dataframe capability, using Pandas which also gives high level
-  overview of the data
-\item
-  Added a much quicker implementation of KMeans and also compared with
-  Mini Batch KMeans
-\end{itemize}
-
-\subsection{About the dataset}
+\subsection{INDiC: Improved Non-Intrusive load monitoring using load Division and Calibration}
+\paragraph{Nipun Batra, Haimonti Dutta, Amarjeet Singh}
+\subparagraph{{nipunb,haimonti,amarjeet}@iiitd.ac.in}
+\subparagraph{About the dataset}
 The datset contains high frequency, low frequency and raw data of 6
-households in the USA. We choose House 2 for our analysis as it contains
-the least number of appliances. Further we choose to do the analysis of
-\textbf{low frequency} data. This house contains the following
-appliances/circuits:
+households in the USA. We choose House 2 for our analysis as it has
+highest reported accuracy in REDD paper. Further we choose to do the
+analysis of \textbf{low frequency} data. This house contains the
+following appliances/circuits:
 
 \begin{itemize}
 \item
@@ -173,35 +154,102 @@ appliances/circuits:
 These circuits are samppled once every 3-4 seconds. Also the house
 contains 2 mains which are sampled at 1 Hz.
 
-\subsection{Basic imports}
+\subparagraph{Imports}
 In this section we setup the basic imports which shall be required for
-performing the analysis.
+performing the analysis and mention their version numbers.
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
+import sys 
+print "System version:",sys.version
 import numpy as np
+print "Numpy version:",np.version.version
+import matplotlib
+print "Matplotlib version:",matplotlib.__version__
+import pandas as pd
+print "Pandas version:",pd.__version__
+from sklearn.cluster import MiniBatchKMeans, KMeans
+import sklearn as sklearn
+print "Scikit-learn version:",sklearn.__version__
 import matplotlib.pyplot as plt
 import math
-from scipy.cluster.vq import kmeans,vq
 import itertools
-import matplotlib
+from pandas import Series,DataFrame
+import json
+import time
+import pprint
+import datetime
+from copy import deepcopy
+
 #Setting size of figures as 20*10
 plt.figsize(20,10)
-#Setting font size to be 16
-matplotlib.rcParams.update({'font.size': 16})
-import pandas as pd
-from pandas import Series,DataFrame
-plt.figsize(20,10)
-import json
-s = json.load( open("/home/nipun/bmh_matplotlibrc.json") )
-matplotlib.rcParams.update(s)
-matplotlib.rcParams.update({'font.size': 16})
-import time
+
+
+
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+System version: 2.7.3 (default, Apr 10 2013, 05:13:16) 
+[GCC 4.7.2]
+Numpy version: 1.6.2
+Matplotlib version: 1.1.1
+Pandas version:
+\end{verbatim}
+\begin{verbatim}
+0.11.1.dev-58642a6
+Scikit-learn version: 0.12.1
+\end{verbatim}
+\end{codeoutput}
 \end{codecell}
-\subsection{Loading and Plotting of Mains  Data}
+Prettifying CSS and Matplotlib plots
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+s = json.load( open("/home/nipun/bmh_matplotlibrc.json") )
+matplotlib.rcParams.update(s)
+
+matplotlib.rcParams.update({'font.size': 24})
+
+from IPython.core.display import HTML
+def css_styling():
+    styles = open("/home/nipun/custom.css", "r").read()
+    return HTML(styles)
+css_styling()
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+<IPython.core.display.HTML at 0x4509f10>
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\subparagraph{Loading and Plotting of Mains and Appliance Data}
+This is how a channel data file looks like
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+!head /home/nipun/study/datasets/MIT/low_freq/house_2/channel_1.dat
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+1303082307 16.57
+1303082308 16.55
+1303082309 16.64
+1303082310 16.61
+1303082311 16.72
+1303082312 16.70
+1303082313 16.79
+1303082314 16.79
+1303082315 16.75
+1303082334 16.54
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
@@ -214,28 +262,24 @@ print "Time taken to load Mains data= "+str(end_time-start_time)+" seconds"
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
-Time taken to load Mains data= 23.7791380882 seconds
+Time taken to load Mains data= 22.9858989716 seconds
 \end{verbatim}
 \end{codeoutput}
 \end{codecell}
-We can observe that data is missing towards the end. As a part of the
-data cleansing process we should eliminate the last indices. Next we
-find the last valid index for which contiguos data is present.This
-corresponds to epoch timestamp of 1304282291.
+Assigning Mains 1 and Mains 2 to channel 1 and channel 2 data. Also
+converting epoch time to Numpy datetime64 type.
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-upper=np.where(mains_1_data[:,0]==1304282291.0)[0]
-lower=np.where(mains_1_data[:,0]>1303084800.0)[0][0]
-mains_1_power=mains_1_data[:,1][lower:upper]
-mains_2_power=mains_2_data[:,1][lower:upper]
-timestamp=mains_1_data[:,0][lower:upper]
+mains_1_power=mains_1_data[:,1]
+mains_2_power=mains_2_data[:,1]
+timestamp=mains_1_data[:,0]
 timestamp_mains_date=timestamp.astype('datetime64[s]')
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
-Overall statistics about the dataset.
+Creating a Pandas DataFrame. Overall statistics about the dataset.
 
 \begin{codecell}
 \begin{codeinput}
@@ -247,13 +291,13 @@ df_mains.describe()
 \begin{codeoutput}
 \begin{verbatim}
         Mains_1_Power   Mains_2_Power
-count  1162980.000000  1162980.000000
-mean        43.401942      187.478237
-std        148.175308      213.889966
-min         12.270000       21.190000
-25%         14.830000       22.470000
-50%         15.110000      218.380000
-75%         33.510000      259.160000
+count  1198534.000000  1198534.000000
+mean        42.850747      187.432460
+std        146.054901      215.213296
+min          9.690000       21.190000
+25%         14.810000       22.470000
+50%         15.110000      218.470000
+75%         33.550000      259.130000
 max       1887.420000     3149.020000
 \end{verbatim}
 \end{codeoutput}
@@ -271,7 +315,7 @@ print "Time taken to plot Mains data= "+str(end_time-start_time)+" seconds"
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
-Time taken to plot Mains data= 12.8343689442 seconds
+Time taken to plot Mains data= 12.7530469894 seconds
 \end{verbatim}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_00.png}
@@ -279,100 +323,18 @@ Time taken to plot Mains data= 12.8343689442 seconds
 \end{center}
 \end{codeoutput}
 \end{codecell}
-\subsection{Downsampling Mains Data}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-start_time=time.time()
-df_1_day=df_mains.resample('1d',how='sum');
-df_1_day_energy=DataFrame(index=df_1_day.index);
-df_1_day_energy['Mains_1_Energy']=Series(df_1_day.Mains_1_Power/(1000*3600),index=df_1_day.index)
-df_1_day_energy['Mains_2_Energy']=Series(df_1_day.Mains_2_Power/(1000*3600),index=df_1_day.index)
-end_time=time.time()
-print "Time taken to resample Mains data= "+str(end_time-start_time)+" seconds"
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-Time taken to resample Mains data= 0.0693271160126 seconds
-\end{verbatim}
-\end{codeoutput}
-\end{codecell}
-Energy consumption (KWh) statistics about data.
+This shows an alternative way of plotting using Matplotlib.
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-df_1_day_energy.describe()
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-       Mains_1_Energy  Mains_2_Energy
-count       14.000000       14.000000
-mean         1.001500        4.326060
-std          0.284175        0.739165
-min          0.739473        3.243120
-25%          0.766775        3.733631
-50%          0.870461        4.329253
-75%          1.264915        4.907687
-max          1.516066        5.567054
-\end{verbatim}
-\end{codeoutput}
-\end{codecell}
-Plotting daily energy consumption.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-def correct_labels(ax):
-    labels = [item.get_text() for item in ax.get_xticklabels()]
-    days=[label.split(" ")[0] for label in labels]
-    months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-    final_labels=[]
-    for i in range(len(days)):
-        a=days[i].split("-")
-        final_labels.append(a[2]+"\n"+months[int(a[1])-1])
-    ax.set_xticklabels(final_labels)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Function to find which of the days are weekdays and their indices
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-def find_weekend_indices(datetime_array):
-    indices=[]
-    for i in range(len(datetime_array)):
-        if datetime_array[i].weekday()>=5:
-            indices.append(i)
-    return indices
-def highlight_weekend(weekend_indices,ax,ymax):
-    i=0
-    while i<len(weekend_indices):
-        ax.fill_between([weekend_indices[i],weekend_indices[i]+2],ymax,facecolor='green',alpha=.2)    
-        i+=2
-        
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-date_range=[datetime.datetime(2011,4,18)+datetime.timedelta(days=i) for i in range(14)]
-weekend_indices=find_weekend_indices(date_range)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-ax=df_1_day_energy.plot(kind='bar',rot=0);
-ax.set_title('Energy Consumption Per Day Home II');
-ax.set_ylabel('Energy (KWh)');
-correct_labels(ax);
-highlight_weekend(weekend_indices,ax,6);
+plt.title('Mains 1 Power')
+plt.xlabel('Time')
+plt.ylabel('Power (W)')
+plt.figsize(12,7)
+matplotlib.rcParams.update({'font.size': 24})
+plt.plot(df_mains.index.to_pydatetime(),df_mains.Mains_1_Power)
+plt.gca().xaxis.set_major_formatter( DateFormatter('%d\n%b') )
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
@@ -385,11 +347,13 @@ highlight_weekend(weekend_indices,ax,6);
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-ax=df_1_day_energy.plot(kind='bar',stacked=True,rot=0);
-ax.set_title('Energy Consumption Per Day Home II');
-ax.set_ylabel('Energy (KWh)');
-correct_labels(ax);
-highlight_weekend(weekend_indices,ax,7);
+plt.title('Mains 2 Power')
+plt.xlabel('Time')
+plt.ylabel('Power (W)')
+plt.figsize(12,7)
+matplotlib.rcParams.update({'font.size': 24})
+plt.plot(df_mains.index.to_pydatetime(),df_mains.Mains_2_Power)
+plt.gca().xaxis.set_major_formatter( DateFormatter('%d\n%b') )
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
@@ -399,149 +363,8 @@ highlight_weekend(weekend_indices,ax,7);
 \end{center}
 \end{codeoutput}
 \end{codecell}
-Now we try to break down the energy consumption into 6 hours slot and
-see if we can see some patterns amongst the same.
+Loading appliance data
 
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_6_hours=df_mains.resample('6h',how='sum');
-df_6_hours_energy=DataFrame(index=df_6_hours.index);
-df_6_hours_energy['Mains_1_Energy']=Series(df_6_hours.Mains_1_Power/(1000*3600),index=df_6_hours.index)
-df_6_hours_energy['Mains_2_Energy']=Series(df_6_hours.Mains_2_Power/(1000*3600),index=df_6_hours.index)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Statistics about Energy data downsampled to 6 hours.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_6_hours_energy.describe()
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-       Mains_1_Energy  Mains_2_Energy
-count       56.000000       56.000000
-mean         0.250375        1.081515
-std          0.228078        0.439292
-min          0.028911        0.235619
-25%          0.107926        0.762373
-50%          0.162402        0.964794
-75%          0.305203        1.386838
-max          0.983501        2.117311
-\end{verbatim}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-days_mains_1=[]
-dawn_mains_1=[]
-morning_mains_1=[]
-dusk_mains_1=[]
-night_mains_1=[]
-dawn_mains_2=[]
-morning_mains_2=[]
-dusk_mains_2=[]
-night_mains_2=[]
-for i in range(len(df_6_hours_energy.Mains_1_Energy)/4):
-    days_mains_1.append(df_6_hours_energy.index[4*i])
-    dawn_mains_1.append(df_6_hours_energy.Mains_1_Energy[4*i])
-    morning_mains_1.append(df_6_hours_energy.Mains_1_Energy[4*i+1])
-    dusk_mains_1.append(df_6_hours_energy.Mains_1_Energy[4*i+2])
-    night_mains_1.append(df_6_hours_energy.Mains_1_Energy[4*i+3])   
-    dawn_mains_2.append(df_6_hours_energy.Mains_2_Energy[4*i])
-    morning_mains_2.append(df_6_hours_energy.Mains_2_Energy[4*i+1])
-    dusk_mains_2.append(df_6_hours_energy.Mains_2_Energy[4*i+2])
-    night_mains_2.append(df_6_hours_energy.Mains_2_Energy[4*i+3])
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Plotting 6 hourly breakdown of energy consumption from Mains 1
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df4=DataFrame({'1':dawn_mains_1,'2':morning_mains_1,'3':dusk_mains_1,'4':night_mains_1},index=days_mains_1)
-ax=df4.plot(kind='bar',stacked=False,legend=False,rot=0);
-patches, labels = ax.get_legend_handles_labels();
-ax.legend(patches, labels, loc='upper right');
-ax.set_title('6 hourly Breakdown of energy consumption Mains 1');
-ax.set_ylabel('Energy (KWh)');
-correct_labels(ax);
-highlight_weekend(weekend_indices,ax,1);
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_03.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-#ax.fill_between(pd.date_range("2011-4-18","2011-4-24"),0,20)
-df4=DataFrame({'1':dawn_mains_1,'2':morning_mains_1,'3':dusk_mains_1,'4':night_mains_1},index=days_mains_1)
-ax=df4.plot(kind='bar',stacked=True,legend=False,rot=0);
-#ax.fill_between(pd.date_range("2011-4-18","2011-4-24"),0,20);
-patches, labels = ax.get_legend_handles_labels();
-ax.legend(patches, labels, loc='upper right');
-ax.set_title('6 hourly breakdown of energy consumption Mains 1');
-ax.set_ylabel('Energy (KWh)');
-correct_labels(ax);
-highlight_weekend(weekend_indices,ax,1.6);
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_04.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df5=DataFrame({'1':dawn_mains_2,'2':morning_mains_2,'3':dusk_mains_2,'4':night_mains_2},index=days_mains_1)
-ax=df5.plot(kind='bar',stacked=False,legend=False,rot=0);
-patches, labels = ax.get_legend_handles_labels();
-ax.legend(patches, labels, loc='upper right');
-ax.set_title('6 hourly Breakdown of energy consumption Mains 2');
-ax.set_ylabel('Energy (KWh)');
-correct_labels(ax);
-highlight_weekend(weekend_indices,ax,2.5);
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_05.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-ax=df5.plot(kind='bar',stacked=True,legend=False,rot=0);
-patches, labels = ax.get_legend_handles_labels();
-ax.legend(patches, labels, loc='upper right');
-ax.set_title('6 hourly Breakdown of energy consumption Mains 2');
-ax.set_ylabel('Energy (KWh)');
-correct_labels(ax);
-highlight_weekend(weekend_indices,ax,6);
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_06.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
@@ -555,18 +378,16 @@ kitchen_2_data=np.loadtxt('house_2/channel_8.dat')
 refrigerator_data=np.loadtxt('house_2/channel_9.dat')
 dishwasher_data=np.loadtxt('house_2/channel_10.dat')
 disposal_data=np.loadtxt('house_2/channel_11.dat')
-upper=np.where(kitchen_data[:,0]==1304282291.0)[0]
-lower=np.where(mains_1_data[:,0]>1303084800.0)[0][0]
-kitchen_power=kitchen_data[:,1][lower:upper]
-light_power=light_data[:,1][lower:upper]
-stove_power=stove_data[:,1][lower:upper]
-microwave_power=microwave_data[:,1][lower:upper]
-washer_dryer_power=washer_dry_data[:,1][lower:upper]
-kitchen_2_power=kitchen_2_data[:,1][lower:upper]
-refrigerator_power=refrigerator_data[:,1][lower:upper]
-dishwasher_power=dishwasher_data[:,1][lower:upper]
-disposal_power=disposal_data[:,1][lower:upper]
-timestamp=kitchen_data[:,0][lower:upper]
+kitchen_power=kitchen_data[:,1]
+light_power=light_data[:,1]
+stove_power=stove_data[:,1]
+microwave_power=microwave_data[:,1]
+washer_dryer_power=washer_dry_data[:,1]
+kitchen_2_power=kitchen_2_data[:,1]
+refrigerator_power=refrigerator_data[:,1]
+dishwasher_power=dishwasher_data[:,1]
+disposal_power=disposal_data[:,1]
+timestamp=kitchen_data[:,0]
 timestamp_appliance_date=timestamp.astype('datetime64[s]')
 end_time=time.time()
 print "Time taken to load appliance data= "+str(end_time-start_time)+" seconds"
@@ -574,10 +395,12 @@ print "Time taken to load appliance data= "+str(end_time-start_time)+" seconds"
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
-Time taken to load appliance data= 28.4558880329 seconds
+Time taken to load appliance data= 27.2005450726 seconds
 \end{verbatim}
 \end{codeoutput}
 \end{codecell}
+Creating a data frame of all appliances data
+
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
@@ -591,9 +414,9 @@ print df_appliances.describe().to_string()
 \begin{codeoutput}
 \begin{verbatim}
 dishwasher  disposal   kitchen  kitchen_2     light  microwave  refrigerator     stove  washer_dryer
-count    308612.0  308612.0  308612.0   308612.0  308612.0   308612.0      308612.0  308612.0      308612.0
-mean          9.2       0.1       6.1       10.5      26.9       14.4          79.6       1.5           2.2
-std          97.2       3.4      38.3       99.0      46.2      104.5          87.7      19.2           0.7
+count    318759.0  318759.0  318759.0   318759.0  318759.0   318759.0      318759.0  318759.0      318759.0
+mean          8.9       0.1       6.2       10.3      26.5       15.3          79.7       1.4           2.1
+std          95.7       3.3      37.7       97.4      45.8      110.6          88.0      18.9           0.8
 min           0.0       0.0       0.0        0.0       0.0        0.0           0.0       0.0           0.0
 25%           0.0       0.0       0.0        1.0       8.0        4.0           6.0       0.0           2.0
 50%           0.0       0.0       0.0        1.0       8.0        5.0           7.0       0.0           2.0
@@ -602,50 +425,82 @@ max        1457.0     609.0     805.0     1119.0     289.0     1986.0        224
 \end{verbatim}
 \end{codeoutput}
 \end{codecell}
-Now we plot all the channels and describe their statistics
-
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-import matplotlib.pyplot as plt
-start_time=time.time()
-ax=df_appliances.plot(subplots=True,title="Appliance Power consumption",fontsize=10,figsize=(20,40))
-plt.tight_layout()
-end_time=time.time()
-print "Time taken to plot appliance data= "+str(end_time-start_time)+" seconds"
+df_appliances.refrigerator.plot(rot=0,title='Refrigerator Power')
+plt.gca().xaxis.set_major_formatter( DateFormatter('%d\n%b') )
+plt.gca().set_ylabel("Power (W)")
+plt.gca().set_xlabel("Time");
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
-\begin{verbatim}
-Time taken to plot appliance data= 16.4023768902 seconds
-\end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_07.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_03.png}
 \par
 \end{center}
 \end{codeoutput}
 \end{codecell}
-\subsection{Assigning loads to different mains circuits}
-Since there are two mains in the home we need to break down the
-individual appliance into different mains. Clearly,
+Starting time and ending times of channels
 
-\begin{itemize}
-\item
-  Kitchen\_2 belongs to Mains1
-\item
-  Kitchen belongs to Mains1
-\item
-  Refrigerator belongs to Mains 2
-\end{itemize}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+print "Mains starting time",df_mains.index[0]
+print "Mains ending time",df_mains.index[-1]
+print "Mains starting time",df_appliances.index[0]
+print "Mains ending time",df_appliances.index[-1]
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Mains starting time 2011-04-17 23:18:27
+Mains ending time 2011-05-22 23:59:16
+Mains starting time 2011-04-18 05:31:40
+Mains ending time 2011-05-22 23:59:08
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\subparagraph{Preprocessing}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+preprocessed_start_time='04-18-2011 06:00'
+preprocessed_end_time='05-01-2011'
+df_appliances=df_appliances[preprocessed_start_time:preprocessed_end_time]
+df_mains=df_mains[preprocessed_start_time:preprocessed_end_time]
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+Now plotting
 
-Beyond this it is difficult to visually find the mains corresponding to
-different appliances. We thus decide to iteratively remove the known
-components. It must be noted that Mains is at 1 Hz and appliance are at
-lower resolution. Thus we need to align the two. This we do by aligning
-higher frequency mains to lower resolution appliance resolution. Thus,
-we downsample both the mains and all the appliances to a minute
-resolution, taking mean of the values contained within the minute.
-
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+df_mains.plot(subplots=True);
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_04.png}
+\par
+\end{center}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+df_appliances.refrigerator.plot();
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_05.png}
+\par
+\end{center}
+\end{codeoutput}
+\end{codecell}
+\subparagraph{Downsampling Data}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
@@ -657,14 +512,35 @@ print df_appliances_minute.describe().to_string()
 \begin{codeoutput}
 \begin{verbatim}
 dishwasher  disposal  kitchen  kitchen_2    light  microwave  refrigerator    stove  washer_dryer
-count     19398.0   19398.0  19398.0    19398.0  19398.0    19398.0       19398.0  19398.0       19398.0
-mean          9.3       0.1      6.1       10.6     26.9       14.4          79.6      1.5           2.2
-std          96.5       1.6     35.0       74.5     46.1       89.7          85.5     18.1           0.6
+count     19580.0   19580.0  19580.0    19580.0  19580.0    19580.0       19580.0  19580.0       19580.0
+mean          9.2       0.1      6.2       10.5     26.8       15.5          79.5      1.5           2.2
+std          96.0       1.6     34.9       74.1     46.0       97.2          85.4     18.0           0.6
 min           0.0       0.0      0.0        0.0      2.0        1.6           1.6      0.0           0.0
 25%           0.0       0.0      0.0        1.0      8.0        4.1           6.1      0.1           2.0
 50%           0.1       0.0      0.4        1.0      8.6        4.6           7.0      0.5           2.0
-75%           0.1       0.0     13.0        1.0      9.0        5.0         160.8      0.9           2.2
+75%           0.1       0.0     13.0        1.0      9.0        5.0         160.7      0.9           2.2
 max        1255.6     115.8    794.6     1071.8    185.4     1926.0         598.2    411.0           8.8
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+df_mains_minute=df_mains.resample('1Min',how='mean')
+df_mains_minute.describe()
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+       Mains_1_Power  Mains_2_Power
+count        19579.0        19579.0
+mean            43.4          188.2
+std            129.8          206.7
+min             13.4           21.4
+25%             14.9           22.5
+50%             15.1          214.1
+75%             33.7          259.1
+max           1312.0         2612.5
 \end{verbatim}
 \end{codeoutput}
 \end{codecell}
@@ -672,686 +548,255 @@ As a sanity check, we confirm that 19400 minutes correspond to about 14
 days, thus our resampling was correct. We next align mains and appliance
 time series.
 
+\subparagraph{Filling  Missing Data with forward filling}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-df_mains_minute=df_mains.resample('1Min',how='mean')
-df_mains_minute.describe()
-print df_mains_minute.index
-print np.where(df_mains_minute.index==df_appliances_minute.index[0])
-df_mains_minute=df_mains_minute[236:]
-
-print df_mains_minute.index
-df_mains_minute.describe()
+print "Number of missing values in Mains",sum(pd.isnull(df_mains_minute.Mains_1_Power))
+print "Number of missing values in Appliances",sum(pd.isnull(df_appliances_minute.refrigerator))
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
-<class 'pandas.tseries.index.DatetimeIndex'>
-[2011-04-18 01:45:00, ..., 2011-05-01 20:38:00]
-Length: 19854, Freq: T, Timezone: None
-(array([236]),)
-<class 'pandas.tseries.index.DatetimeIndex'>
-[2011-04-18 05:41:00, ..., 2011-05-01 20:38:00]
-Length: 19618, Freq: T, Timezone: None
-\end{verbatim}
-\begin{verbatim}
-       Mains_1_Power  Mains_2_Power
-count        19397.0        19397.0
-mean            43.5          187.7
-std            130.4          204.1
-min             13.4           21.4
-25%             14.9           22.5
-50%             15.1          214.4
-75%             33.7          259.1
-max           1312.0         2612.5
+Number of missing values in Mains 221
+Number of missing values in Appliances 220
 \end{verbatim}
 \end{codeoutput}
 \end{codecell}
-We now plot the lower resolution mains 1 and iteratively attempt to take
-out appliances.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-figsize(20,15)
-ax=df_mains_minute.Mains_1_Power.plot(title='1 min downsampled Power Mains 1');
-ax.set_ylabel("Power (W)");
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_08.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-Removing kitchen\_2 from Mains 1
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-temp_1=df_mains_minute.Mains_1_Power-df_appliances_minute.kitchen_2
-temp_1[temp_1<0.0]=0.0
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_mains_minute_minus_kitchen_2=df_mains_minute.copy()
-df_mains_minute_minus_kitchen_2.Mains_1_Power=temp_1
-print "Before\n\n",df_mains_minute.describe()
-print "\nAfter\n\n",df_mains_minute_minus_kitchen_2.describe()
-ax=df_mains_minute_minus_kitchen_2.Mains_1_Power.plot(title='Mains 1 Power Minus Kitchen 2')
-ax.set_ylabel('Power');
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-Before
-
-       Mains_1_Power  Mains_2_Power
-count        19397.0        19397.0
-mean            43.5          187.7
-std            130.4          204.1
-min             13.4           21.4
-25%             14.9           22.5
-50%             15.1          214.4
-75%             33.7          259.1
-max           1312.0         2612.5
-
-After
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19397.0
-mean            33.2          187.7
-std            107.0          204.1
-min              0.0           21.4
-25%             13.7           22.5
-50%             14.1          214.4
-75%             32.4          259.1
-max           1312.0         2612.5
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_09.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-Now removing Kitchen 1 from mains 1
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-temp_2=df_mains_minute_minus_kitchen_2.Mains_1_Power-df_appliances_minute.kitchen
-temp_2[temp_2<0.0]=0.0
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_mains_minute_minus_kitchen_2_1=df_mains_minute_minus_kitchen_2.copy()
-df_mains_minute_minus_kitchen_2_1.Mains_1_Power=temp_2
-print "Before\n\n",df_mains_minute_minus_kitchen_2.describe()
-print "\nAfter\n\n",df_mains_minute_minus_kitchen_2_1.describe()
-ax=df_mains_minute_minus_kitchen_2_1.Mains_1_Power.plot(title='Mains 1 Power Minus Kitchen 2 and Kitchen 1')
-ax.set_ylabel('Power');
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-Before
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19397.0
-mean            33.2          187.7
-std            107.0          204.1
-min              0.0           21.4
-25%             13.7           22.5
-50%             14.1          214.4
-75%             32.4          259.1
-max           1312.0         2612.5
-
-After
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19397.0
-mean            27.1          187.7
-std            100.7          204.1
-min              0.0           21.4
-25%             13.5           22.5
-50%             13.7          214.4
-75%             18.6          259.1
-max           1299.0         2612.5
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_10.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-Now we observe that Dishwasher was used every 3rd day starting from 19th
-and power consumption was about 1200+ W. Thus, we next remove the
-dishwasher component from mains 1
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-temp_3=df_mains_minute_minus_kitchen_2_1.Mains_1_Power-df_appliances_minute.dishwasher
-temp_3[temp_3<0.0]=0.0
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_mains_minute_minus_kitchen_dishwasher=df_mains_minute_minus_kitchen_2_1.copy()
-df_mains_minute_minus_kitchen_dishwasher.Mains_1_Power=temp_3
-print "Before\n\n",df_mains_minute_minus_kitchen_2_1.describe()
-print "\nAfter\n\n",df_mains_minute_minus_kitchen_dishwasher.describe()
-ax=df_mains_minute_minus_kitchen_dishwasher.Mains_1_Power.plot(title='Mains 1 Power Minus Kitchen and Dishwasher')
-ax.set_ylabel('Power');
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-Before
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19397.0
-mean            27.1          187.7
-std            100.7          204.1
-min              0.0           21.4
-25%             13.5           22.5
-50%             13.7          214.4
-75%             18.6          259.1
-max           1299.0         2612.5
-
-After
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19397.0
-mean            17.8          187.7
-std             20.9          204.1
-min              0.0           21.4
-25%             13.5           22.5
-50%             13.7          214.4
-75%             18.5          259.1
-max            433.4         2612.5
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_11.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-Removing stove from Mains 1
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-temp_4=df_mains_minute_minus_kitchen_dishwasher.Mains_1_Power-df_appliances_minute.stove
-temp_4[temp_4<0.0]=0.0
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_mains_minute_minus_kitchen_dishwasher_stove=df_mains_minute_minus_kitchen_dishwasher.copy()
-df_mains_minute_minus_kitchen_dishwasher_stove.Mains_1_Power=temp_4
-print "Before\n\n",df_mains_minute_minus_kitchen_dishwasher.describe()
-print "\nAfter\n\n",df_mains_minute_minus_kitchen_dishwasher_stove.describe()
-ax=df_mains_minute_minus_kitchen_dishwasher_stove.Mains_1_Power.plot(title='Mains 1 Power Minus Kitchen, Dishwasher and Stove')
-ax.set_ylabel('Power');
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-Before
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19397.0
-mean            17.8          187.7
-std             20.9          204.1
-min              0.0           21.4
-25%             13.5           22.5
-50%             13.7          214.4
-75%             18.5          259.1
-max            433.4         2612.5
-
-After
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19397.0
-mean            16.3          187.7
-std              9.9          204.1
-min              0.0           21.4
-25%             12.7           22.5
-50%             13.4          214.4
-75%             17.7          259.1
-max            196.0         2612.5
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_12.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-We next observe that none of the other appliance can be extracted
-visually from Mains 1. So we start removing appliances iteratively from
-Mains 2. \textbf{From the next plot we can see that there is a slight
-difference in power seen by the mains and the appliance level monitor,
-hence there seems to be a need to do this calibration to ensure that we
-have better results. Moreover, this is an aspect i think no one has yet
-highlighted in their work}.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-temp_5=df_mains_minute_minus_kitchen_dishwasher_stove.Mains_2_Power-df_appliances_minute.refrigerator
-temp_5[temp_5<0.0]=0.0
-plt.subplot(3,1,1)
-df_appliances_minute.refrigerator.plot(title='Refrigerator')
-plt.subplot(3,1,2)
-df_mains_minute.Mains_2_Power.plot(title='Mains 2')
-plt.subplot(3,1,3)
-temp_5.plot(title='Mains 2 after removing refrigerator');
-plt.tight_layout()
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_13.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_mains_minute_minus_kitchen_dishwasher_stove_ref=df_mains_minute_minus_kitchen_dishwasher_stove.copy()
-df_mains_minute_minus_kitchen_dishwasher_stove_ref.Mains_2_Power=temp_5
-print "Before\n\n",df_mains_minute_minus_kitchen_dishwasher_stove.describe()
-print "\nAfter\n\n",df_mains_minute_minus_kitchen_dishwasher_stove_ref.describe()
-ax=df_mains_minute_minus_kitchen_dishwasher_stove_ref.Mains_2_Power.plot(title='Mains 2 Power Minus Refrigerator')
-ax.set_ylabel('Power');
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-Before
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19397.0
-mean            16.3          187.7
-std              9.9          204.1
-min              0.0           21.4
-25%             12.7           22.5
-50%             13.4          214.4
-75%             17.7          259.1
-max            196.0         2612.5
-
-After
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19395.0
-mean            16.3          108.1
-std              9.9          168.1
-min              0.0            0.0
-25%             12.7           16.3
-50%             13.4           89.3
-75%             17.7           97.5
-max            196.0         2448.5
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_14.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-Since microwave is taking more power than residual power in Mains 1, it
-has to belong to Mains 2. Next, removing Microwave from Mains 2.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-temp_6=df_mains_minute_minus_kitchen_dishwasher_stove_ref.Mains_2_Power-df_appliances_minute.microwave
-temp_6[temp_6<0.0]=0.0
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro=df_mains_minute_minus_kitchen_dishwasher_stove_ref.copy()
-df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro.Mains_2_Power=temp_6
-print "Before\n\n",df_mains_minute_minus_kitchen_dishwasher_stove_ref.describe()
-print "\nAfter\n\n",df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro.describe()
-ax=df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro.Mains_2_Power.plot(title='Mains 2 Power Minus Refrigerator and Micro')
-ax.set_ylabel('Power');
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-Before
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19395.0
-mean            16.3          108.1
-std              9.9          168.1
-min              0.0            0.0
-25%             12.7           16.3
-50%             13.4           89.3
-75%             17.7           97.5
-max            196.0         2448.5
-
-After
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19395.0
-mean            16.3           93.6
-std              9.9          136.0
-min              0.0            0.0
-25%             12.7           12.2
-50%             13.4           80.0
-75%             17.7           91.6
-max            196.0         1177.5
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_15.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-An interesting thing to note is the correlation between
-\textbf{Disposal} and \textbf{Dishwasher} both of which occur on the
-same days. Next, we iteratively start extracting out appliances from
-Mains 2.
-
-Removing lighting from Mains 2.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-temp_7=df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro.Mains_2_Power-df_appliances_minute.light
-temp_7[temp_7<0.0]=0.0
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro_light=df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro.copy()
-df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro_light.Mains_2_Power=temp_7
-print "Before\n\n",df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro.describe()
-print "\nAfter\n\n",df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro_light.describe()
-ax=df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro_light.Mains_2_Power.plot(title='Mains 2 Power Minus Refrigerator, Micro and Lighting')
-ax.set_ylabel('Power');
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-Before
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19395.0
-mean            16.3           93.6
-std              9.9          136.0
-min              0.0            0.0
-25%             12.7           12.2
-50%             13.4           80.0
-75%             17.7           91.6
-max            196.0         1177.5
-
-After
-
-       Mains_1_Power  Mains_2_Power
-count        19395.0        19395.0
-mean            16.3           66.7
-std              9.9          120.2
-min              0.0            0.0
-25%             12.7            4.2
-50%             13.4           45.7
-75%             17.7           80.3
-max            196.0         1017.3
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_16.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-Thus, we can see that both for Mains 1 and Mains 2 there is still a lot
-of unaccounted power. This is due to mis calibration between the
-appliance level loads and also due to absence of complete information.
-This is an important aspect to address. Next, we draw the boxplot
-showing unaccounted power.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.figure()
-plt.title("Unaccounted Power")
-plt.ylabel("Power (W)")
-df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro_light.boxplot();
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_17.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\subsubsection{Breakdown by appliance}
-Mains 1
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-labels = 'Kitchen 1', 'Kitchen 2', 'Dishwasher', 'Stove','Unaccounted'
-kitchen_mean,kitchen_2_mean,dishwasher_mean,stove_mean=df_appliances_minute.kitchen.mean(),\
-df_appliances_minute.kitchen_2.mean(),df_appliances_minute.dishwasher.mean(),df_appliances_minute.stove.mean()
-unaccounted_mean=df_mains_minute.Mains_1_Power.mean()-(kitchen_mean+kitchen_2_mean+dishwasher_mean+stove_mean)
-
-fracs = [kitchen_mean,kitchen_2_mean,dishwasher_mean,stove_mean,unaccounted_mean]
-explode=(0, 0, 0, 0,0)
-plt.figsize(7,7)
-plt.title('Power Breakdown by appliance Mains 1');
-plt.pie(fracs, explode=explode, labels=labels,autopct='%1.1f%%', shadow=True);              
-
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_18.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-labels = 'Refrigerator', 'Microwave', 'Lighting','Unaccounted Power'
-refrigerator_mean,microwave_mean,lighting_mean=df_appliances_minute.refrigerator.mean(),\
-df_appliances_minute.microwave.mean(),df_appliances_minute.light.mean()
-unaccounted_mean=df_mains_minute.Mains_2_Power.mean()-(refrigerator_mean+microwave_mean+lighting_mean)
-
-fracs = [refrigerator_mean,microwave_mean,lighting_mean,unaccounted_mean]
-explode=(0, 0, 0,0)
-plt.figsize(7,7)
-plt.title('Power Breakdown by appliance Mains 2');
-plt.pie(fracs, explode=explode, labels=labels,autopct='%1.1f%%', shadow=True); 
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_19.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-Thus, we can see that in both the mains circuits about 1/3 of total
-power cannot be attributed to any appliance.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-labels = 'Mains 1','Mains 2'
-
-fracs = [df_mains_minute.Mains_1_Power.mean(),df_mains_minute.Mains_2_Power.mean()]
-explode=(0, 0)
-plt.figsize(7,7)
-plt.title('Power Breakdown by Mains');
-plt.pie(fracs, explode=explode, labels=labels,autopct='%1.1f%%', shadow=True); 
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_20.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-Remaining load is unaccounted for in the analysis. We now have 2
-options:
-
-\begin{itemize}
-\item
-  To continue with this data as such and not process further
-\item
-  To filter out data about which not information has been provided
-\end{itemize}
-
-Option 1 is more realistic and Option 2 is more ideal. We shall be
-considering the ideal case through the remaining analysis. Thus, we need
-to filter out the remaining data.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-filtered_mains_1_power=df_appliances_minute.kitchen+df_appliances_minute.kitchen_2+df_appliances_minute.stove+\
-df_appliances_minute.dishwasher
-
-filtered_mains_2_power=df_appliances_minute.refrigerator+df_appliances_minute.light+df_appliances_minute.microwave
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_filtered_mains=pd.DataFrame({'Mains_1_Power':filtered_mains_1_power,'Mains_2_Power':filtered_mains_2_power},\
-index=df_mains_minute_minus_kitchen_dishwasher_stove_ref_micro_light.index)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-df_filtered_mains.describe()
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-       Mains_1_Power  Mains_2_Power
-count        19398.0        19398.0
-mean            27.4          121.0
-std            127.4          139.6
-min              0.2            9.6
-25%              1.5           18.3
-50%              2.5          121.3
-75%             14.4          177.8
-max           1268.6         2252.2
-\end{verbatim}
-\end{codeoutput}
-\end{codecell}
-Plotting Disaggregated consumption Mains 1
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-python_datetime=df_filtered_mains.index.to_pydatetime()
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.figsize(20,15)
-plt.title('Actual Disaggregated Breakdown Mains 1');
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-y_1=df_appliances_minute.kitchen+df_appliances_minute.stove
-y_2=y_1+df_appliances_minute.dishwasher
-plt.fill_between(python_datetime,df_appliances_minute.kitchen,np.zeros(len(df_appliances_minute.kitchen)),color="yellow")
-plt.fill_between(python_datetime,y_1,df_appliances_minute.kitchen,color='blue',label='Test')
-plt.fill_between(python_datetime,y_2,y_1,color='red',alpha=.6)
-plt.fill_between(python_datetime,y_2,df_filtered_mains.Mains_1_Power,color='green',alpha=0.4)
-p = Rectangle((0, 0), 1, 1, fc="y")
-p1=Rectangle((0, 0), 1, 1, fc="b")
-p2=Rectangle((0, 0), 1, 1, fc="r")
-p3=Rectangle((0, 0), 1, 1, fc="g")
-legend([p,p1,p2,p3], ["Kitchen","Stove","Dishwasher","Kitchen 2"]);
-
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_21.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\subsection{State Space}
-Finding different states for each appliance and the corresponding power
-consumption using various clustering techniques. Firstly, we start with
-stove. There are several reasons behind choosing a clustering algorithm,
-some of them are mentioned at
-http://scikit-learn.org/stable/modules/clustering.html
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-from sklearn.cluster import MiniBatchKMeans, KMeans
-import time
-plt.figsize(15,8)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Filling missing data (currently NaN) with previous value (commonly known
-as forward filling).
-
-\textbf{CONFIRM: If this is the right thing to do}.
-
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
 df_appliances_minute.fillna(method='pad',inplace=True)
-times=df_appliances_minute.index.to_pydatetime()
+df_mains_minute.fillna(method='pad',inplace=True)
+assert 0==sum(pd.isnull(df_mains_minute.Mains_1_Power))
+assert 0==sum(pd.isnull(df_appliances_minute.refrigerator))
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\subparagraph{Finding contributions of different appliances and discarding loads with insignificant contribution}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+total_power=np.sum(df_mains_minute.Mains_1_Power.values+df_mains_minute.Mains_2_Power.values)
+for appliance in df_appliances_minute:
+    print "Contribution of %s to overall load is %f" %(appliance,100*np.sum(df_appliances_minute[appliance].values)/total_power)
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Contribution of dishwasher to overall load is 3.918053
+Contribution of disposal to overall load is 0.035672
+Contribution of kitchen to overall load is 2.706929
+Contribution of kitchen_2 to overall load is 4.484684
+Contribution of light to overall load is 11.694800
+Contribution of microwave to overall load is 6.645737
+Contribution of refrigerator to overall load is 34.357508
+Contribution of stove to overall load is 0.630176
+Contribution of washer_dryer to overall load is 0.933156
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+Since washer dryer has a peak usage of 8 W, we assume that to be noise
+in the circuit. Also, disposal has usage of less than .1 \% and is thus
+not further included in the analysis. EVen though stove has less than
+0.1 \% contribution, it has few instances of being used in high power
+mode.
+
+\subparagraph{Sorting appliances in decreasing order of peak power consumption}
+Creating a dictionary of the form \{appliance: peak power\} and then
+sorting it by value
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+appliance_peak_power_dict={}
+for appliance in df_appliances_minute:
+    if appliance not in ['washer_dryer','disposal']:
+        appliance_peak_power_dict[appliance]=df_appliances_minute[appliance].max()
+#This variable is named 's' in the algorithm described in the paper
+sorted_appliance_list=sorted(appliance_peak_power_dict, key=appliance_peak_power_dict.get, reverse=True)
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\subparagraph{Load Assignment to Mains}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+mapping={}
+df_mains_minute_copy=df_mains_minute.copy()
+converged=False
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+df_mains_minute_copy=df_mains_minute.copy()
+converged=False
+mapping={}
+def thresholding_based_load_assignment(mapping,sorted_appliance_list,converged,TOLERANCE):
+    iteration=-1
+    while converged==False:
+        before_iteration_len_mapping=len(mapping.keys())
+        iteration+=1
+        for load in sorted_appliance_list:
+            if load not in mapping:
+                #Since mains 1 has less average load we check it first
+                #Note we may need some tolerance as 1-2 values may be off, but more than 20 odd values satisying
+                #would mean that we can safely assign the other mains
+                
+                c1=len(np.where((df_appliances_minute[load].values-df_mains_minute_copy.Mains_1_Power.values)>0)[0])
+                c2=len(np.where((df_appliances_minute[load].values-df_mains_minute_copy.Mains_2_Power.values)>0)[0])
+                #Using a copy of the Mains Minute DF rather than the original 
+                
+                if c1>TOLERANCE and c2<TOLERANCE:       
+                    mapping[load]=2
+                elif c2>TOLERANCE and c1<TOLERANCE:
+                    mapping[load]=1
+            
+                #Subtracting Load from the assigned Mains and filling in zeros for 
+                #few spots where appliance value might be more due to error
+            if load in mapping:
+                #Load has been assined
+                if mapping[load]==1:
+                    df_mains_minute_copy.Mains_1_Power=df_mains_minute_copy.Mains_1_Power-df_appliances_minute[load]
+                    df_mains_minute_copy.Mains_1_Power[df_mains_minute_copy.Mains_1_Power<0]=0
+                else:
+                    df_mains_minute_copy.Mains_2_Power=df_mains_minute_copy.Mains_2_Power-df_appliances_minute[load]
+                    df_mains_minute_copy.Mains_2_Power[df_mains_minute_copy.Mains_2_Power<0]=0
+      
+        print "After iteration %d" %iteration
+        print mapping
+        after_iteration_len_mapping=len(mapping.keys())
+        if after_iteration_len_mapping==before_iteration_len_mapping:
+            converged=True            
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+thresholding_based_load_assignment(mapping,sorted_appliance_list,False,300)
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+After iteration 0
+{'refrigerator': 2, 'light': 2, 'kitchen_2': 1, 'microwave': 2}
+After iteration 1
+{'refrigerator': 2, 'light': 2, 'dishwasher': 1, 'kitchen_2': 1, 'microwave': 2}
+After iteration 2
+{'refrigerator': 2, 'light': 2, 'dishwasher': 1, 'kitchen_2': 1, 'microwave': 2}
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+Now we need to find according to step change the load assignment
+
+Only `kitchen' and `stove' have not yet been separated into mains.
+Finding step changes of more than 15 W threshold in these loads and
+seeing the times at which these step changes take place.
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+def step_changes(series,threshold):
+    diff_series=np.diff(series.values)
+    print diff_series
+    return {"magnitude":diff_series,"times":series[np.abs(diff_series)>threshold].index}
+    #Finding times at which these step changes take place
+    
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+step_threshold=30
+for load in sorted_appliance_list:
+    if load not in mapping:
+        
+        step_load=set(step_changes(df_appliances_minute[load],step_threshold)["times"]);
+        step_mains_1=set(step_changes(df_mains_minute.Mains_1_Power,step_threshold)["times"]);
+        step_mains_2=set(step_changes(df_mains_minute.Mains_2_Power,step_threshold)["times"]);
+        
+        #Find intersection with Mains 1 and 2
+        l1=len(step_load.intersection(step_mains_1));
+        l2=len(step_load.intersection(step_mains_2));
+        
+        if 1.0*l1/len(step_load)>0.9:
+            #More than 90% events detected
+            mapping[load]=1
+        elif 1.0*l2/len(step_load)>0.9:
+            #More than 90% events detected
+            mapping[load]=2
+        else:
+            print "Load could not be assigned"       
+      
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+print "Appliance to Mains Mapping\n"
+pprint.pprint(mapping)
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Appliance to Mains Mapping
+
+{'dishwasher': 1,
+ 'kitchen': 1,
+ 'kitchen_2': 1,
+ 'light': 2,
+ 'microwave': 2,
+ 'refrigerator': 2,
+ 'stove': 1}
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\subparagraph{Dividing Data into TEST and TRAIN}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+df_mains_train=df_mains_minute[:'2011-4-24']
+df_mains_test=df_mains_minute['2011-4-25':]
+df_appliances_train=df_appliances_minute[:'2011-4-24']
+df_appliances_test=df_appliances_minute['2011-4-25':]
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\subparagraph{Perform KMeans++ and Mini Batch KMeans on Train set}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+
+plt.figsize(15,8)
+matplotlib.rcParams.update({'font.size': 24})
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+Reshaping data so that it can be used by clustering algos
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
 raw_data={}
-for key in df_appliances_minute:
-    raw_data[key]=df_appliances_minute[key].values
+for key in df_appliances_train:
+    raw_data[key]=df_appliances_train[key].values
     length=len(raw_data[key])
     raw_data[key]=raw_data[key].reshape(length,1)
+centroids={}
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-for key in df_appliances_minute:
-    df_appliances_minute[key].to_csv(key+".arff",index_label=False,index=False)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-    batch_size=1000
+batch_size=1000
 def apply_kmeans(n_clusters, n_init,X,init=None):
+    matplotlib.rcParams.update({'font.size': 16})
     if init is None:
         k_means = KMeans(n_clusters=n_clusters, n_init=n_init)
     else:
@@ -1385,346 +830,184 @@ def plot_cluster_assignments(X,k_means_labels, mbk_means_labels,k_means_cluster_
     markers=['o','*','.']
     x_temp=np.arange(len(X))
     plt.subplot(2,2,1)
-    plt.rcParams["font.size"]=10
-    print "\nKMeans Analysis\n"
+    #plt.rcParams["font.size"]=16
+    print "\nKMeans Analysis for %s\n" %appliance_name
     print "-"*80
+    centroids[appliance_name]=[]
     for k, col in zip(range(n_clusters), colors):
         my_members = k_means_labels == k
         cluster_center = k_means_cluster_centers[k]    
+        centroids[appliance_name].append(k_means_cluster_centers[k][0])
         plt.ylabel('Power (W)');
-        plt.plot(x_temp[my_members],X[my_members, 0],markers[k],markersize=10,markerfacecolor=col) 
-        plt.axhline(k_means_cluster_centers[k],linewidth=3,color=col)
+        plt.plot(x_temp[my_members],X[my_members, 0],markers[k],markersize=20,markerfacecolor=col) 
+        plt.axhline(k_means_cluster_centers[k],linewidth=6,color=col)
         print "State %d Centroid= %0.4f, Fraction of datapoints= %0.4f" %(k,cluster_center,sum(my_members)*1.0/np.size(X))
         plt.title('KMeans Cluster Assignment for '+appliance_name+' for K='+str(n_clusters))
+        plt.xlabel("Samples")
     plt.subplot(2,2,2)
+    plt.tight_layout()
     print "\nMini Batch KMeans Analysis\n"
     print "-"*80
     for k, col in zip(range(n_clusters), colors):
         my_members = mbk_means_labels == k
         cluster_center = mbk_means_cluster_centers[k]    
         plt.ylabel('Power (W)');
-        plt.plot(x_temp[my_members],X[my_members, 0],markers[k],markersize=10,markerfacecolor=col) 
+        plt.plot(x_temp[my_members],X[my_members, 0],markers[k],markersize=15,markerfacecolor=col) 
         plt.axhline(mbk_means_cluster_centers[k],linewidth=3,color=col)
         print "State %d Centroid= %0.4f, Fraction of datapoints= %0.4f" %(k,cluster_center,sum(my_members)*1.0/np.size(X))
-        plt.title('Mini Batch KMeans Cluster Assignment for '+appliance_name+' for K='+str(n_clusters))
+        #plt.title('Mini Batch KMeans Cluster Assignment for '+appliance_name+' for K='+str(n_clusters))
     print "-"*80
+    
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+Peforming clustering for different appliance. \textbf{Caveat}: Number of
+states must be known beforehand
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+appliances_mains=[[],[]]
+appliances_states=[[3,2,3,2],[3,3,3]]
+appliances_mains[0]=[key for key in mapping if mapping[key]==1] 
+appliances_mains[1]=[key for key in mapping if mapping[key]==2]
+labels_appliance={}
+
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
-    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(2,10,raw_data["stove"],"kmeans++")
-plot_cluster_assignments(raw_data["stove"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
-,2,"Stove")
-print "Time taken for Kmeans clustering    :     \n",t_batch
-print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
-print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
-print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
+for i in range(len(appliances_mains[0])):
+    figure()
+    [t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,\
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(appliances_states[0][i],10,raw_data[appliances_mains[0][i]],"kmeans++")
+    plot_cluster_assignments(raw_data[appliances_mains[0][i]],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+    ,appliances_states[0][i],appliances_mains[0][i])
+    print "Time taken for Kmeans clustering    :     \n",t_batch
+    print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+    print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+    print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
+    flattened=k_means_cluster_centers.flatten()
+    sorted_list=sort(flattened)
+    labels=[]
+    for label in k_means_labels:
+        labels.append(sorted_list.tolist().index(flattened[label]))
+    labels_appliance[appliances_mains[0][i]]=np.array(labels)
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
-KMeans Analysis
+KMeans Analysis for dishwasher
 
 --------------------------------------------------------------------------------
-State 0 Centroid= 0.6480, Fraction of datapoints= 0.9978
-State 1 Centroid= 374.0394, Fraction of datapoints= 0.0022
+State 0 Centroid= 0.1701, Fraction of datapoints= 0.9849
+State 1 Centroid= 1195.3714, Fraction of datapoints= 0.0074
+State 2 Centroid= 260.5342, Fraction of datapoints= 0.0077
 
 Mini Batch KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 0.6800, Fraction of datapoints= 0.9978
-State 1 Centroid= 369.7725, Fraction of datapoints= 0.0022
---------------------------------------------------------------------------------
-Time taken for Kmeans clustering    :
 \end{verbatim}
 \begin{verbatim}
-0.054370880127
-Inertia of KMeans cluster assignment:     
-361045.705434
-Time taken for Mini Batch Kmeans clustering    :     
-0.0232241153717
-Inertia of Mini Batch KMeans cluster assignment:     
-361848.586124
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_22.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
-    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(2,10,raw_data["kitchen"],"kmeans++")
-plot_cluster_assignments(raw_data["kitchen"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
-,2,"Kitchen")
-print "Time taken for Kmeans clustering    :     \n",t_batch
-print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
-print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
-print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-KMeans Analysis
-
 --------------------------------------------------------------------------------
-State 0 Centroid= 4.5853, Fraction of datapoints= 0.9976
-State 1 Centroid= 671.6462, Fraction of datapoints= 0.0024
-
-Mini Batch KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 4.4589, Fraction of datapoints= 0.9976
-State 1 Centroid= 669.6980, Fraction of datapoints= 0.0024
---------------------------------------------------------------------------------
-Time taken for Kmeans clustering    :
-\end{verbatim}
-\begin{verbatim}
-0.0747680664062
-Inertia of KMeans cluster assignment:     
-2529066.47693
-Time taken for Mini Batch Kmeans clustering    :     
-0.0225470066071
-Inertia of Mini Batch KMeans cluster assignment:     
-2529561.55892
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_23.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
-    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["kitchen_2"],"kmeans++")
-plot_cluster_assignments(raw_data["kitchen_2"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
-,3,"Kitchen 2")
-print "Time taken for Kmeans clustering    :     \n",t_batch
-print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
-print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
-print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 1.4546, Fraction of datapoints= 0.9729
-State 1 Centroid= 1035.4956, Fraction of datapoints= 0.0042
-State 2 Centroid= 205.6050, Fraction of datapoints= 0.0229
-
-Mini Batch KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 1.3577, Fraction of datapoints= 0.9729
-State 1 Centroid= 1043.7727, Fraction of datapoints= 0.0042
-State 2 Centroid= 204.7535, Fraction of datapoints= 0.0229
---------------------------------------------------------------------------------
-Time taken for Kmeans clustering    :
-\end{verbatim}
-\begin{verbatim}
-0.0749089717865
-Inertia of KMeans cluster assignment:     
-2805123.96163
-Time taken for Mini Batch Kmeans clustering    :     
-0.0284309387207
-Inertia of Mini Batch KMeans cluster assignment:     
-2811246.58659
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_24.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
-    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["dishwasher"],"kmeans++")
-plot_cluster_assignments(raw_data["dishwasher"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
-,3,"Dishwasher")
-print "Time taken for Kmeans clustering    :     \n",t_batch
-print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
-print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
-print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 0.1364, Fraction of datapoints= 0.9874
-State 1 Centroid= 1186.5108, Fraction of datapoints= 0.0063
-State 2 Centroid= 249.6954, Fraction of datapoints= 0.0063
-
-Mini Batch KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 0.1670, Fraction of datapoints= 0.9874
-State 1 Centroid= 1185.8841, Fraction of datapoints= 0.0063
-State 2 Centroid= 259.9662, Fraction of datapoints= 0.0063
-\end{verbatim}
-\begin{verbatim}
+State 0 Centroid= 0.1740, Fraction of datapoints= 0.9849
+State 1 Centroid= 1195.3284, Fraction of datapoints= 0.0074
+State 2 Centroid= 259.3460, Fraction of datapoints= 0.0077
 --------------------------------------------------------------------------------
 Time taken for Kmeans clustering    :     
-0.0705690383911
+0.0920648574829
 Inertia of KMeans cluster assignment:     
-1339180.63283
+817407.717216
 Time taken for Mini Batch Kmeans clustering    :     
-0.0283811092377
+0.0314409732819
 Inertia of Mini Batch KMeans cluster assignment:     
-1352327.68731
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_25.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
-    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["refrigerator"],"kmeans++")
-plot_cluster_assignments(raw_data["refrigerator"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
-,3,"Refrigerator")
-print "Time taken for Kmeans clustering    :     \n",t_batch
-print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
-print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
-print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-KMeans Analysis
+817513.868037
 
+KMeans Analysis for stove
+\end{verbatim}
+\begin{verbatim}
 --------------------------------------------------------------------------------
-State 0 Centroid= 7.4725, Fraction of datapoints= 0.5538
-State 1 Centroid= 162.1867, Fraction of datapoints= 0.4327
-State 2 Centroid= 394.8063, Fraction of datapoints= 0.0136
+State 0 Centroid= 0.6031, Fraction of datapoints= 0.9977
+State 1 Centroid= 373.8506, Fraction of datapoints= 0.0023
 
 Mini Batch KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 7.5489, Fraction of datapoints= 0.5538
-State 1 Centroid= 162.2095, Fraction of datapoints= 0.4327
-State 2 Centroid= 395.7196, Fraction of datapoints= 0.0136
---------------------------------------------------------------------------------
-Time taken for Kmeans clustering    :
 \end{verbatim}
 \begin{verbatim}
-0.0944950580597
-Inertia of KMeans cluster assignment:     
-2597652.90778
-Time taken for Mini Batch Kmeans clustering    :     
-0.048819065094
-Inertia of Mini Batch KMeans cluster assignment:     
-2597942.56915
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_26.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
-    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["microwave"],"kmeans++")
-plot_cluster_assignments(raw_data["microwave"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
-,3,"Microwave")
-print "Time taken for Kmeans clustering    :     \n",t_batch
-print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
-print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
-print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-KMeans Analysis
-
 --------------------------------------------------------------------------------
-State 0 Centroid= 8.6130, Fraction of datapoints= 0.9952
-State 1 Centroid= 1677.3997, Fraction of datapoints= 0.0020
-State 2 Centroid= 852.9569, Fraction of datapoints= 0.0029
-
-Mini Batch KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 8.4798, Fraction of datapoints= 0.9951
-State 1 Centroid= 1601.1895, Fraction of datapoints= 0.0023
-State 2 Centroid= 740.9955, Fraction of datapoints= 0.0026
-\end{verbatim}
-\begin{verbatim}
+State 0 Centroid= 0.5882, Fraction of datapoints= 0.9977
+State 1 Centroid= 358.8860, Fraction of datapoints= 0.0023
 --------------------------------------------------------------------------------
 Time taken for Kmeans clustering    :     
-0.187880992889
+0.0335509777069
 Inertia of KMeans cluster assignment:     
-8371412.23135
+159053.555617
 Time taken for Mini Batch Kmeans clustering    :     
-0.0284819602966
+0.0228269100189
 Inertia of Mini Batch KMeans cluster assignment:     
-8642849.35369
-\end{verbatim}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_27.png}
-\par
-\end{center}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-[t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,
-    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(3,10,raw_data["light"],"kmeans++")
-plot_cluster_assignments(raw_data["light"],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
-,3,"Light")
-print "Time taken for Kmeans clustering    :     \n",t_batch
-print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
-print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
-print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-KMeans Analysis
+163982.339231
 
+KMeans Analysis for kitchen_2
+\end{verbatim}
+\begin{verbatim}
 --------------------------------------------------------------------------------
-State 0 Centroid= 9.5566, Fraction of datapoints= 0.8668
-State 1 Centroid= 155.5247, Fraction of datapoints= 0.1033
-State 2 Centroid= 96.5077, Fraction of datapoints= 0.0299
+State 0 Centroid= 1.4256, Fraction of datapoints= 0.9737
+State 1 Centroid= 1036.0541, Fraction of datapoints= 0.0044
+State 2 Centroid= 204.7067, Fraction of datapoints= 0.0219
 
 Mini Batch KMeans Analysis
-
---------------------------------------------------------------------------------
-State 0 Centroid= 9.5453, Fraction of datapoints= 0.8668
-State 1 Centroid= 155.5140, Fraction of datapoints= 0.1033
-State 2 Centroid= 96.0181, Fraction of datapoints= 0.0299
---------------------------------------------------------------------------------
-Time taken for Kmeans clustering    :
 \end{verbatim}
 \begin{verbatim}
-0.0899589061737
+--------------------------------------------------------------------------------
+State 0 Centroid= 1.3737, Fraction of datapoints= 0.9737
+State 1 Centroid= 1033.3184, Fraction of datapoints= 0.0044
+State 2 Centroid= 205.0644, Fraction of datapoints= 0.0219
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :     
+0.0453970432281
 Inertia of KMeans cluster assignment:     
-508702.879442
+1298012.8041
 Time taken for Mini Batch Kmeans clustering    :     
-0.0430018901825
+0.0339980125427
 Inertia of Mini Batch KMeans cluster assignment:     
-508845.969858
+1298387.36148
+
+KMeans Analysis for kitchen
+\end{verbatim}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+State 0 Centroid= 5.0766, Fraction of datapoints= 0.9987
+State 1 Centroid= 727.4287, Fraction of datapoints= 0.0013
+
+Mini Batch KMeans Analysis
+\end{verbatim}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+State 0 Centroid= 4.9849, Fraction of datapoints= 0.9987
+State 1 Centroid= 731.3755, Fraction of datapoints= 0.0013
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :     
+0.0318310260773
+Inertia of KMeans cluster assignment:     
+875870.13267
+Time taken for Mini Batch Kmeans clustering    :     
+0.029895067215
+Inertia of Mini Batch KMeans cluster assignment:     
+876154.225538
 \end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_28.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_06.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_07.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_08.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_09.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1732,117 +1015,110 @@ Inertia of Mini Batch KMeans cluster assignment:
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-from scipy.spatial import distance
-from sklearn.cluster import DBSCAN
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-We also tried different a different distance metric like Manhattan
-distance in Weka, which led to absurd results and mostly single class
-being predicted.
-
-\textbf{Tried to do DBScan in scikit learn, but it took too much memory
-and time and hung the system}
-
-DBSCan in Weka took about 30s and resulted in all attributed being
-classified in one cluster. This may be due to the nature of the data,
-which is 1 class majority. This again may be something to look into.
-While dealing with such data we are mostly going to encounter datasets
-which are heavy in a single class. \textbf{This is again something,
-which i don't think has been talked in NILM literature before.}
-
-SOM based clustering took about 30s per appliance, but yielded much
-better results, which are shown below. EM took about 42 seconds and the
-results are not too impressive.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-from IPython.core.display import Image 
-Image(filename='som_ref.png') 
+for i in range(len(appliances_mains[1])):
+    figure()
+    [t_batch, t_mini_batch, k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers,\
+    k_means_labels_unique,mbk_means_labels_unique, k_means_inertia, mbk_inertia]=apply_kmeans(appliances_states[1][i],10,raw_data[appliances_mains[1][i]],"kmeans++")
+    plot_cluster_assignments(raw_data[appliances_mains[1][i]],k_means_labels, mbk_means_labels, k_means_cluster_centers, mbk_means_cluster_centers\
+    ,appliances_states[1][i],appliances_mains[1][i])
+    print "Time taken for Kmeans clustering    :     \n",t_batch
+    print "Inertia of KMeans cluster assignment:     \n",k_means_inertia
+    print "Time taken for Mini Batch Kmeans clustering    :     \n",t_mini_batch
+    print "Inertia of Mini Batch KMeans cluster assignment:     \n",mbk_inertia
+    flattened=k_means_cluster_centers.flatten()
+    sorted_list=sort(flattened)
+    labels=[]
+    for label in k_means_labels:
+        labels.append(sorted_list.tolist().index(flattened[label]))
+    labels_appliance[appliances_mains[1][i]]=np.array(labels)
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
 \begin{verbatim}
-<IPython.core.display.Image at 0x82ac4d0>
-\end{verbatim}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-Image(filename='som_stove.png') 
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-<IPython.core.display.Image at 0x82ac810>
-\end{verbatim}
-\end{codeoutput}
-\end{codecell}
-Thus, we obtain the following states from cluster analysis (results are
-from KMeans). \textbf{In the above results we also saw that most of the
-appliances are mostly in their off states most of the time. This is an
-important aspect and must be exploited.}
+KMeans Analysis for light
 
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-kitchen=[5,672]
-lighting=[9,96,155]
-stove=[0,374]
-micro=[8,852,1677]
-kitchen_2=[1,206,1035]
-ref=[7,162,394]
-dish=[0,250,1186]
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-For mains 1, we now draw the state space, which consists of all possible
-combinations of appliances in their different states. We also show the
-correpsonding histogram which tells how close the different states are.
-The closer the states, the more difficult the disaggregation becomes.
+--------------------------------------------------------------------------------
+State 0 Centroid= 9.4713, Fraction of datapoints= 0.8435
+State 1 Centroid= 156.3087, Fraction of datapoints= 0.0987
+State 2 Centroid= 96.8437, Fraction of datapoints= 0.0578
 
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-states_combination=list(itertools.product(kitchen,stove,kitchen_2,dish))
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-print "The possible different state combinations are\n Kitchen, Stove, Kitchen 2, Dishwasher\n",states_combination
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
-\begin{verbatim}
-The possible different state combinations are
- Kitchen, Stove, Kitchen 2, Dishwasher
-[(5, 0, 1, 0), (5, 0, 1, 250), (5, 0, 1, 1186), (5, 0, 206, 0), (5, 0, 206, 250), (5, 0, 206, 1186), (5, 0, 1035, 0), (5, 0, 1035, 250), (5, 0, 1035, 1186), (5, 374, 1, 0), (5, 374, 1, 250), (5, 374, 1, 1186), (5, 374, 206, 0), (5, 374, 206, 250), (5, 374, 206, 1186), (5, 374, 1035, 0), (5, 374, 1035, 250), (5, 374, 1035, 1186), (672, 0, 1, 0), (672, 0, 1, 250), (672, 0, 1, 1186), (672, 0, 206, 0), (672, 0, 206, 250), (672, 0, 206, 1186), (672, 0, 1035, 0), (672, 0, 1035, 250), (672, 0, 1035, 1186), (672, 374, 1, 0), (672, 374, 1, 250), (672, 374, 1, 1186), (672, 374, 206, 0), (672, 374, 206, 250), (672, 374, 206, 1186), (672, 374, 1035, 0), (672, 374, 1035, 250), (672, 374, 1035, 1186)]
+Mini Batch KMeans Analysis
 \end{verbatim}
-\end{codeoutput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-sum_combination=np.array(np.zeros(len(states_combination)))
-for i in range(0,len(states_combination)):
-    sum_combination[i]=sum(states_combination[i])
-from copy import deepcopy
-b=deepcopy(sum_combination)
-b.sort()
-grid(True)
-title('Sorted possible sums of all appliances');
-plt.xlabel('Combinations');
-plt.ylabel('Power (W)');
-plt.plot(b,'go-',markersize=8,linewidth=3);
-\end{lstlisting}
-\end{codeinput}
-\begin{codeoutput}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+State 0 Centroid= 9.4884, Fraction of datapoints= 0.8435
+State 1 Centroid= 156.3094, Fraction of datapoints= 0.0987
+State 2 Centroid= 96.5191, Fraction of datapoints= 0.0578
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :     
+0.0435490608215
+Inertia of KMeans cluster assignment:     
+316625.182718
+Time taken for Mini Batch Kmeans clustering    :     
+0.032781124115
+Inertia of Mini Batch KMeans cluster assignment:     
+316686.830452
+
+KMeans Analysis for microwave
+\end{verbatim}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+State 0 Centroid= 9.7742, Fraction of datapoints= 0.9966
+State 1 Centroid= 1740.2292, Fraction of datapoints= 0.0014
+State 2 Centroid= 822.5147, Fraction of datapoints= 0.0020
+
+Mini Batch KMeans Analysis
+\end{verbatim}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+State 0 Centroid= 9.7347, Fraction of datapoints= 0.9966
+State 1 Centroid= 1751.7149, Fraction of datapoints= 0.0014
+State 2 Centroid= 835.3426, Fraction of datapoints= 0.0020
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :     
+0.0832650661469
+Inertia of KMeans cluster assignment:     
+3282726.04781
+Time taken for Mini Batch Kmeans clustering    :     
+0.0298271179199
+Inertia of Mini Batch KMeans cluster assignment:     
+3287714.57283
+
+KMeans Analysis for refrigerator
+\end{verbatim}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+State 0 Centroid= 161.8361, Fraction of datapoints= 0.3856
+State 1 Centroid= 7.4547, Fraction of datapoints= 0.6079
+State 2 Centroid= 423.5390, Fraction of datapoints= 0.0065
+
+Mini Batch KMeans Analysis
+\end{verbatim}
+\begin{verbatim}
+--------------------------------------------------------------------------------
+State 0 Centroid= 7.4990, Fraction of datapoints= 0.6078
+State 1 Centroid= 161.6750, Fraction of datapoints= 0.3857
+State 2 Centroid= 425.9683, Fraction of datapoints= 0.0065
+--------------------------------------------------------------------------------
+Time taken for Kmeans clustering    :     
+0.0451371669769
+Inertia of KMeans cluster assignment:     
+864286.317816
+Time taken for Mini Batch Kmeans clustering    :     
+0.0412509441376
+Inertia of Mini Batch KMeans cluster assignment:     
+864752.643469
+\end{verbatim}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_29.png}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_10.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_11.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_12.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -1850,273 +1126,161 @@ plt.plot(b,'go-',markersize=8,linewidth=3);
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.title('Histogram showing relative frequencies of different state combinations');
-plt.hist(b,20);
+centroids
 \end{lstlisting}
 \end{codeinput}
 \begin{codeoutput}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_30.png}
-\par
-\end{center}
+\begin{verbatim}
+{'dishwasher': [0.1701359028503493, 1195.3713848039199, 260.53415359477123],
+ 'kitchen': [5.0765980080727378, 727.42865761689313],
+ 'kitchen_2': [1.4255969429011941, 1036.0540697674414, 204.70668553806448],
+ 'light': [9.4712692617067837, 156.30873674287119, 96.843738224826836],
+ 'microwave': [9.7741967140592507, 1740.2291666666672, 822.51469298245615],
+ 'refrigerator': [161.83612766450091, 7.4547324466263163, 423.53895502645537],
+ 'stove': [0.60312354161529014, 373.85056818181823]}
+\end{verbatim}
 \end{codeoutput}
 \end{codecell}
-Now we basically need to iterate over all our sample and see which of
-the possible state assignment matches closest to the overall power
-consumption. We thus create a function to do the same.
+Sorting centroids and also making the datatype integer
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-def find_nearest(array,value):
-    idx = (np.abs(array-value)).argmin()
-    diff=array[idx]-value
-    return [idx,-diff]
+for appliance in centroids:
+    centroids[appliance]=list(np.array(centroids[appliance]).astype(int))
+    centroids[appliance].sort()
+centroids
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+{'dishwasher': [0, 260, 1195],
+ 'kitchen': [5, 727],
+ 'kitchen_2': [1, 204, 1036],
+ 'light': [9, 96, 156],
+ 'microwave': [9, 822, 1740],
+ 'refrigerator': [7, 161, 423],
+ 'stove': [0, 373]}
+\end{verbatim}
+\end{codeoutput}
 \end{codecell}
-We thus apply this technique to find the residual power left from the
-closest state assignment.
+\subparagraph{Calibration}
+No need for calibrating state 1 of each appliance since their power is
+close to 0.
+
+Finding events of transition from state 1 to 2 in Mains and in Appliance
+and comparing them with cluster centroids assigned. Only if there are
+greater than 10 number of transitions do we even consider the
+calibration.
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-residual_power_mains_1=np.zeros(len(filtered_downsampled_mains_1))
-states_idx=np.zeros(len(filtered_downsampled_mains_1))                               
-for i in range(len(filtered_downsampled_mains_1)):
-    [states_idx[i],residual_power_mains_1[i]]=find_nearest(sum_combination,filtered_downsampled_mains_1[i])
 
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Residual Power Mains 1');
-xlabel('Time');
-ylabel('Power (W)');
-plot(residual_power_mains_1);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-However we can also impose another conditon that the sum of powers of
-all the appliances is strictly less than the aggregate power observed.
-Thus, we can create a function for that as follows.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-def find_nearest_positive(array,value):    
-    idx_temp = np.where(array-value<=0.0)[0]
-    temp_arr=array[idx_temp]
-    try:
-        idx_in_new=np.abs(temp_arr-value).argmin()
-        idx=np.where(array==temp_arr[idx_in_new])[0][0]
-
-        diff=array[idx]-value
-    except:
-        idx=0
-        diff=0
-    return [idx,-diff]
+calib_centroids=deepcopy(centroids)
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-residual_power_mains_1_positive=np.zeros(len(filtered_downsampled_mains_1))
-states_idx_positive=np.zeros(len(filtered_downsampled_mains_1))
-residual_power_mains_2=np.zeros(len(filtered_downsampled_mains_2))
-states_idx_2=np.zeros(len(filtered_downsampled_mains_1))
-for i in range(len(filtered_downsampled_mains_1)):
-    [states_idx_positive[i],residual_power_mains_1_positive[i]]=find_nearest_positive(sum_combination,filtered_downsampled_mains_1[i])
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Residual Power Mains 1 considering sum of appliance powers < Aggregate Power');
-xlabel('Time');
-ylabel('Power (W)');
-grid(True);
-plot(residual_power_mains_1_positive);
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-After having applied Total Load Model, we need to assign different
-states to different appliances.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-length_sequence=len(filtered_downsampled_mains_1)
-co_kitchen_states=np.zeros(length_sequence,dtype=np.int)
-co_kitchen_power=np.zeros(length_sequence)
-co_stove_states=np.zeros(length_sequence,dtype=np.int)
-co_stove_power=np.zeros(length_sequence)
-co_kitchen_2_states=np.zeros(length_sequence,dtype=np.int)
-co_kitchen_2_power=np.zeros(length_sequence)
-co_dish_states=np.zeros(length_sequence,dtype=np.int)
-co_dish_power=np.zeros(length_sequence)
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-for i in range(length_sequence):
-    if int(states_idx[i])/18==0:
-        co_kitchen_states[i]=0
+for appliance in labels_appliance:
+    l=labels_appliance[appliance]
+    #print "%s has %d states" %(appliance,max(l)+1)
+    
+    #Finding factors for 2,..K th state
+    #Note here indexing starts from 0 and not 1
+    for k in range(1,max(l)+1):
+        #Finding idx of where appliance is in state k-1 and next state is k
+        idx=[]
+        for i in range(len(l)-1):
+            if l[i]==k-1 and l[i+1]==k:
+                idx.append(i)
+                
+                diff_appliance=np.diff(df_appliances_train[appliance].values)
+                diff_mains_1=np.diff(df_mains_train.Mains_1_Power.values)
+                diff_mains_2=np.diff(df_mains_train.Mains_2_Power.values)
+                
+    
+                if appliance in appliances_mains[0]:
+                    x=diff_mains_1[idx]/diff_appliance[idx]
+                    x=x[x<2]
+                    x=x[x>0]
         
-    else:
-        co_kitchen_states[i]=1
-    co_kitchen_power[i]=kitchen[co_kitchen_states[i]]   
+        
+                else:
+                    x=diff_mains_2[idx]/diff_appliance[idx]
+                    x=x[x<2]
+                    x=x[x>0]
+        #print x,np.std(x)
+        if (np.average(x)<0.9 or np.average(x)>1.1) and len(x)>10: 
+            calib_centroids[appliance][k]=centroids[appliance][k]*np.average(x)
+              
+            print "Average for %s in %dth state is %f and number of transitions was %d" %(appliance,k+1,np.average(x),len(idx))
+
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Average for light in 2th state is 1.178171 and number of transitions was 16
+Average for refrigerator in 2th state is 1.330662 and number of transitions was 178
+\end{verbatim}
+\begin{verbatim}
+
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+After calibration the power in different states is given below.
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+for appliance in calib_centroids:
+    calib_centroids[appliance]=list(np.array(calib_centroids[appliance]).astype(int))
     
-    temp=int(states_idx[i])/9
-    if temp%2==0:
-        co_stove_states[i]=0
-    else:
-        co_stove_states[i]=1
-    co_stove_power[i]=stove[co_stove_states[i]]
+pprint.pprint(calib_centroids)       
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+{'dishwasher': [0, 260, 1195],
+ 'kitchen': [5, 727],
+ 'kitchen_2': [1, 204, 1036],
+ 'light': [9, 113, 156],
+ 'microwave': [9, 822, 1740],
+ 'refrigerator': [7, 214, 423],
+ 'stove': [0, 373]}
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\subparagraph{CO based NIALM}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+def find_nearest_index(array,value):
+    idx = (np.abs(array-value)).argmin()
+    return idx
+def find_labels(appliance_power_consumption_list, observed_power):
+    labels=np.zeros(len(observed_power))
+    appliance_power_consumption_array=np.array(appliance_power_consumption_list)
+    for i in range(len(observed_power)):
+        labels[i]=find_nearest_index(appliance_power_consumption_array,observed_power[i])
+    return labels
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+Finding true labels of appliances on the test set
+
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+true_labels={}
+for appliance in centroids:
+    true_labels[appliance]=find_labels(centroids[appliance], df_appliances_test[appliance])
     
-    temp=int(states_idx[i])/3
-    if temp%3==0:
-        co_kitchen_2_states[i]=0
-    elif temp%3==1:
-        co_kitchen_2_states[i]=1
-    else:
-        co_kitchen_2_states[i]=2
-    co_kitchen_2_power[i]=kitchen_2[co_kitchen_2_states[i]]
-    
-    temp=int(states_idx[i])%3
-    if temp==0:
-        co_dish_states[i]=0
-    elif temp==1:
-        co_dish_states[i]=1
-    else:
-        co_dish_states[i]=2
-    co_dish_power[i]=dish[co_dish_states[i]]       
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
-Now we compare the produced output with Ground truth.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-subplot(2,1,1);
-
-plt.title('Actual Dishwasher Consumption');
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_dishwasher);
-subplot(2,1,2);
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Observed Dishwasher Consumption');
-plt.plot(downsampled_timestamp_appliance_date,co_dish_power);          
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Kitchen 1 Consumption');
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5);
-plt.plot(downsampled_timestamp_appliance_date,downsampled_kitchen)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Observed Kitchen 1 Consumption')
-plt.ylim((0,800))
-plt.plot(downsampled_timestamp_appliance_date,co_kitchen_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Kitchen 2 Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5);
-plt.plot(downsampled_timestamp_appliance_date,downsampled_kitchen_2)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Observed Kitchen 2 Consumption')
-plt.plot(downsampled_timestamp_appliance_date,co_kitchen_2_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Stove Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_stove)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Predicted Stove Consumption')
-plt.plot(downsampled_timestamp_appliance_date,co_stove_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Calculation of Residual Power and Standard Deviation
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-residual_power_total=sum(np.abs(residual_power_mains_1))
-print "Residual Power is: ",residual_power_total," W"
-standard_deviation=np.std(residual_power_mains_1)
-print "Standard Deviation is ",standard_deviation
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Reading original labels of different states for different appliances
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-dummy,labels_stove=np.loadtxt('clustered_stove')
-dummy,labels_kitchen=np.loadtxt('clustered_kitchen')
-dummy,labels_kitchen_2=np.loadtxt('clustered_kitchen_2')
-dummy,labels_dish=np.loadtxt('clustered_dishwasher')
-dummy,labels_ref=np.loadtxt('clustered_refrigerator')
-dummy,labels_micro=np.loadtxt('clustered_microwave')
-dummy,labels_lighting=np.loadtxt('clustered_lighting')
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-labels_stove=labels_stove.astype(np.int)
-labels_kitchen=labels_kitchen.astype(np.int)
-labels_kitchen_2=labels_kitchen_2.astype(np.int)
-labels_dish=labels_dish.astype(np.int)
-labels_ref=labels_ref.astype(np.int)
-labels_micro=labels_micro.astype(np.int)
-labels_lighting=labels_lighting.astype(np.int)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Next, we define a function to plot the confusion matrix.
-
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
@@ -2162,496 +1326,396 @@ def print_confusion_matrix(appliance,num_states,true_label,observed_label):
     plt.xticks(range(width), alphabet[:width])
     plt.yticks(range(height), alphabet[:height])
     plt.show()
-    return correct_predicted*1.0/len(true_label)
-    
-        
+    return correct_predicted*1.0/len(true_label)  
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
-Plotting the confusion matices for different appliances mains 1
+\subsubsection{Without Calibration}
+\paragraph{Without load division}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+def find_nearest(array,value):
+    idx = (np.abs(array-value)).argmin()
+    diff=array[idx]-value
+    return [idx,-diff]
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+states_combination=list(itertools.product(centroids['kitchen'],centroids['stove'],\
+centroids['kitchen_2'],centroids['dishwasher'],centroids['refrigerator'],centroids['light'],\
+centroids['microwave']))
+sum_combination=np.array(np.zeros(len(states_combination)))
+for i in range(0,len(states_combination)):
+    sum_combination[i]=sum(states_combination[i])
 
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-stove_accuracy=print_confusion_matrix("stove",len(stove),labels_stove,co_stove_states)
-kitchen_accuracy=print_confusion_matrix("kitchen",len(kitchen),labels_kitchen,co_kitchen_states)
-kitchen_2_accuracy=print_confusion_matrix("kitchen_2",len(kitchen_2),labels_kitchen_2,co_kitchen_2_states)
-dishwasher_accuracy=print_confusion_matrix("dishwasher",len(dish),labels_dish,co_dish_states)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-We now repeat the same procedure when we take the assumption that the
-sum of powers of different appliances must be less than or equal to the
-aggregate power.
 
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-co_positive_kitchen_states=np.zeros(length_sequence,dtype=np.int)
-co_positive_kitchen_power=np.zeros(length_sequence)
-co_positive_stove_states=np.zeros(length_sequence,dtype=np.int)
-co_positive_stove_power=np.zeros(length_sequence)
-co_positive_kitchen_2_states=np.zeros(length_sequence,dtype=np.int)
-co_positive_kitchen_2_power=np.zeros(length_sequence)
-co_positive_dish_states=np.zeros(length_sequence,dtype=np.int)
-co_positive_dish_power=np.zeros(length_sequence)
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
+length_sequence=len(df_mains_test.Mains_1_Power.values)
+states=np.zeros(length_sequence)
+residual_power=np.zeros(length_sequence)
+t0=time.time()
 for i in range(length_sequence):
-    if int(states_idx_positive[i])/18==0:
-        co_positive_kitchen_states[i]=0
-        
-    else:
-        co_positive_kitchen_states[i]=1
-    co_positive_kitchen_power[i]=kitchen[co_positive_kitchen_states[i]]   
+    [states[i],residual_power[i]]=find_nearest(sum_combination,df_mains_test.Mains_2_Power.values[i]+df_mains_test.Mains_1_Power.values[i])
+t1=time.time()
+print "Time taken for CO Mains 2 :",t1-t0
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken for CO Mains 2 : 0.30699300766
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+def decode_CO(length_sequence,centroids,appliance_list,states,residual_power):
     
-    temp=int(states_idx_positive[i])/9
-    if temp%2==0:
-        co_positive_stove_states[i]=0
-    else:
-        co_positive_stove_states[i]=1
-    co_positive_stove_power[i]=stove[co_positive_stove_states[i]]
+    co_states={}
+    co_power={}
+    total_num_combinations=1
+    for appliance in appliance_list:
+        total_num_combinations*=len(centroids[appliance])
+   
+
+    for appliance in appliance_list:
+        co_states[appliance]=np.zeros(length_sequence,dtype=np.int)
+        co_power[appliance]=np.zeros(length_sequence)
     
-    temp=int(states_idx_positive[i])/3
-    if temp%3==0:
-        co_positive_kitchen_2_states[i]=0
-    elif temp%3==1:
-        co_positive_kitchen_2_states[i]=1
-    else:
-        co_positive_kitchen_2_states[i]=2
-    co_positive_kitchen_2_power[i]=kitchen_2[co_positive_kitchen_2_states[i]]
+    for i in range(length_sequence):
+        factor=total_num_combinations
+        for appliance in appliance_list:
+            #assuming integer division (will cause errors in Python 3x)
+            factor=factor/len(centroids[appliance])
+            
+            temp=int(states[i])/factor
+            co_states[appliance][i]=temp%len(centroids[appliance])
+            co_power[appliance][i]=centroids[appliance][co_states[appliance][i]]
+            
+    return [co_states,co_power]
     
-    temp=int(states_idx_positive[i])%3
-    if temp==0:
-        co_positive_dish_states[i]=0
-    elif temp==1:
-        co_positive_dish_states[i]=1
-    else:
-        co_positive_dish_states[i]=2
-    co_positive_dish_power[i]=dish[co_positive_dish_states[i]]
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Stove Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_stove)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Predicted Stove Consumption (CO Positive)')
-plt.plot(downsampled_timestamp_appliance_date,co_positive_stove_power);
+appliance_list=['kitchen','stove','kitchen_2','dishwasher','refrigerator','light','microwave']
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Dish Washer Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_dishwasher)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Predicted Dish Washer Consumption (CO Positive)')
-plt.plot(downsampled_timestamp_appliance_date,co_positive_dish_power);
+[case_1_states,case_1_power]=decode_CO(length_sequence,centroids,appliance_list,states,residual_power)
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Kitchen Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.plot(downsampled_timestamp_appliance_date,downsampled_kitchen)
-plt.subplot(2,1,2)
-plt.title('Predicted Kitchen Consumption (CO Positive)')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.ylim((0,800))
-plt.plot(downsampled_timestamp_appliance_date,co_positive_kitchen_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Kitchen 2 Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_kitchen_2)
-plt.subplot(2,1,2)
-plt.title('Predicted Kitchen 2 Consumption (CO Positive)')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.ylim((0,800))
-plt.plot(downsampled_timestamp_appliance_date,co_positive_kitchen_2_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-stove_positive_accuracy=print_confusion_matrix("stove",len(stove),labels_stove,co_positive_stove_states)
-kitchen_positive_accuracy=print_confusion_matrix("kitchen",len(kitchen),labels_kitchen,co_positive_kitchen_states)
-kitchen_positive_2_accuracy=print_confusion_matrix("kitchen_2",len(kitchen_2),labels_kitchen_2,co_positive_kitchen_2_states)
-dishwasher_positive_accuracy=print_confusion_matrix("dishwasher",len(dish),labels_dish,co_positive_dish_states)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-residual_power_positive_total=sum(np.abs(residual_power_mains_1))
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-residual_power_total=sum(np.abs(residual_power_positive_total))
-print "Residual Power is: ",residual_power_positive_total," W"
-standard_deviation=np.std(residual_power_mains_1_positive)
-print "Standard Deviation is ",standard_deviation
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Now we see if we take actual mains as in case 1 how does it affect the
-results, that is if we do not filter the data, how would result be
-affected.
+Printing confusion matrices
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-residual_power_mains_1_actual=np.zeros(len(downsampled_mains_1))
-states_idx_actual=np.zeros(len(downsampled_mains_1))
-for i in range(len(downsampled_mains_1)):
-    [states_idx_actual[i],residual_power_mains_1_actual[i]]=find_nearest_positive(sum_combination,downsampled_mains_1[i])
+for appliance in appliance_list:
+    print_confusion_matrix(appliance,len(centroids[appliance]),true_labels[appliance],case_1_states[appliance])
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_13.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_14.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_15.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_16.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_17.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_18.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_19.png}
+\par
+\end{center}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+MNE=[]
+RE=[]
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+numerator={}
+denominator={}
+mne={}
+re={}
+for appliance in case_1_states:
+    numerator[appliance]=np.sum(np.abs(case_1_power[appliance]-df_appliances_test[appliance].values))
+    denominator[appliance]=np.sum(df_appliances_test[appliance].values)
+    mne[appliance]=numerator[appliance]*1.0/denominator[appliance]
+    re[appliance]=np.std(case_1_power[appliance]-df_appliances_test[appliance].values)
+    
+MNE.append(deepcopy(mne))
+RE.append(deepcopy(re))
 
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
+\paragraph{With load division}
+Mains 1
+
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-co_kitchen_actual_states=np.zeros(length_sequence,dtype=np.int)
-co_kitchen_actual_power=np.zeros(length_sequence)
-co_stove_actual_states=np.zeros(length_sequence,dtype=np.int)
-co_stove_actual_power=np.zeros(length_sequence)
-co_kitchen_2_actual_states=np.zeros(length_sequence,dtype=np.int)
-co_kitchen_2_actual_power=np.zeros(length_sequence)
-co_dish_actual_states=np.zeros(length_sequence,dtype=np.int)
-co_dish_actual_power=np.zeros(length_sequence)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
+states_combination=list(itertools.product(centroids['kitchen'],centroids['stove'],\
+centroids['kitchen_2'],centroids['dishwasher']))
+sum_combination=np.array(np.zeros(len(states_combination)))
+for i in range(0,len(states_combination)):
+    sum_combination[i]=sum(states_combination[i])
+    
+length_sequence=len(df_mains_test.Mains_1_Power.values)
+states=np.zeros(length_sequence)
+residual_power=np.zeros(length_sequence)
+t0=time.time()
 for i in range(length_sequence):
-    if int(states_idx_actual[i])/18==0:
-        co_kitchen_actual_states[i]=0
-        
-    else:
-        co_kitchen_actual_states[i]=1
-    co_kitchen_actual_power[i]=kitchen[co_kitchen_actual_states[i]]   
-    
-    temp=int(states_idx_actual[i])/9
-    if temp%2==0:
-        co_stove_actual_states[i]=0
-    else:
-        co_stove_actual_states[i]=1
-    co_stove_actual_power[i]=stove[co_stove_actual_states[i]]
-    
-    temp=int(states_idx_actual[i])/3
-    if temp%3==0:
-        co_kitchen_2_actual_states[i]=0
-    elif temp%3==1:
-        co_kitchen_2_actual_states[i]=1
-    else:
-        co_kitchen_2_actual_states[i]=2
-    co_kitchen_2_actual_power[i]=kitchen_2[co_kitchen_2_actual_states[i]]
-    
-    temp=int(states_idx_actual[i])%3
-    if temp==0:
-        co_dish_actual_states[i]=0
-    elif temp==1:
-        co_dish_actual_states[i]=1
-    else:
-        co_dish_actual_states[i]=2
-    co_dish_actual_power[i]=dish[co_dish_actual_states[i]]       
+    [states[i],residual_power[i]]=find_nearest(sum_combination,df_mains_test.Mains_1_Power.values[i])
+t1=time.time()
+print "Time taken for CO Mains :",t1-t0
+
+appliance_list=['kitchen','stove','kitchen_2','dishwasher']
+
+
+[case_2_mains_1_states,case_2_mains_1_power]=decode_CO(length_sequence,centroids,appliance_list,states,residual_power)
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken for CO Mains : 0.1943359375
+\end{verbatim}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Stove Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_stove)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Predicted Stove Consumption')
-plt.plot(downsampled_timestamp_appliance_date,co_positive_stove_power);
+for appliance in appliance_list:
+    figure()
+    plt.subplot(2,1,1)
+    plt.title(appliance)
+    plt.plot(df_appliances_test[appliance].values)
+    plt.subplot(2,1,2)
+    plt.plot(case_2_mains_1_power[appliance])
+             
+    print_confusion_matrix(appliance,len(centroids[appliance]),true_labels[appliance],case_2_mains_1_states[appliance])
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_20.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_21.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_22.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_23.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_24.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_25.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_26.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_27.png}
+\par
+\end{center}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Dish Washer Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_dishwasher)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Predicted Dish Washer Consumption (CO Positive)')
-plt.plot(downsampled_timestamp_appliance_date,co_positive_dish_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Kitchen 2 Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_kitchen_2)
-plt.subplot(2,1,2)
-plt.title('Predicted Kitchen 2 Consumption (CO Positive)')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.ylim((0,800))
-plt.plot(downsampled_timestamp_appliance_date,co_positive_kitchen_2_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-stove_positive_accuracy=print_confusion_matrix("stove",len(stove),labels_stove,co_positive_stove_states)
-kitchen_positive_accuracy=print_confusion_matrix("kitchen",len(kitchen),labels_kitchen,co_positive_kitchen_states)
-kitchen_positive_2_accuracy=print_confusion_matrix("kitchen_2",len(kitchen_2),labels_kitchen_2,co_positive_kitchen_2_states)
-dishwasher_positive_accuracy=print_confusion_matrix("dishwasher",len(dish),labels_dish,co_positive_dish_states)
+numerator={}
+denominator={}
+mne={}
+re={}
+for appliance in appliance_list:
+    numerator[appliance]=np.sum(np.abs(case_2_mains_1_power[appliance]-df_appliances_test[appliance].values))
+    denominator[appliance]=np.sum(df_appliances_test[appliance].values)
+    mne[appliance]=numerator[appliance]*1.0/denominator[appliance]
+    re[appliance]=np.std(case_2_mains_1_power[appliance]-df_appliances_test[appliance].values)
 
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
-We now do the same analysis for Mains 2 as we did for Mains 1.
-
-Distribution of states space
+Mains 2
 
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-states_combination_2=list(itertools.product(ref,lighting,micro))
-print "Possible state combinations for Mains2 are\nRef.,Lighting,Microwave\n",states_combination_2
+states_combination=list(itertools.product(centroids['refrigerator'],centroids['light'],\
+centroids['microwave']))
+sum_combination=np.array(np.zeros(len(states_combination)))
+for i in range(0,len(states_combination)):
+    sum_combination[i]=sum(states_combination[i])
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-sum_combination_2=np.array(np.zeros(len(states_combination_2)))
-for i in range(0,len(states_combination_2)):
-    sum_combination_2[i]=sum(states_combination_2[i])
-from copy import deepcopy
-b=deepcopy(sum_combination_2)
-b.sort()
-grid(True);
-title('Sorted possible sums of all appliances');
-xlabel('Combinations');
-ylabel('Power (W)');
-plot(b);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Histogram showing relative frequencies of different state combinations');
-hist(b,100);
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-length_sequence=len(filtered_downsampled_mains_2)
-co_ref_states=np.zeros(length_sequence,dtype=np.int)
-co_ref_power=np.zeros(length_sequence)
-co_micro_states=np.zeros(length_sequence,dtype=np.int)
-co_micro_power=np.zeros(length_sequence)
-co_lighting_states=np.zeros(length_sequence,dtype=np.int)
-co_lighting_power=np.zeros(length_sequence)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-for i in range(len(filtered_downsampled_mains_2)):
-    [states_idx_2[i],residual_power_mains_2[i]]=find_nearest(sum_combination_2,filtered_downsampled_mains_2[i])
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Residual Power Mains 2');
-xlabel('Time');
-ylabel('Power (W)');
-plot(residual_power_mains_2);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
+length_sequence=len(df_mains_test.Mains_2_Power.values)
+states=np.zeros(length_sequence)
+residual_power=np.zeros(length_sequence)
+t0=time.time()
 for i in range(length_sequence):
-    if int(states_idx_2[i])/9==0:
-        co_ref_states[i]=0
-        
-    elif int(states_idx_2[i])/9==1:
-        co_ref_states[i]=1
-    else:
-        co_ref_states[i]=2
-    co_ref_power[i]=ref[co_ref_states[i]]   
+    [states[i],residual_power[i]]=find_nearest(sum_combination,df_mains_test.Mains_2_Power.values[i])
+t1=time.time()
+print "Time taken for CO Mains :",t1-t0
+print residual_power
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken for CO Mains : 0.194933891296
+[-14.93716667 -15.91083333 -16.59033333 ...,  25.695       25.25240741
+  25.46854545]
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+appliance_list=['refrigerator','light','microwave']
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+[case_2_mains_2_states,case_2_mains_2_power]=decode_CO(length_sequence,centroids,appliance_list,states,residual_power)
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+case_2_mains_2_states
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+{'light': array([1, 1, 1, ..., 1, 1, 1]),
+ 'microwave': array([0, 0, 0, ..., 0, 0, 0]),
+ 'refrigerator': array([1, 1, 1, ..., 0, 0, 0])}
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+for appliance in appliance_list:
+    figure()
+    plt.subplot(2,1,1)
+    plt.title(appliance)
+    plt.plot(df_appliances_test[appliance].values)
+    plt.subplot(2,1,2)
+    plt.plot(case_2_mains_2_power[appliance])
+             
+    print_confusion_matrix(appliance,len(centroids[appliance]),true_labels[appliance],case_2_mains_2_states[appliance])
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_28.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_29.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_30.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_31.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_32.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_33.png}
+\par
+\end{center}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+numerator={}
+denominator={}
+for appliance in appliance_list:
+    numerator[appliance]=np.sum(np.abs(case_2_mains_2_power[appliance]-df_appliances_test[appliance].values))
+    denominator[appliance]=np.sum(df_appliances_test[appliance].values)
+    mne[appliance]=numerator[appliance]*1.0/denominator[appliance]
+    re[appliance]=np.std(case_2_mains_2_power[appliance]-df_appliances_test[appliance].values)
+
     
-    temp=int(states_idx_2[i])/3
-    if temp%3==0:
-        co_lighting_states[i]=0
-    elif temp%3==1:
-        co_lighting_states[i]=1
-    else:
-        co_lighting_states[i]=2
-    co_lighting_power[i]=lighting[co_lighting_states[i]]
-       
-    temp=int(states_idx_2[i])%3
-    if temp==0:
-        co_micro_states[i]=0
-    elif temp==1:
-        co_micro_states[i]=1
-    else:
-        co_micro_states[i]=2
-    co_micro_power[i]=micro[co_micro_states[i]]
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-ylim((0,1000))
-plt.title('Actual Ref Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_refrigerator)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Predicted Ref Consumption (CO)')
-plt.plot(downsampled_timestamp_appliance_date,co_ref_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Lighting Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_lighting)
-plt.subplot(2,1,2)
-plt.title('Predicted Lighting Consumption (CO)')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.ylim((0,200))
-plt.plot(downsampled_timestamp_appliance_date,co_lighting_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(2,1,1)
-plt.title('Actual Microwave Consumption')
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_microwave)
-plt.subplot(2,1,2)
-plt.xlabel('Time');
-plt.ylabel('Power (W)');
-plt.title('Predicted Microwave Consumption (CO)')
+MNE.append(deepcopy(mne))
+RE.append(deepcopy(re))
 
-plt.plot(downsampled_timestamp_appliance_date,co_micro_power);
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
+\subsubsection{With Calibration}
+\paragraph{Without Load Division}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-ref_accuracy=print_confusion_matrix("Ref",len(ref),labels_ref,co_ref_states)
-micro_accuracy=print_confusion_matrix("Micro",len(micro),labels_micro,co_micro_states)
-lighting_accuracy=print_confusion_matrix("Lighting",len(lighting),labels_lighting,co_lighting_states)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-TODO: Violation of switch continuity principle
-
-\subsection{Discrete Hidden Markov Model}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-import sys
-sys.path.append('/home/nipun/git/PyHMM/src')
-from dhmm_em import dhmm_em
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Using EM algorithm, we try to learn HMM parameters for different
-appliances.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-# For Stove which is two state, we try to learn the parameters using Baum 
-stove_prior=np.array([0.8,0.2])
-stove_transmat=np.array([[0.9,0.1],[0.1,0.9]])
-stove_emission=np.array([[.9,.1],[0.1,0.9]])
-[LL, stove_learnt_prior, stove_learnt_transmat, stove_learnt_obsmat,nr_iter] = dhmm_em([labels_stove], stove_prior, stove_transmat, stove_emission, 3500,.0000001 );
+states_combination=list(itertools.product(calib_centroids['kitchen'],calib_centroids['stove'],calib_centroids['kitchen_2'],calib_centroids['dishwasher'],calib_centroids['refrigerator'],calib_centroids['light'],calib_centroids['microwave']))
+sum_combination=np.array(np.zeros(len(states_combination)))
+for i in range(0,len(states_combination)):
+    sum_combination[i]=sum(states_combination[i])
 
 \end{lstlisting}
 \end{codeinput}
@@ -2659,588 +1723,267 @@ stove_emission=np.array([[.9,.1],[0.1,0.9]])
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-title('Log Likelihood vs Iterations for Stove');
-xlabel('Iterations');
-ylabel('Log Likelihood');
-plot(LL);
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-def print_hmm_parameters(obsmat,prior,transmat):
-    print "Learnt HMM Parameters\nObservation Matrix ",obsmat,"\nPrior ",prior," \nTransition Matrix ",transmat
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-print_hmm_parameters(stove_learnt_obsmat,stove_learnt_prior,stove_learnt_transmat)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-# For Stove which is two state, we try to learn the parameters using Baum 
-ref_prior=np.array([0.9,0.05,0.05])
-ref_transmat=np.array([[0.95,0.05,0],[0.05,0.9,0.05],[0.05,0.05,.9]])
-ref_emission=np.array([[.99,.01,0],[0.05,0.9,.05],[0.05,0.05,.9]])
-[LL, ref_learnt_prior, ref_learnt_transmat, ref_learnt_obsmat,nr_iter] = dhmm_em([labels_ref], ref_prior, ref_transmat, ref_emission, 3500,.0000001 );
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Log Likelihood vs Iterations for Ref.');
-xlabel('Iterations');
-ylabel('Log Likelihood');
-plot(LL);
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-print_hmm_parameters(ref_learnt_obsmat,ref_learnt_prior,ref_learnt_transmat)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-# For Stove which is two state, we try to learn the parameters using Baum 
-micro_prior=np.array([0.9,0.05,0.05])
-micro_transmat=np.array([[0.95,0.05,0],[0.05,0.9,0.05],[0.05,0.05,.9]])
-micro_emission=np.array([[.99,.01,0],[0.05,0.9,.05],[0.05,0.05,.9]])
-[LL, micro_learnt_prior, micro_learnt_transmat, micro_learnt_obsmat,nr_iter] = dhmm_em([labels_micro], micro_prior, micro_transmat, micro_emission, 3500,.0000001 );
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Log Likelihood vs Iterations for Micro');
-xlabel('Iterations');
-ylabel('Log Likelihood');
-plot(LL);
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-print_hmm_parameters(micro_learnt_obsmat,micro_learnt_prior,micro_learnt_transmat)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-# For Stove which is two state, we try to learn the parameters using Baum 
-lighting_prior=np.array([0.9,0.05,0.05])
-lighting_transmat=np.array([[0.95,0.05,0],[0.05,0.9,0.05],[0.05,0.05,.9]])
-lighting_emission=np.array([[.99,.01,0],[0.05,0.9,.05],[0.05,0.05,.9]])
-[LL, lighting_learnt_prior, lighting_learnt_transmat, lighting_learnt_obsmat,nr_iter] = dhmm_em([labels_lighting], lighting_prior, lighting_transmat, lighting_emission, 3500,.0000001 );
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Log Likelihood vs Iterations for Lighting');
-xlabel('Iterations');
-ylabel('Log Likelihood');
-plot(LL);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-print_hmm_parameters(lighting_learnt_obsmat,lighting_learnt_prior,lighting_learnt_transmat)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-# For Stove which is two state, we try to learn the parameters using Baum 
-dishwasher_prior=np.array([0.9,0.05,0.05])
-dishwasher_transmat=np.array([[0.95,0.05,0],[0.05,0.9,0.05],[0.05,0.05,.9]])
-dishwasher_emission=np.array([[.99,.01,0],[0.05,0.9,.05],[0.05,0.05,.9]])
-[LL, dishwasher_learnt_prior, dishwasher_learnt_transmat, dishwasher_learnt_obsmat,nr_iter] = dhmm_em([labels_dish], dishwasher_prior, dishwasher_transmat, dishwasher_emission, 3500,.0000001 );
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Log Likelihood vs Iterations for Dishwasher');
-xlabel('Iterations');
-ylabel('Log Likelihood');
-plot(LL);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-print_hmm_parameters(dishwasher_learnt_obsmat,dishwasher_learnt_prior,dishwasher_learnt_transmat)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-# For Stove which is two state, we try to learn the parameters using Baum 
-kitchen_2_prior=np.array([0.9,0.05,0.05])
-kitchen_2_transmat=np.array([[0.95,0.05,0],[0.05,0.9,0.05],[0.05,0.05,.9]])
-kitchen_2_emission=np.array([[.99,.01,0],[0.05,0.9,.05],[0.05,0.05,.9]])
-[LL, kichen_2_learnt_prior, kitchen_2_learnt_transmat, kitchen_2_learnt_obsmat,nr_iter] = dhmm_em([labels_kitchen_2], kitchen_2_prior, kitchen_2_transmat, kitchen_2_emission, 3500,.0000001 );
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Log Likelihood vs Iterations for Kitchen 2');
-xlabel('Iterations');
-ylabel('Log Likelihood');
-plot(LL);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-print_hmm_parameters(kitchen_2_learnt_obsmat,kichen_2_learnt_prior,kitchen_2_learnt_transmat)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-# For Stove which is two state, we try to learn the parameters using Baum 
-kitchen_prior=np.array([0.95,0.05])
-kitchen_transmat=np.array([[0.95,0.05],[0.05,0.95]])
-kitchen_emission=np.array([[.99,.01],[0.01,0.99]])
-[LL, kitchen_learnt_prior, kitchen_learnt_transmat, kitchen_learnt_obsmat,nr_iter] = dhmm_em([labels_kitchen], kitchen_prior, kitchen_transmat, kitchen_emission, 3500,.0000001 );
-
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Log Likelihood vs Iterations for Kitchen');
-xlabel('Iterations');
-ylabel('Log Likelihood');
-plot(LL);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-print_hmm_parameters(kitchen_learnt_obsmat,kitchen_learnt_prior,kitchen_learnt_transmat)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\subsection{Creating FHMM}
-Combining different states according to technique used for FHMM. We
-define functions for combining constituent priors into prior for FHMM
-and similarly for Transition and Emission matrices.
-
-For mains 2
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-def calculate_combined_pie(ordered_list_appliance_pies):
-    total_series=len(ordered_list_appliance_pies)
-    result=np.array(ordered_list_appliance_pies[0])
-    for i in range(total_series-1):
-        m=np.vstack(result.flatten())
-        size_n=len(ordered_list_appliance_pies[i+1])
-        n=np.reshape(ordered_list_appliance_pies[i+1],(1,size_n))
-        result=np.dot(m,n)
-    return result.flatten()
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-pie_combined=calculate_combined_pie([ref_learnt_prior,lighting_learnt_prior,micro_learnt_prior])
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Combining the transition matrices and the emission matrices. It should
-be seen that it can be done by Kronecker multiplication.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-def calculate_combined_A(ordered_transmat_list):
-    total_series=len(ordered_transmat_list)
-    result=ordered_transmat_list[0]
-    for i in range(total_series-1):
-        result=np.kron(result,ordered_transmat_list[i+1])
-    return result
-    
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-A_combined=calculate_combined_A([ref_learnt_transmat,lighting_learnt_transmat,micro_learnt_transmat])
-A_combined.shape
-B_combined=calculate_combined_A([ref_learnt_obsmat,lighting_learnt_obsmat,micro_learnt_obsmat])
-B_combined.shape
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-Now Viterbi algorithm is used to decode the most likely sequence.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-from viterbi_path import path;
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-We plot the predicted state sequence and compare against observed state
-sequence.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Observed State Sequence');
-plot(states_idx_2);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-We now see the observations and map them from 0 to 26 based on closeness
-to the total power in those cases.
-
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-viterbi_produced_path=path(pie_combined,A_combined,B_combined,states_idx_2)
-path_produced=viterbi_produced_path[0]
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-title('Predicted State Sequence according to Viterbi');
-plot(path_produced);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-length_sequence=len(filtered_downsampled_mains_2)
-hmm_ref_states=np.zeros(length_sequence,dtype=np.int)
-hmm_ref_power=np.zeros(length_sequence)
-hmm_micro_states=np.zeros(length_sequence,dtype=np.int)
-hmm_micro_power=np.zeros(length_sequence)
-hmm_lighting_states=np.zeros(length_sequence,dtype=np.int)
-hmm_lighting_power=np.zeros(length_sequence)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
+length_sequence=len(df_mains_test.Mains_1_Power.values)
+states=np.zeros(length_sequence)
+residual_power=np.zeros(length_sequence)
+t0=time.time()
 for i in range(length_sequence):
-    if int(path_produced[i])/9==0:
-        hmm_ref_states[i]=0
-        
-    elif int(path_produced[i])/9==1:
-        hmm_ref_states[i]=1
-    else:
-        hmm_ref_states[i]=2
-    hmm_ref_power[i]=ref[hmm_ref_states[i]]   
-    
-    temp=int(path_produced[i])/3
-    if temp%3==0:
-        hmm_lighting_states[i]=0
-    elif temp%3==1:
-        hmm_lighting_states[i]=1
-    else:
-        hmm_lighting_states[i]=2
-    hmm_lighting_power[i]=lighting[hmm_lighting_states[i]]
-       
-    temp=int(path_produced[i])%3
-    if temp==0:
-        hmm_micro_states[i]=0
-    elif temp==1:
-        hmm_micro_states[i]=1
-    else:
-        hmm_micro_states[i]=2
-    hmm_micro_power[i]=micro[hmm_micro_states[i]]
+    [states[i],residual_power[i]]=find_nearest(sum_combination,df_mains_test.Mains_2_Power.values[i]+df_mains_test.Mains_1_Power.values[i])
+t1=time.time()
+print "Time taken for CO Mains 2 :",t1-t0
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken for CO Mains 2 : 0.301403045654
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+appliance_list=['kitchen','stove','kitchen_2','dishwasher','refrigerator','light','microwave']
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.subplot(3,1,1)
-ylim((0,1000))
-plt.title('Actual Ref Consumption')
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_refrigerator)
-plt.subplot(3,1,2)
-plt.title('Predicted Ref Consumption (FHMM)')
-plt.plot(downsampled_timestamp_appliance_date,hmm_ref_power);
-plt.subplot(3,1,3)
-plt.title('Predicted Ref Consumption (CO)')
-plt.plot(downsampled_timestamp_appliance_date,co_ref_power);
+[case_3_states,case_3_power]=decode_CO(length_sequence,centroids,appliance_list,states,residual_power)
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.subplot(3,1,1)
-plt.title('Actual Lighting Consumption')
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_lighting)
-plt.subplot(3,1,2)
-plt.ylim((0,200))
-plt.title('Predicted Lighting Consumption (FHMM)')
-plt.plot(downsampled_timestamp_appliance_date,hmm_lighting_power);
-plt.subplot(3,1,3)
-plt.ylim((0,200))
-plt.title('Predicted Lighting Consumption (CO)')
-plt.plot(downsampled_timestamp_appliance_date,co_lighting_power);
+for appliance in appliance_list:
+    print_confusion_matrix(appliance,len(calib_centroids[appliance]),true_labels[appliance],case_3_states[appliance])
 \end{lstlisting}
 \end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_34.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_35.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_36.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_37.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_38.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_39.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_40.png}
+\par
+\end{center}
+\end{codeoutput}
 \end{codecell}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-plt.subplot(3,1,1)
-plt.title('Actual Micro Consumption')
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_microwave)
-plt.subplot(3,1,2)
-plt.title('Predicted Micro Consumption (FHMM)')
-plt.plot(downsampled_timestamp_appliance_date,hmm_micro_power);
-plt.subplot(3,1,3)
-plt.title('Predicted Micro Consumption (CO)')
-plt.plot(downsampled_timestamp_appliance_date,co_micro_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-ref_accuracy=print_confusion_matrix("Ref",len(ref),labels_ref,hmm_ref_states)
-micro_accuracy=print_confusion_matrix("Micro",len(micro),labels_micro,hmm_micro_states)
-lighting_accuracy=print_confusion_matrix("Lighting",len(lighting),labels_lighting,hmm_lighting_states)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-We do a similar analysis for Mains 1.
+numerator={}
+denominator={}
+case=2
+mne={}
+re={}
+for appliance in case_3_states:
+    numerator[appliance]=np.sum(np.abs(case_3_power[appliance]-df_appliances_test[appliance].values))
+    denominator[appliance]=np.sum(df_appliances_test[appliance].values)
+    mne[appliance]=numerator[appliance]*1.0/denominator[appliance]
+    re[appliance]=np.std(case_3_power[appliance]-df_appliances_test[appliance].values)
 
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-pie_combined_1=calculate_combined_pie([kitchen_learnt_prior,stove_learnt_prior,kitchen_2_prior,dishwasher_learnt_prior])
-A_combined_1=calculate_combined_A([kitchen_learnt_transmat,stove_learnt_transmat,kitchen_2_transmat,dishwasher_learnt_transmat])
-B_combined_1=calculate_combined_A([kitchen_learnt_obsmat,stove_learnt_obsmat,kitchen_2_learnt_obsmat,dishwasher_learnt_obsmat])
+MNE.append(deepcopy(mne))
+RE.append(deepcopy(re))  
+
 \end{lstlisting}
 \end{codeinput}
 \end{codecell}
+\paragraph{With Division}
 \begin{codecell}
 \begin{codeinput}
 \begin{lstlisting}
-viterbi_produced_path_1=path(pie_combined_1,A_combined_1,B_combined_1,states_idx)
-path_produced_1=viterbi_produced_path_1[0]
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-hmm_kitchen_actual_states=np.zeros(length_sequence,dtype=np.int)
-hmm_kitchen_actual_power=np.zeros(length_sequence)
-hmm_stove_actual_states=np.zeros(length_sequence,dtype=np.int)
-hmm_stove_actual_power=np.zeros(length_sequence)
-hmm_kitchen_2_actual_states=np.zeros(length_sequence,dtype=np.int)
-hmm_kitchen_2_actual_power=np.zeros(length_sequence)
-hmm_dish_actual_states=np.zeros(length_sequence,dtype=np.int)
-hmm_dish_actual_power=np.zeros(length_sequence)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
+states_combination=list(itertools.product(calib_centroids['kitchen'],calib_centroids['stove'],\
+calib_centroids['kitchen_2'],calib_centroids['dishwasher']))
+sum_combination=np.array(np.zeros(len(states_combination)))
+for i in range(0,len(states_combination)):
+    sum_combination[i]=sum(states_combination[i])
+    
+length_sequence=len(df_mains_test.Mains_1_Power.values)
+states=np.zeros(length_sequence)
+residual_power=np.zeros(length_sequence)
+t0=time.time()
 for i in range(length_sequence):
-    if int(path_produced_1[i])/18==0:
-        hmm_kitchen_actual_states[i]=0
-        
-    else:
-        hmm_kitchen_actual_states[i]=1
-    hmm_kitchen_actual_power[i]=kitchen[hmm_kitchen_actual_states[i]]   
-    
-    temp=int(path_produced_1[i])/9
-    if temp%2==0:
-        hmm_stove_actual_states[i]=0
-    else:
-        hmm_stove_actual_states[i]=1
-    hmm_stove_actual_power[i]=stove[hmm_stove_actual_states[i]]
-    
-    temp=int(path_produced_1[i])/3
-    if temp%3==0:
-        hmm_kitchen_2_actual_states[i]=0
-    elif temp%3==1:
-        hmm_kitchen_2_actual_states[i]=1
-    else:
-        hmm_kitchen_2_actual_states[i]=2
-    hmm_kitchen_2_actual_power[i]=kitchen_2[hmm_kitchen_2_actual_states[i]]
-    
-    temp=int(path_produced_1[i])%3
-    if temp==0:
-        hmm_dish_actual_states[i]=0
-    elif temp==1:
-        hmm_dish_actual_states[i]=1
-    else:
-        hmm_dish_actual_states[i]=2
-    hmm_dish_actual_power[i]=dish[hmm_dish_actual_states[i]]
-        
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(3,1,1)
-ylim((0,1000))
-plt.title('Actual Kitchen Consumption')
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_kitchen)
-plt.subplot(3,1,2)
-ylim((0,1000))
-plt.title('Predicted Kitchen Consumption (FHMM)')
-plt.plot(downsampled_timestamp_appliance_date,hmm_kitchen_actual_power);
-plt.subplot(3,1,3)
-ylim((0,1000))
-plt.title('Predicted Kitchen Consumption (CO)')
-plt.plot(downsampled_timestamp_appliance_date,co_kitchen_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(3,1,1)
-ylim((0,1000))
-plt.title('Actual Kitchen 2 Consumption')
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_kitchen_2)
-plt.subplot(3,1,2)
-ylim((0,1000))
-plt.title('Predicted Kitchen 2 Consumption (FHMM)')
-plt.plot(downsampled_timestamp_appliance_date,hmm_kitchen_2_actual_power);
-plt.subplot(3,1,3)
-ylim((0,1000))
-plt.title('Predicted Kitchen 2 Consumption (CO)')
-plt.plot(downsampled_timestamp_appliance_date,co_kitchen_2_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(3,1,1)
-plt.title('Actual Stove Consumption')
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_stove)
-plt.subplot(3,1,2)
-plt.title('Predicted Stove Consumption (FHMM)')
-plt.plot(downsampled_timestamp_appliance_date,hmm_stove_actual_power);
-plt.subplot(3,1,3)
-plt.title('Predicted Stove Consumption (CO)')
-plt.plot(downsampled_timestamp_appliance_date,co_stove_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.subplot(3,1,1)
-plt.title('Actual Dishwasher Consumption')
-subplots_adjust(hspace=.5)
-plt.plot(downsampled_timestamp_appliance_date,downsampled_dishwasher)
-plt.subplot(3,1,2)
-plt.title('Predicted Dishwasher Consumption (FHMM)')
-plt.plot(downsampled_timestamp_appliance_date,hmm_dish_actual_power);
-plt.subplot(3,1,3)
-plt.title('Predicted Dishwasher Consumption (CO)')
-plt.plot(downsampled_timestamp_appliance_date,co_dish_power);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-kitchen_accuracy=print_confusion_matrix("Kitchen",len(kitchen),labels_kitchen,hmm_kitchen_actual_states)
-kitchen_2_accuracy=print_confusion_matrix("Kitchen 2",len(kitchen_2),labels_kitchen_2,hmm_kitchen_2_actual_states)
-stove_accuracy=print_confusion_matrix("Stove",len(stove),labels_stove,hmm_stove_actual_states)
-dish_accuracy=print_confusion_matrix("Dish Washer",len(dish),labels_dish,hmm_dish_actual_states)
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-We now compare the accuracies of the two approaches across different
-mains circuits.
+    [states[i],residual_power[i]]=find_nearest(sum_combination,df_mains_test.Mains_1_Power.values[i])
+t1=time.time()
+print "Time taken for CO Mains :",t1-t0
 
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.title('Disaggregation Accuracy for Mains 1');
-plt.ylabel('Accuracy')
-plt.ylim((50,100))
-plt.bar( numpy.arange(4) * 2, [98.0501392758,92.9649543305,98.5489408564,97.324609704], color = 'red' );
-plt.bar( numpy.arange(4) * 2 +0.8, [97.58,96.25,99.31,98.7], color = 'green' );
-locs, labels = xticks();
-xticks(locs+1, ('Kitchen',' ', 'Kitchen 2',' ', 'Stove',' ', 'Dishwasher'));
-plt.legend(('FHMM','CO'),);
-#set_xticklabels( ('G1', 'G2', 'G3', 'G4') )
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
-\begin{codecell}
-\begin{codeinput}
-\begin{lstlisting}
-plt.title('Disaggregation Accuracy for Mains 2');
-plt.ylabel('Accuracy')
-plt.ylim((50,100))
-plt.bar( numpy.arange(3) * 2, [91.03,93.03,82.8], color = 'red' );
-plt.bar( numpy.arange(3) * 2 +0.8, [93.29,93.54,82.2], color = 'green' );
-locs, labels = xticks();
-xticks(locs+1, ('Refrigerator',' ', 'Microwave',' ', 'Lighting'));
-plt.legend(('FHMM','CO'),);
-\end{lstlisting}
-\end{codeinput}
-\end{codecell}
+appliance_list=['kitchen','stove','kitchen_2','dishwasher']
 
+
+[case_4_mains_1_states,case_4_mains_1_power]=decode_CO(length_sequence,centroids,appliance_list,states,residual_power)
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken for CO Mains : 0.199849128723
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+for appliance in appliance_list:
+    print_confusion_matrix(appliance,len(calib_centroids[appliance]),true_labels[appliance],case_4_mains_1_states[appliance])
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_41.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_42.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_43.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_44.png}
+\par
+\end{center}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+numerator={}
+denominator={}
+case=3
+for appliance in appliance_list:
+    numerator[appliance]=np.sum(np.abs(case_4_mains_1_power[appliance]-df_appliances_test[appliance].values))
+    denominator[appliance]=np.sum(df_appliances_test[appliance].values)
+    mne[appliance]=numerator[appliance]*1.0/denominator[appliance]
+    re[appliance]=np.std(case_4_mains_1_power[appliance]-df_appliances_test[appliance].values)
+
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+states_combination=list(itertools.product(calib_centroids['refrigerator'],calib_centroids['light'],\
+calib_centroids['microwave']))
+sum_combination=np.array(np.zeros(len(states_combination)))
+for i in range(0,len(states_combination)):
+    sum_combination[i]=sum(states_combination[i])
+    
+length_sequence=len(df_mains_test.Mains_2_Power.values)
+states=np.zeros(length_sequence)
+residual_power=np.zeros(length_sequence)
+t0=time.time()
+for i in range(length_sequence):
+    [states[i],residual_power[i]]=find_nearest(sum_combination,df_mains_test.Mains_2_Power.values[i])
+t1=time.time()
+print "Time taken for CO Mains :",t1-t0
+
+appliance_list=['refrigerator','light','microwave']
+
+
+[case_4_mains_2_states,case_4_mains_2_power]=decode_CO(length_sequence,centroids,appliance_list,states,residual_power)
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+Time taken for CO Mains : 0.189949989319
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+for appliance in appliance_list:
+    print_confusion_matrix(appliance,len(calib_centroids[appliance]),true_labels[appliance],case_4_mains_2_states[appliance])
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_45.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_46.png}
+\par
+\end{center}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{REDD_House2_Analysis_files/REDD_House2_Analysis_fig_47.png}
+\par
+\end{center}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+numerator={}
+denominator={}
+for appliance in case_4_mains_2_states:
+    numerator[appliance]=np.sum(np.abs(case_4_mains_2_power[appliance]-df_appliances_test[appliance].values))
+    denominator[appliance]=np.sum(df_appliances_test[appliance].values)
+    mne[appliance]=numerator[appliance]*1.0/denominator[appliance]
+    re[appliance]=np.std(case_4_mains_2_power[appliance]-df_appliances_test[appliance].values)
+        
+MNE.append(deepcopy(mne))
+RE.append(deepcopy(re))
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
+\subparagraph{Results}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+from ipy_table import *
+results = [
+    
+    ['Appliance','Case1','Case1','Case2','Case2','Case3','Case3','Case4','Case4'],
+    ['','RE', 'MNE', 'RE', 'MNE','RE', 'MNE','RE', 'MNE']]
+for appliance in centroids:
+    row=[]
+    row.append(appliance)
+    for i in range(4):
+        row.append(RE[i][appliance])
+        row.append(MNE[i][appliance]*100)
+    results.append(row)
+make_table(results)
+set_global_style(float_format='%0.0f')
+apply_theme('basic')
+
+\end{lstlisting}
+\end{codeinput}
+\begin{codeoutput}
+\begin{verbatim}
+<ipy_table.IpyTable at 0x9a874d0>
+\end{verbatim}
+\end{codeoutput}
+\end{codecell}
+\begin{codecell}
+\begin{codeinput}
+\begin{lstlisting}
+    
+\end{lstlisting}
+\end{codeinput}
+\end{codecell}
 \end{document}
