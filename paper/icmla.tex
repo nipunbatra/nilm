@@ -42,13 +42,13 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{\indicns: Improved Non-Intrusive load monitoring using load Division and Calibration \vspace{-8mm}}
+\title{\indicns: Improved Non-Intrusive load monitoring using load Division and Calibration \vspace{-10mm}}
 
 \author{%
 % author names are typeset in 11pt, which is the default size in the author block
 {Nipun Batra$^1$, Haimonti Dutta$^{2\star}$\thanks{$^\star$The author is also a visiting assistant professor at IIIT-Delhi.}, Amarjeet Singh$^1$}%
 % add some space between author names and affils
-%\vspace{1.6mm}\\
+\vspace{-2pt}\\
 %\fontsize{10}{10}\selectfont\itshape
 
 
@@ -513,10 +513,12 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 \vspace{-1mm}
 \noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances)\footnote{Highest accuracy has been reported for this Home in previous work~\cite{redd}.}. We believe that the same analysis can be easily repeated across multiple homes. Timeseries synchronization was applied since the appliance level data collection begun about 6 hours after mains data collection. Moreover, there were small intervals of missing data, which we filled using forward filling. Two appliances - washer dryer and disposal were ignored from further analysis since washer dryer had a peak power consumption of 8 W (implying that it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%.  We downsampled this time synchronized data to one minute resolution using mean filter. 1 minute is a sufficient resolution to get rid of startup transients and voltage fluctuations. 
 
-Event detection, as explained in section IV, is an important part of \indicns. A threshold of 30 W was chosen for event detection to ensure that there are no false events (occurring due to minor power fluctuations). As per the Appliance to Mains step in \indicns-CO algorithm described earlier, we assigned loads to the two different mains. \tabref{tab:calibration_factors} shows the resultant load assignment to different mains. \tabref{tab:calibration_factors} further shows the learned power states of these appliance via KMeans++\footnote{We also used DBScan, SOM, EM, Mini Batch KMeans and Hierarchial clustering algorithms and found KMeans++ to be the most scalable.}~\cite{kmeansplusplus} clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on the prior experience and appliance circuity~\cite{ting2005}, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power and this metadata was missing from the released dataset. These two loads constitute a major portion of mains 2 power. \figref{fig:breakdown} shows the reduction in unassigned power due to calibrating these two appliances. 
+\noindent Event detection, as explained in section IV, is an important part of \indicns. A threshold of 30 W was chosen for event detection to ensure that there are no false events (occurring due to minor power fluctuations). As per the Appliance to Mains step in \indicns-CO algorithm described earlier, we assigned loads to the two different mains. \tabref{tab:calibration_factors} shows the resultant load assignment to different mains. \tabref{tab:calibration_factors} further shows the learned power states of these appliance via KMeans++\footnote{We also used DBScan, SOM, EM, Mini Batch KMeans and Hierarchial clustering algorithms and found KMeans++ to be the most scalable.}~\cite{kmeansplusplus} clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on the prior experience and appliance circuity~\cite{ting2005}, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power and this metadata was missing from the released dataset. These two loads constitute a major portion of mains 2 power. \figref{fig:breakdown} shows the reduction in unassigned power due to calibrating these two appliances. 
 
-\noindent To show the significance of load division and calibration as a preprocessing step to NIALM algorithm, we considered 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division (\indicns). Corresponding results with CO are presented in \tabref{tab:results}. For the overall dataset, it can be seen that MNE reduces from 187\% to 39\% and RE reduces from 478 W to 168 W after applying \indicns-CO. All appliances show reduction in MNE and RE after applying \indicns-CO. However, there is significant improvement in correctly predicting refrigerator and lighting. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction using CO (without and with \indicns). It can be seen that after applying \indic out of the 4810 instances of refrigerator in state 2, 4368 are correctly identified. Before applying \indic
-only 2158 instances were correctly identified.
+\noindent To show the significance of load division and calibration as a preprocessing step to NIALM algorithm, we considered 4 possible cases:  i) no calibration, no load division; ii) no calibration, load division; iii) calibration, no load division; iv) calibration, load division (\indicns). Corresponding results with CO are presented in \tabref{tab:results}.
+% For the overall dataset, it can be seen that MNE reduces from 187\% to 39\% and RE reduces from 478 W to 168 W after applying \indicns-CO.
+  All appliances show reduction in MNE and RE after applying \indicns-CO. However, there is significant improvement in correctly predicting refrigerator and lighting, which contribute the most to the overall electricity consumption. \figref{fig:confusion_ref} shows the confusion matrix for refrigerator prediction using CO (without and with \indicns). It can be seen that after applying \indic out of the 4810 instances of refrigerator in state 2, 4434 are correctly identified. Before applying \indic
+only 2860 instances were correctly identified.
 %
 %\noindent We had used Combinatorial Optimization which is the simplest NIALM technique to show the improvements which can be made by load division and appliance calibration. We believe that using state of the art NIALM algorithms will improve the results by leaps and bounds.
 
@@ -541,11 +543,11 @@ only 2158 instances were correctly identified.
 % % % % % % Confusion Matrix Result Images % % % % % % % % % % % % % %
 
 \begin{figure} 
-    \subfloat[\scriptsize After applying CO based NIALM - State 2 is predicted often as State 3]{
-    \includegraphics[scale=0.355]{./figures/confusion_before_big.png}}
+    \subfloat[\scriptsize After applying CO based NIALM - State 2 is predicted often as State 1]{
+    \includegraphics[scale=0.34]{./figures/ref_confusion_before.png}}
     \hspace{2pt}
-    \subfloat[\scriptsize After applying \indicns-CO based NIALM - Significant improvement in State 2 prediction]{
-        \includegraphics[scale=0.355]{./figures/confusion_after_big.png}}
+    \subfloat[\scriptsize After applying \indicns-CO based NIALM - Significant improvement in State 2 and 3 prediction]{
+        \includegraphics[scale=0.34]{./figures/ref_confusion_after.png}}
         \vspace{-8pt}
     \caption{Confusion Matrices for refrigerator disaggregation. [m,n] in the matrix represents appliance's $m^{th}$ state to be predicted as $n^{th}$ state. Grey cells along the diagonal show true positive.}
     \label{fig:confusion_ref}
@@ -582,11 +584,11 @@ only 2158 instances were correctly identified.
 %                          St-& usage& 1 & 2& 3\\
 %                          ate     & events&&&\\
 %                      \hline
-%                      1&5070&\cellcolor{gray!25}4259&213&598\\
+%                      1&5070&\cellcolor{gray!25}4740&288&41\\
 %                      \hline
-%                      2&4810&40&\cellcolor{gray!25}2158&2612\\
+%                      2&4810&1775&\cellcolor{gray!25}2860&176\\
 %                      \hline
-%                      3&200&0&0&\cellcolor{gray!25}200\\
+%                      3&200&112&63&\cellcolor{gray!25}25\\
 %                      \hline
 %                 \end{tabular}
 %             \end{minipage}
@@ -600,11 +602,11 @@ only 2158 instances were correctly identified.
 %                                           St-& usage& 1 & 2& 3\\
 %                                           ate     & events&&&\\
 %                                       \hline
-%                                       1&5070&\cellcolor{gray!25}4457&513&100\\
+%                                       1&5070&\cellcolor{gray!25}4541&430&98\\
 %                                       \hline
-%                                       2&4810&193&\cellcolor{gray!25}4368&349\\
+%                                       2&4810&221&\cellcolor{gray!25}4434&156\\
 %                                       \hline
-%                                       3&200&4&10&\cellcolor{gray!25}186\\
+%                                       3&200&5&44&\cellcolor{gray!25}151\\
 %                                       \hline
 %                                  \end{tabular}
 %                              \end{minipage}  
