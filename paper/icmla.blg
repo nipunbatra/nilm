@@ -54,6 +54,10 @@ Repeated entry---line 353 of file references.bib
  : @article{survey1
  :                 ,
 I'm skipping whatever remains of this entry
+Repeated entry---line 360 of file references.bib
+ : @article{survey2
+ :                 ,
+I'm skipping whatever remains of this entry
 Repeated entry---line 371 of file references.bib
  : @article{survey3
  :                 ,
@@ -97,45 +101,45 @@ Warning--empty journal in blued_cmu
 Warning--empty year in blued_cmu
 
 Done.
-You've used 23 entries,
+You've used 24 entries,
             4024 wiz_defined-function locations,
-            1314 strings with 18752 characters,
-and the built_in function-call counts, 17058 in all, are:
-= -- 1291
-> -- 426
-< -- 131
-+ -- 231
-- -- 75
-* -- 802
-:= -- 2469
-add.period$ -- 49
-call.type$ -- 23
-change.case$ -- 22
-chr.to.int$ -- 321
-cite$ -- 25
-duplicate$ -- 1240
-empty$ -- 1520
-format.name$ -- 94
-if$ -- 3985
+            1320 strings with 18992 characters,
+and the built_in function-call counts, 18265 in all, are:
+= -- 1392
+> -- 455
+< -- 146
++ -- 253
+- -- 85
+* -- 867
+:= -- 2632
+add.period$ -- 51
+call.type$ -- 24
+change.case$ -- 23
+chr.to.int$ -- 357
+cite$ -- 26
+duplicate$ -- 1316
+empty$ -- 1600
+format.name$ -- 99
+if$ -- 4261
 int.to.chr$ -- 0
-int.to.str$ -- 23
-missing$ -- 220
-newline$ -- 92
-num.names$ -- 23
-pop$ -- 563
+int.to.str$ -- 24
+missing$ -- 231
+newline$ -- 95
+num.names$ -- 24
+pop$ -- 584
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1335
+skip$ -- 1422
 stack$ -- 0
-substring$ -- 769
-swap$ -- 947
-text.length$ -- 24
+substring$ -- 870
+swap$ -- 1025
+text.length$ -- 27
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 23
+type$ -- 24
 warning$ -- 2
-while$ -- 73
-width$ -- 25
-write$ -- 227
-(There were 20 error messages)
+while$ -- 78
+width$ -- 26
+write$ -- 238
+(There were 21 error messages)

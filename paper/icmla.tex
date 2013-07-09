@@ -98,7 +98,7 @@ Prior work has established that detailed feedback in the form of appliance level
 \vspace{-1mm}
 \noindent Buildings account for significant proportion of overall energy use in both the developing (e.g. 47\% of total energy in India~~\cite{evans09}) and the developed (e.g. 41\% and 45\% in US and UK respectively) countries. Modest improvements in building energy use can result in significant aggregate impact at the national scale. While several automation and management systems have been proposed for improving the operational efficiency of building systems, such systems typically lack the ability to provide detailed consumption information (e.g. appliance level consumption). Prior work~~\cite{darby} has shown that better feedback systems, enabling appliance level consumption, that provide insights about occupant's energy usage information further encourages energy saving behavior resulting in 5-15\% savings in electricity usage.
 
-\noindent Measuring each appliance's consumption separately, for providing such a feedback, is both prohibitively expensive and difficult to manage. Alternatively, prior research has proposed Non Intrusive Load Monitoring (NILM) that involves disaggregating the aggregated electricity consumption obtained at the meter level into individual appliance consumption. Several modeling and inference approaches have been proposed (e.g. Factorial Hidden Markov Model~~\cite{Ghahramani_97a}, Combinatorial Optimization~~\cite{hart}) in the past to address NILM with varied level of accuracy. NILM work typically assumes that all the loads are assigned to the same meter. However, many practical scenarios (e.g. use of split-phase supply in many homes in USA and 3-phase supply for many homes in India) involve load division across different phases coming at the home level. Automated assignment of different loads in a home to each phase followed by NILM application on each phase separately can reduce the overall modeling and inference complexity. We follow the convention introduced in REDD dataset~\cite{redd} where these multiple instrumented points (phase/meter/meter) are referred as \textbf{main(s)}.
+\noindent Measuring each appliance's consumption separately, for providing such a feedback, is both prohibitively expensive and difficult to manage. Alternatively, prior research has proposed Non Intrusive Load Monitoring (NILM) that involves disaggregating the aggregated electricity consumption obtained at the meter level into individual appliance consumption. Several modeling and inference approaches have been proposed (e.g. Factorial Hidden Markov Model~~\cite{Ghahramani_97a}, Combinatorial Optimization~~\cite{hart}) in the past to address NILM with varied level of accuracy. NILM work typically assumes that all the loads are assigned to the same meter. However, many practical scenarios (e.g. use of split-phase supply in many homes in USA and 3-phase supply for many homes in India) involve load division across different phases coming at the home level. Automated assignment of different loads in a home to each phase followed by NILM application on each phase separately can reduce the overall modeling and inference complexity. We follow the convention introduced in REDD dataset~\cite{redd} where these multiple instrumented points (meters/phases) are referred as \textbf{main(s)}.
 
 \noindent Further, the measurements, both at the meter level and at the appliance level, are often taken with different equipment (Current Transformers, in-line measurements, ICs\footnote{Example IC for power measurement is Maxim 78M6612}) each with their own accuracy levels. Calibrating these diverse measurements will be beneficial for NILM modeling and inference. Grid conditions such as voltage fluctuations further motivate calibration. Motivated by these practical scenarios, we propose \indicns - \textbf{I}mproved \textbf{N}ILM using load \textbf{Di}vision and \textbf{C}alibration. Specific research contributions of our work are:
 \begin{itemize}
@@ -111,7 +111,7 @@ Prior work has established that detailed feedback in the form of appliance level
 \vspace{-2mm}
 \section{Related work}
 \vspace{-1mm}
-\noindent Non-intrusive load monitoring was first studied by Hart~~\cite{hart} in the early 1990s by examining signatures in aggregated load to indicate activities of appliances. With proliferation of smart meters, the problem has gained traction in the recent times~\cite{survey1,survey3}. NILM systems can be broadly divided into two categories based on whether supervised or unsupervised disaggregation methods are used.
+\noindent Non-intrusive load monitoring was first studied by Hart~~\cite{hart} in the early 1990s by examining signatures in aggregated load to indicate activities of appliances. With proliferation of smart meters, the problem has gained traction in the recent times~\cite{survey1,survey2,survey3}. NILM systems can be broadly divided into two categories based on whether supervised or unsupervised disaggregation methods are used.
 %\begin{itemize}
 %\item \textbf{Frequency of data collection}:[REWRITE] Approaches such as harmonic analysis require data to be sampled at more than a thousand samples a second. Whereas approaches 
 %\textbf{Supervised/Unsupervised}: 
@@ -155,29 +155,29 @@ Prior work has established that detailed feedback in the form of appliance level
 \label{tab:terms}
 \begin{tabular}{|l|l|}
 \hline
-Symbol&Meaning\\[0.1cm]
+Symbol&Meaning\\
 \hline
-$t\in {1,..T}$& Time slice\\[0.1cm]
+$t\in {1,..T}$& Time slice\\
 \hline
-$n\in{1,..N}$ & Appliance number\\[0.1cm]
+$n\in{1,..N}$ & Appliance number\\
 \hline
-$\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Measured power sequence for $n^{th}$ appliance\\[0.1cm]
+$\theta^n=\{\theta_1^n,...,\theta_T^n\}$ & Measured power sequence for $n^{th}$ appliance\\
 \hline
 $\theta^{M_1}=\{\theta_1^{M_1},...,\theta_T^{M_1}\}$ & Measured power sequence for main 1\\[0.1cm]
 \hline
 $\theta^{M_2}=\{\theta_1^{M_2},...,\theta_T^{M_2}\}$ & Measured power sequence for main 2\\[0.1cm]
 \hline
 $x=\{ x_1,..,x_T\}=$ & Measured aggregate power sequence\\[0.1cm]
-$\theta^{M_1}+\theta^{M_2}$ &\\[0.1cm]
+$\theta^{M_1}+\theta^{M_2}$ &\\
 \hline
 %$v=\{ v_1,..,v_T\}$ & Labeled voltage time series\\[0.1cm]
 %$e^{M_1}=\{e_1^{M_1},...,e_T^{M_1}\}$ & Noise power sequence for Mains 1\\[0.1cm]
 %$e^{M_2}=\{e_1^{M_2},...,e_T^{M_2}\}$ & Noise power sequence for Mains 2\\[0.1cm]
-$e=\{e_1,...,e_T\}$ & Aggregate noise power sequence\\[0.1cm]
+$e=\{e_1,...,e_T\}$ & Aggregate noise power sequence\\
 \hline
-$p$ & Number of electrical mains in a home\\[0.1cm]
+$p$ & Number of electrical mains in a home\\
 \hline
-$N_i \:where\:i \in \{1,\cdots ,p\}$ & Number of loads in $i^{th}$ main\\[0.1cm]
+$N_i \:where\:i \in \{1,\cdots ,p\}$ & Number of loads in $i^{th}$ main\\
 \hline
 $y^n=\{y_1^n,..y_T^n\}$ & Predicted power sequence for $n^{th}$ appliance\\[0.1cm]
 \hline
@@ -195,7 +195,7 @@ $\mu^n=\{\mu_1^n,..\mu_K^n\}$ & Power draw by $n^{th}$ appliance, where $\mu_k^n
 $\theta^n_{k^1,k^2}$& Measured power sequence when $n^{th}$ appliance \\[0.1cm]
 & transitions from $k^1$ to $k^2$ state\\[0.1cm]
 \hline
-$Mapping[n] \in {M_i}$ & Mapping of $n^{th}$ appliance to $i^{th}$ main\\[0.1cm]
+$Mapping[n] \in {M_i}$ & Mapping of $n^{th}$ appliance to $i^{th}$ main\\
 where $i \in {1,2}$ & \\
 \hline 
 $s_t$ & Value of a timeseries $s$ at time $t$ \\
@@ -211,26 +211,26 @@ $Event(s,threshold)$ & An event in timeseries $s$ occurs \\
 %                    &operated by humans) eg. light, microwave\\[0.1cm]
 \hline
 \hline
-$Downsample(s,filter,$ & Function to downsample a timeseries $s$ to\\[0.1cm]
-$resolution)$                                        & a $resolution$ according to specified $filter$\\[0.1cm]
+$Downsample(s,filter,$ & Function to downsample a timeseries $s$ to\\
+$resolution)$                                        & a $resolution$ according to specified $filter$\\
 %$Normalize(s,v,$ & Function to normalize a power timeseries $s$\\[0.1cm]
 %$Rated\_Voltage)$                                 & given voltage timeseries $v$ according to\\[0.1cm]
 %                                    &the formula: $(\frac{Rated\_Voltage}{v})^2s$\\[0.1cm]
 \hline
-$Timeseries\_sync([s^1,..s^n]$ & Function to ensure that $n$ timeseries start and\\[0.1cm]
-$,method)$                                        &end at same times and handling missing\\[0.1cm]
-                                        & data using specified $method$\\[0.1cm]
+$Timeseries\_sync([s^1,..s^n]$ & Function to ensure that $n$ timeseries start and\\
+$,method)$                                        &end at same times and handling missing\\
+                                        & data using specified $method$\\
 \hline                                        
-$Sort([s^1,..s^n],$ & Function to sort $n$ timeseries according\\[0.1cm]
-$parameter,order)$  &to $parameter$ in specified $order$\\[0.1cm]
+$Sort([s^1,..s^n],$ & Function to sort $n$ timeseries according\\
+$parameter,order)$  &to $parameter$ in specified $order$\\
 %$Contiguous\_Below\_$ & Function to find contiguous period where time \\[0.1cm]
 %$Mean(s,min\_period)$                  &series $s$ is below its mean \\[0.1cm]
 %                                       &for atleast $min\_period$\\[0.1cm]
 \hline
-$Event\_Detection(s,$ & Function returning magnitude and times of \\[0.1cm]
-$threshold)$                  &$Events(s,threshold)$ in timeseries $s$\\[0.1cm]
+$Event\_Detection(s,$ & Function returning magnitude and times of \\
+$threshold)$                  &$Events(s,threshold)$ in timeseries $s$\\
 \hline
-$Cluster(s,K,$& Function to divide timeseries $s$ into\\[0.1cm]
+$Cluster(s,K,$& Function to divide timeseries $s$ into\\
 $clustering\_algorithm$&$K$ clusters based on $clustering\_algorithm$ \\
 \hline
 
@@ -459,9 +459,9 @@ Power measured by appliance level meters may need calibration due to several rea
 
 \noindent We use Reference Energy Disaggregation Data Set (REDD)~\cite{redd} for validating our algorithms using the metrics as discussed in \secref{sec:metrics}. %based on metrics such as Mean normalized error (MNE) and RMS error (RE) proposed in previous work.
 
-\vspace{-5mm}
+\vspace{-3mm}
 \subsection{Dataset}
-\vspace{-2mm}
+\vspace{-1mm}
 \noindent REDD contains power data for mains (split-phases) as well as appliances from 6 homes in Boston area collected in the summer of 2011. The data is made available as raw, high frequency (sampled at 15 KHz) and low frequency (mains at 1 Hz, appliances at ~0.3 Hz). Considering the practical implications of residential smart meter installation, we believe that low frequency data represents the most realistic scenario and thus we use this data for analysis. 
 
 %\figref{fig:breakdown} shows 6 hourly breakdown of energy consumption across the different mains in Home 2 .
@@ -516,16 +516,16 @@ Kitchen 2&1 & 1&204&1036&1&204&1036 \\
 \end{minipage}
 \vspace{-5mm}
 \end{table}
-\vspace{-5mm}
+\vspace{-3mm}
 \subsection{Evaluation Metric}
-\vspace{-2mm}
+\vspace{-1mm}
 \label{sec:metrics}
 %\noindent Commonly used metrics such as accuracy can be misleading when applied to NIALM. We illustrate this with the help of a confusion matrix whose [m,n] entry in indicates the number of times appliance in state $m$ is predicted to be in state $n$. It can be seen from the confusion matrix in \figref{fig:confusion} that since stove is mostly in state 1 (Off), accuracy will be largely decided by accuracy for this state. This will overshadow the accuracy for state 2 (On) which is unintended.
 %Armel et. al~\cite{survey1} discuss the lack of a common metric while comparing NIALM approaches.
 \noindent We use the following metrics that have also been used in prior work~\cite{parson2012_aaai,redd}:
 
 \noindent\textbf{Mean Normalized Error (MNE-orig)}: Normalized error in the energy assigned to an appliance $n$ over time period $T$, given by:
-\vspace{-7mm}
+\vspace{-5mm}
 \begin{equation}
 MNE-orig(n)=\frac{|\sum\limits_{t=1}^{T}\theta_t^n-\sum\limits_{t=1}^{T}y_t^n|}{\sum\limits_{t=1}^{T}\theta_t^n} 
 \vspace{-2mm}
@@ -563,9 +563,9 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 
 
 
-\vspace{-5mm}
+\vspace{-3mm}
 \subsection{Empirical Analysis}
-\vspace{-2mm}
+\vspace{-1mm}
 \noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances)\footnote{Highest accuracy has been reported for this Home in previous work~\cite{redd}.}. We believe that the same analysis can be easily repeated across multiple homes. Timeseries synchronization was applied since the appliance level data collection begun about 6 hours after mains data collection. Moreover, there were small intervals of missing data, which we filled using forward filling. Two appliances - washer dryer and disposal were ignored from further analysis since washer dryer had a peak power consumption of 8 W (implying that it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%.  We downsampled this time synchronized data to one minute resolution using mean filter. 1 minute is a sufficient resolution to get rid of startup transients and voltage fluctuations. 
 
 \noindent Event detection, as explained in section IV, is an important part of \indicns. A threshold of 30 W was chosen for event detection to ensure that there are no false events (occurring due to minor power fluctuations). As per the Appliance to mains step in \indicns-CO algorithm described earlier, we assigned loads to the two different mains. \tabref{tab:calibration_factors} shows the resultant load assignment to different mains. \tabref{tab:calibration_factors} further shows the learned power states of these appliance via KMeans++\footnote{We also used DBScan, SOM, EM, Mini Batch KMeans and Hierarchical clustering algorithms and found KMeans++ to be the most scalable.}~\cite{kmeansplusplus} clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on the prior experience and appliance circuity~\cite{ting2005}, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power and this metadata was missing from the released dataset. These two loads constitute a major portion of main 2 power. \figref{fig:breakdown} shows the reduction in unassigned power due to calibrating these two appliances. 
@@ -701,7 +701,7 @@ Kitchen 2    & 93  &246 & 83 & 100& 92  &218 &83 &100\\
 \hline
 
 \end{tabular}
-\vspace{-4mm}
+\vspace{-5mm}
 \end{table}
 
 
@@ -718,7 +718,7 @@ Kitchen 2    & 93  &246 & 83 & 100& 92  &218 &83 &100\\
 % % % % % Acknowledgment- Commented in this draft
 %\section*{Acknowledgment}
 %The authors would like to thank TCS Research and Development for supporting the first author through PhD. fellowship. We would also like to thank NSF- DEITy for funding the project.
-\vspace{-5mm}
+\vspace{-6mm}
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,references}
 
