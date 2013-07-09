@@ -1,0 +1,35 @@
+Installation instructions
+
+For Unix (Linux/ Mac OS)
+The instructions here are illustrated for Debian based systems. For Mac/ other Linux distros one may adapt accordingly. For install "yum" may be used for package installation instead of "apt-get"
+
+
+1. Python should be installed beforehand. Please install Python 2.x if not installed
+On Ubuntu, if Python is not installed you may do the following by:
+sudo apt-get install python
+
+2. Install python-setuptools. On Ubuntu, you may do the following by:
+sudo apt-get install python-setuptools
+
+3. Installing numpy
+sudo easy_install numpy
+
+4. Installing matplotlib
+sudo easy_install matplotlib
+
+5. Installing Pandas
+sudo easy_install pandas
+
+6. Installing scikit-learn
+sudo easy_install scikit-learn
+
+7. Installing IPython
+sudo easy_install ipython[zmq,qtconsole,notebook,test]
+
+
+For Windows
+It is recommended that you use Anaconda(http://docs.continuum.io/anaconda/install.html) 
+or EPD Free(https://www.enthought.com/products/epd/free/). 
+These contain all the necessary packages mentioned above and will help you avoid all the hassles.
+
+If you however choose to install everythign from scratch, you may download 'easy_install.exe' for Windows, and proceed stepwise as explained above.

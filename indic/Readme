@@ -1,0 +1,31 @@
+Readme
+
+This file explains the accompanying code for 
+INDiC: Improved Non-Intrusive load monitoring using load Division and Calibration
+
+What all is provided?
+1. IPython notebook for the code
+2. Rendered HTML version and PDF versions
+3. Styling for improving notebook and plots appearance
+4. Installation instructions
+
+Dependencies
+For opening the rendered HTML or PDF version, there are no dependencies.
+It is recommended that the HTML rendered version be preferred always over PDF one.
+
+For running the IPython notebook, following dependencies exist:
+
+0. Python 2.x
+1. IPython notebook
+2. Matplotlib
+3. NumPy
+4. Scikit-learn
+5. Pandas
+6. ipy_table
+
+How to run the IPython notebook?
+After installing the dependencies as per 'Installation Instructions', you may navigate to the directory where you unzipped the code and run IPython notebook as follows:
+ipython notebook --pylab inline
+
+Your browser tab should automatically open and you can then open indic.ipynb IPython notebook.
+To execute a cell, you have to press 'Shift'+'Return'
