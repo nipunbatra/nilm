@@ -88,7 +88,7 @@ haimonti@ccls.columbia.edu\\
 \begin{abstract}
 %\boldmath
 Residential buildings contribute significantly to the overall energy consumption across most parts of the world. While smart monitoring and control of appliances can reduce the overall energy consumption, management and cost associated with such systems act as a big hindrance. %This is a growing concern as energy resources are limited and increased energy demands negatively impacts the environment~\cite{survey2}. 
-Prior work has established that detailed feedback in the form of appliance level consumption to building occupants improves their awareness and paves the way for reduction in electricity consumption. Non-Intrusive Load Monitoring (NILM), i.e. the process of disaggregating the overall home electricity usage measured at the meter level into constituent appliances, provides a simple and cost effective methodology to provide such feedback to the occupants. In this paper we present \textbf{I}mproved \textbf{N}on-Intrusive load monitoring using load \textbf{Di}vision and \textbf{C}alibration (\indicns) that simplifies NILM by dividing the appliances across multiple instrumented points (meters/phases) and calibrating the measured power. Proposed approach is used together with the Combinatorial Optimization framework and evaluated on the popular REDD dataset. Empirical results demonstrate significant improvement in disaggregation accuracy, achieved by using \indicns.
+Prior work has established that detailed feedback in the form of appliance level consumption to building occupants improves their awareness and paves the way for reduction in electricity consumption. Non-Intrusive Load Monitoring (NILM), i.e. the process of disaggregating the overall home electricity usage measured at the meter level into constituent appliances, provides a simple and cost effective methodology to provide such feedback to the occupants. In this paper we present \textbf{I}mproved \textbf{N}on-Intrusive load monitoring using load \textbf{Di}vision and \textbf{C}alibration (\indicns) that simplifies NILM by dividing the appliances across multiple instrumented points (meters/phases) and calibrating the measured power. Proposed approach is used together with the Combinatorial Optimization framework and evaluated on the popular REDD dataset. Empirical evaluation, using \indic based Combinatorial Optimization, demonstrate significant improvement in disaggregation accuracy.
 \end{abstract}
 \IEEEpeerreviewmaketitle
 
@@ -98,13 +98,13 @@ Prior work has established that detailed feedback in the form of appliance level
 \vspace{-1mm}
 \noindent Buildings account for significant proportion of overall energy use in both the developing (e.g. 47\% of total energy in India~~\cite{evans09}) and the developed (e.g. 41\% and 45\% in US and UK respectively) countries. Modest improvements in building energy use can result in significant aggregate impact at the national scale. While several automation and management systems have been proposed for improving the operational efficiency of building systems, such systems typically lack the ability to provide detailed consumption information (e.g. appliance level consumption). Prior work~~\cite{darby} has shown that better feedback systems, enabling appliance level consumption, that provide insights about occupant's energy usage information further encourages energy saving behavior resulting in 5-15\% savings in electricity usage.
 
-\noindent Measuring each appliance's consumption separately, for providing such a feedback, is both prohibitively expensive and difficult to manage. Alternatively, prior research has proposed Non Intrusive Load Monitoring (NILM) that involves disaggregating the aggregated electricity consumption obtained at the meter level into individual appliance consumption. Several modeling and inference approaches have been proposed (e.g. Factorial Hidden Markov Model~~\cite{Ghahramani_97a}, Combinatorial Optimization~~\cite{hart}) in the past to address NILM with varied level of accuracy. NILM work typically assumes that all the loads are assigned to the same meter. However, many practical scenarios (e.g. use of split-phase supply in many homes in USA and 3-phase supply for many homes in India) involve load division across different phases coming at the home level. Automated assignment of different loads in a home to each phase followed by NILM application on each phase separately can reduce the overall modeling and inference complexity. We follow the convention introduced in REDD dataset~\cite{redd} where these multiple instrumented points (meters/phases) are referred as \textbf{main(s)}.
+\noindent Separately measuring each appliance's consumption, for providing such a feedback, is both prohibitively expensive and difficult to manage. Alternatively, prior research has proposed Non Intrusive Load Monitoring (NILM) that involves disaggregating the total electricity consumption obtained at the meter level into individual appliance level consumption. Several modeling and inference approaches have been proposed (e.g. Factorial Hidden Markov Model~~\cite{Ghahramani_97a} and Combinatorial Optimization~~\cite{hart}) in the past to address NILM with varied level of accuracy. NILM work typically assumes that all the loads are assigned to the same meter. However, many practical scenarios (e.g. commonly used split-phase supply for homes in USA and 3-phase supply for homes in India) involve load division across different phases coming at the home level. Automated assignment of different loads in a home to each phase, followed by NILM application on each phase separately, can reduce the overall modeling and inference complexity. Hereon, we follow the convention introduced in REDD dataset~\cite{redd} and generally refer to these multiple instrumented points (meters/phases) as \textbf{main(s)}.
 
 \noindent Further, the measurements, both at the meter level and at the appliance level, are often taken with different equipment (Current Transformers, in-line measurements, ICs\footnote{Example IC for power measurement is Maxim 78M6612}) each with their own accuracy levels. Calibrating these diverse measurements will be beneficial for NILM modeling and inference. Grid conditions such as voltage fluctuations further motivate calibration. Motivated by these practical scenarios, we propose \indicns - \textbf{I}mproved \textbf{N}ILM using load \textbf{Di}vision and \textbf{C}alibration. Specific research contributions of our work are:
 \begin{itemize}
-\item \indic involving two simple pre-processing steps - Load division (i.e. automated assignment of different loads in a home to each of the separate mains) and calibration (accounting for varied measurement accuracy across different equipment), that can be applied in a generic manner across several proposed NILM approaches to further improve their accuracy. 
+\item Novel \indic algorithm involving two simple pre-processing steps - Load division (i.e. automated assignment of different loads in a home to separate mains) and calibration (accounting for varied measurement accuracy across different equipment), that can be applied in a generic manner across several proposed NILM approaches to further improve their accuracy. 
 \item Extensive empirical validation, using publicly available REDD~~\cite{redd} dataset, establishing the effectiveness of \indic as a preprocessing step, specifically for Combinatorial Optimization based NILM. 
-\item Release of open source implementation of the proposed work\footnote{\url{http://www.iiitd.edu.in/~amarjeet/Research/indic.html}} for comparative analysis with other NILM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. 
+\item Release of open source implementation of the proposed work\footnote{\url{http://iiitd.edu.in/~amarjeet/Research/indic.html}} for comparative analysis with other NILM approaches as an IPython notebook\footnote{\url{http://www.ipython.org}}. 
 \end{itemize}
 \noindent We believe that this is the first extensive release of a generic NILM code base that can be used across many of the publicly available datasets and across several existing NILM modeling and inference approaches. Henceforth appliance(s) and load(s) are used interchangeably across the paper.
 
@@ -119,9 +119,9 @@ Prior work has established that detailed feedback in the form of appliance level
 
 \noindent Variants of HMMs such as factorial hidden Markov models (FHMMs)~\cite{Ghahramani_97a}, additive FHMMs~\cite{Kolter_12}, conditional factorial hidden semi-Markov models~\cite{Kim_11} and difference HMMs~\cite{parson2012_aaai} have been studied in the context of NILM. In factorial HMMs several models evolve independently and in parallel with the observed output being a joint function of all the hidden states. Additive HMMs allow emission of a single real-valued (unobserved) output from each HMM and the output is the sum of these HMMs. In difference HMMs~\cite{parson2012_aaai} each load is modeled using a graphical model followed by its disaggregation from the aggregate power -- this process is repeated iteratively until all appliances (for which general models are available) are disaggregated. It is therefore possible to infer the probability that a change in aggregated power was generated by two consecutive states of an appliance. 
 
-\noindent The applicability of these sophisticated techniques are generally hindered by the difficulty of inference from models with a large number of HMMs. Rahayu et. al.~\cite{Rahayu_12} propose a discriminative model for energy disaggregation that predicts the most likely appliance state configuration from aggregated load using nonparametric classification algorithms. They posit that ``subset sum" type techniques are not very effective since a large portion of the home energy is not monitored directly. 
+\noindent The applicability of these sophisticated techniques are generally hindered by the difficulty of inference from models with a large number of HMMs. Rahayu et. al.~\cite{Rahayu_12} proposed a discriminative model for energy disaggregation that predicts the most likely appliance state configuration from aggregated load using nonparametric classification algorithms. They posit that ``subset sum" type techniques are not very effective since a large portion of the home energy is not monitored directly. 
 
-\noindent In this paper, we put forward a simple idea -- the aggregated load can be further split up by information on mains and knowing which appliance is assigned to which main. This would make the task of disaggregation inherently easier by solving a simpler optimization problem and most of the above sophisticated machine learning based modeling approaches can still be applied to the task\footnote{The use of combinatorial optimization is only for the purpose of illustration and there is clearly no requirement to adhere to this modeling technique alone.}. 
+\noindent In this paper, we put forward a simple idea -- the aggregated load can be further split up by information on mains and knowledge about appliance assignement to mains. This would make the task of disaggregation inherently easier by solving a simpler optimization problem and most of the above sophisticated machine learning based modeling approaches can still be applied to the task\footnote{Combinatorial optimization is used in this work only for the purpose of illustration. There is clearly no requirement to adhere to CO alone.}. 
 
 %\end{itemize}
 \noindent Several datasets have been released publicly for benchmarking energy disaggregation algorithms including REDD~\cite{redd}, Blued~\cite{blued_cmu}, Pecan~\cite{pecan} and Smart*~\cite{smart}. Our empirical analysis is on the REDD data primarily because this is the most popular data set for evaluating state-of-the-art NILM approaches. 
@@ -250,15 +250,15 @@ $clustering\_algorithm$&$K$ clusters based on $clustering\_algorithm$ \\
 $z_t=arg min_{z_t}|x_t-\sum\limits_{n=1}^{N}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n|$
 \vspace{-1mm}
 
-\noindent The corresponding predicted power draw by $n^{th}$ appliance is given by $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$. This optimization problem resembles subset sum problem~\cite{knapsack} and is NP-complete. The state space size of this optimization function is $K^N$, which means it is exponential in the number of appliances. 
+\noindent The corresponding predicted power draw by $n^{th}$ appliance is given by $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$. This optimization problem resembles subset sum problem~\cite{knapsack} and is NP-complete. The state space size of this optimization function is $K^N$, implying that it is exponential in the number of appliances. 
 %Owing to the exponential nature of the state space and the fact that the algorithm requires all appliances be known, this approach has not been thoroughly studied in the past~\cite{parson2012_aaai}. We chose to use this approach as a proof of concept of our contributions.
 
 
 \noindent \textbf{Load division}: Across many countries, electrical distributions are planned such that different loads are connected to different mains (e.g. split-phase in the USA and 3-phase supply in India). Since NILM deployment typically involves monitoring different electrical mains separately, we leverage the load division to perform efficient disaggregation. Considering $p$ mains in a home, we first perform automated load assignment (for a total of $N$ loads in the home) to individual main (resulting in $N_i$ loads being assigned to the $i^{th}$ main).% whereby $Mapping[n]$ indicates the mapping of an appliance to a main.
 ~Such a load division across different mains results in exponential reduction in state space for disaggregation each main separately (the state space size for $i^{th}$ main is given by $K^{N_i}$). %As a practical example, if a home has two mains and 20 loads with 10 loads across each of the two mains, state space size before load division is given by $2^{20}$ and after load division is $2^{10}$.
 CO formulation for the $i^{th}$ main after load division is given by the following optimization function: 
-\vspace{-2mm}
-$z_t=arg min_{z_t}|\theta^{M_i}-\sum\limits_{n=1}^{N_i}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n| \;\;\; \forall \;\;\; i\in \{1,\cdots,p\}$
+\vspace{-4mm}
+$$z_t=arg min_{z_t}|\theta^{M_i}-\sum\limits_{n=1}^{N_i}\sum\limits_{k=1}^{K}z_{t,k}^n\mu_k^n| \;\;\; \forall \;\;\; i\in \{1,\cdots,p\}\vspace{-2mm}$$
 
 \noindent The corresponding predicted appliance power sequence for $n^{th}$ appliance is given by: $y^n=\{\mu_{z_1^n}^n,..\mu_{z_T^n}^n \}$. CO with load division is subject to the following constraints:
 \vspace{-2mm}
@@ -286,7 +286,7 @@ Various steps of \indicns-CO NILM, shown in \algoref{algo:main}, are described n
 
 \noindent\textbf{Time series synchronization}: Mains power and appliance power are typically measured using different hardware. As an example, in REDD~\cite{redd} TED meters\footnote{http://goo.gl/CEu2y} are used to measure mains and Power House Dynamics\footnote{http://goo.gl/9VQba} are used to measure appliance circuits. It is highly likely that some hardware malfunctions during the data collection process. In this step we ensure that the mains power and appliance power time series start and end at the same time. Further missing data is handled using the techniques such as forward filling (padding)\footnote{http://goo.gl/FfR6o}.
 
-\noindent\textbf{Downsampling}: While performing CO, it is desired that transients and fluctuations in the power signal are filtered~\cite{hart}. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of appliances. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show how starting current and voltage fluctuations can be filtered by down sampling. Filters such as mean/median can be used to down sample a time series to a time window, whereby the value assigned to the filtered series for a time window is the mean/median of original series occurring during that time window. 
+\noindent\textbf{Downsampling}: While performing CO, it is desired that transients and fluctuations in the power signal are filtered~\cite{hart}. The transients occur due to the high starting current of the appliance, whereas the fluctuations are a consequence of minor voltage fluctuations and oscillatory nature of appliances. \figref{fig:downsample_startup} and \figref{fig:downsample_voltage} show filteration of starting current and voltage fluctuations by down sampling. Filters such as mean/median can be used to down sample a time series to a time window, whereby the value assigned to the filtered series for a time window is the mean/median of original series occurring during that time window. 
 %To overcome these we downsampled our data to one minute resolution using mean filter. 
 
 \begin{figure} 
@@ -306,7 +306,7 @@ Various steps of \indicns-CO NILM, shown in \algoref{algo:main}, are described n
 \end{figure}
 
 \noindent\textbf{Assigning Loads to mains\footnote{While our approach is fine tuned for two mains, it can be easily extended to support further load division}}:
-This step aims to identify the mapping ($Mapping[n]$) between appliances and mains. Since an appliance can belong to a single main, $Mapping[n]$ is a one-to-one function. Since the patterns corresponding to appliances having higher peak power are generally easier to extract from the main signal, we first sort the appliance in decreasing order of peak power. Starting from the appliance having the highest peak load, we take one appliance at a time and compare its power at all times with the power of each of the mains. If at any time the power of the appliance is greater than the power of any of the mains, we can assign the appliance to the other main. If we are not able to assign an appliance to mains using this approach, we find the times when $Events$ occur in the appliance power series. This should be a subset of times when $Events$ occur in one of the main to which this appliance is assigned. The threshold used to find these events should be suitably chosen to ensure that minor voltage fluctuations are not counted as events. Once an appliance has been assigned to a mains, using either of these two filter, its power sequence is subtracted from the corresponding mains to simplify mains assignment for the remaining appliances. \figref{fig:assignment_1} shows refrigerator assignment to main 2 since during this time interval refrigerator power is more than that of main 1. One can also verify that the events in main 2 and refrigerator power series occur at the same time.
+This step aims to identify the mapping ($Mapping[n]$) between appliances and mains. As an appliance can belong to a single main, $Mapping[n]$ is a one-to-one function. Since the patterns corresponding to appliances having higher peak power are generally easier to extract from the main signal, we first sort the appliance in decreasing order of peak power. Starting from the appliance having the highest peak load, we take one appliance at a time and compare its power at all times with the power of each of the mains. If at any time the power of the appliance is greater than the power of any of the mains, we can assign the appliance to the other main. If we are not able to assign an appliance to mains using this approach, we find the times when $Events$ occur in the appliance power series. This should be a subset of times when $Events$ occur in one of the main to which this appliance is assigned. The threshold used to find these events should be suitably chosen to ensure that minor voltage fluctuations are not counted as events. Once an appliance has been assigned to a mains, using either of these two filter, its power sequence is subtracted from the corresponding mains to simplify mains assignment for the remaining appliances. \figref{fig:assignment_1} shows refrigerator assignment to main 2 since during this time interval refrigerator power is more than that of main 1. One can also verify that the events in main 2 and refrigerator power series occur at the same time.
 
 \begin{figure} 
     \subfloat[\scriptsize Assignment of refrigerator to main 2  (Refrigerator power $>$ main 1 power)]{
@@ -354,9 +354,9 @@ Power measured by appliance level meters may need calibration due to several rea
 \item Missing meta data - labeling the appliance level power consumption as real or apparent power 
 \vspace{-1mm} \end{itemize}
 
-\noindent In comparison to appliance data, mains data is usually measured with better precision devices. Thus, we keep mains data as a reference and calibrate appliance data against it. In the clustering step, value of appliance power at each time is associated with corresponding cluster state ($k \in \{1,\cdots,K\}$). Since in Off state ($k$=1) appliance power consumption is almost zero, it does not require any calibration. We find out $Event$ times when appliance transitions from a lower state($k$) to a higher state($k+1$). During these times, we find the ratio of the magnitude of power change occurring in the assigned mains and the appliance. This ratio serves as a corrective multiplicative factor for a particular  state of an appliance. Cluster centroids obtained in the previous step are multiplied by this factor to obtain calibrated cluster centroids. This process is shown in \figref{fig:calibration_utility} where it is observed that before and after calibration (with mains 2) refrigerator power in state 2 was 162 W and 214 W respectively, with the calibration factor of 1.34.
+\noindent Motivated by such requirements, \indic introduces measurement calibration. In comparison to appliance data, mains data is usually measured with better precision devices. Thus, we keep mains data as a reference and calibrate appliance data against it. In the clustering step, value of appliance power at each time is associated with corresponding cluster state ($k \in \{1,\cdots,K\}$). Since in Off state ($k$=1) appliance power consumption is almost zero, it does not require any calibration. We find out $Event$ times when appliance transitions from a lower state($k$) to a higher state($k+1$). During these times, we find the ratio of the magnitude of power change occurring in the assigned mains and the appliance. This ratio serves as a corrective multiplicative factor for a particular  state of an appliance. Cluster centroids obtained in the previous step are multiplied by this factor to obtain calibrated cluster centroids. This process is shown in \figref{fig:calibration_utility} where it is observed that before and after calibration (with mains 2) refrigerator power in state 2 was 162 W and 214 W respectively, with the calibration factor of 1.34.
 
-\noindent\textbf{Combinatorial optimization}: Combinatorial optimization is now performed separately for both mains as per the description in Section III.
+\noindent\textbf{Combinatorial optimization}: Combinatorial optimization is now performed separately for both mains as per the description in Section III. \vspace{-1mm}
 
 
 \begin{algorithm}[ht!]
@@ -381,7 +381,7 @@ Power measured by appliance level meters may need calibration due to several rea
 \nl $j \gets Sort([\theta^1,..\theta^n],peak\: power)$\;
 \BlankLine
 \textbf{Appliance to mains mapping}\;
-\BlankLine
+%\BlankLine
 \nl \For{$Appliance\: n \in j$}
     {
     
@@ -418,15 +418,15 @@ Power measured by appliance level meters may need calibration due to several rea
     \BlankLine
     
         
-        \BlankLine
+        %\BlankLine
         \textbf{Clustering on train set}\;
-        \BlankLine
+        %\BlankLine
     \nl \For{$n \in {1,N}$}{
     \nl $\mu_k^n \gets Cluster(\theta^n,K,clustering\_algorithm) \: for\: k \in {1,K} $\;
     }
     \BlankLine
     \textbf{Calibration on train set} \;
-    \BlankLine
+    %\BlankLine
 \nl \For{$n \in {1,N}$}{    
 \nl \For{$k \in {2,K}$}{
     \nl $\mu_k^n \gets \frac{\mu_k^n *Event\_Detection(\theta^{Mapping[n]}_{k-1,k},threshold).Magnitude}
@@ -442,7 +442,7 @@ Power measured by appliance level meters may need calibration due to several rea
 
 \BlankLine
 \textbf{Combinatorial Optimization(CO) on test set} \;
-\BlankLine  
+%\BlankLine  
     
 \nl Solve CO as described in Section III
 
@@ -453,11 +453,11 @@ Power measured by appliance level meters may need calibration due to several rea
 \end{algorithm}
 
 
-\vspace{-2mm}
+\vspace{-6mm}
 \section{Evaluation}
 \vspace{-2mm}
 
-\noindent We use Reference Energy Disaggregation Data Set (REDD)~\cite{redd} for validating our algorithms using the metrics as discussed in \secref{sec:metrics}. %based on metrics such as Mean normalized error (MNE) and RMS error (RE) proposed in previous work.
+\noindent We use Reference Energy Disaggregation Data Set (REDD)~\cite{redd} for validating the improvements in disaggregation using \indic based CO. %using the metrics as discussed in \secref{sec:metrics}. %based on metrics such as Mean normalized error (MNE) and RMS error (RE) proposed in previous work.
 
 \vspace{-3mm}
 \subsection{Dataset}
@@ -546,7 +546,7 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 \vspace{-2mm}
 \end{equation}
 
-\noindent Since both MNE and RE represent error, the lower their value, better is the disaggregation accuracy. 
+\noindent Since both MNE and RE represent error, lower their value, better is the disaggregation accuracy. 
 %\begin{table}
 %\begin{tabular}{content...}
 %content...
@@ -566,7 +566,7 @@ RE(n)=\sqrt{\frac{1}{T}\sum\limits_{t=1}^{T}(\theta_t^n-y_t^n)^2}
 \vspace{-3mm}
 \subsection{Empirical Analysis}
 \vspace{-1mm}
-\noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances)\footnote{Highest accuracy has been reported for this Home in previous work~\cite{redd}.}. We believe that the same analysis can be easily repeated across multiple homes. Timeseries synchronization was applied since the appliance level data collection begun about 6 hours after mains data collection. Moreover, there were small intervals of missing data, which we filled using forward filling. Two appliances - washer dryer and disposal were ignored from further analysis since washer dryer had a peak power consumption of 8 W (implying that it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%.  We downsampled this time synchronized data to one minute resolution using mean filter. 1 minute is a sufficient resolution to get rid of startup transients and voltage fluctuations. 
+\noindent We performed empirical analysis on REDD dataset Home 2, which consists of 11 channels (including 2 mains and 9 appliances)\footnote{Highest accuracy has been reported for this Home in previous work~\cite{redd}.}. We believe that the same analysis can be easily repeated across multiple homes. Timeseries synchronization was applied since the appliance level data collection begun about 6 hours after mains data collection. Moreover, there were small intervals of missing data, which we filled using forward filling. Two appliances - washer dryer and disposal were ignored from further analysis since washer dryer had a peak power consumption of 8 W (implying that it was Off throughout) and the contribution of disposal to overall power was less than 0.1 \%.  We downsampled this time synchronized data to one minute resolution using mean filter to get rid of startup transients and voltage fluctuations. 
 
 \noindent Event detection, as explained in section IV, is an important part of \indicns. A threshold of 30 W was chosen for event detection to ensure that there are no false events (occurring due to minor power fluctuations). As per the Appliance to mains step in \indicns-CO algorithm described earlier, we assigned loads to the two different mains. \tabref{tab:calibration_factors} shows the resultant load assignment to different mains. \tabref{tab:calibration_factors} further shows the learned power states of these appliance via KMeans++\footnote{We also used DBScan, SOM, EM, Mini Batch KMeans and Hierarchical clustering algorithms and found KMeans++ to be the most scalable.}~\cite{kmeansplusplus} clustering. Refrigerator and lighting showed significant difference in power states post calibration. Based on the prior experience and appliance circuity~\cite{ting2005}, we believe that since only these two appliances needed calibration, it may be a case that the appliance level monitor measured real power instead of apparent power and this metadata was missing from the released dataset. These two loads constitute a major portion of main 2 power. \figref{fig:breakdown} shows the reduction in unassigned power due to calibrating these two appliances. 
 
@@ -707,7 +707,7 @@ Kitchen 2    & 93  &246 & 83 & 100& 92  &218 &83 &100\\
 
 
 
-\vspace{-2mm}
+\vspace{-3mm}
 \section{Conclusions and Future Work}
 \vspace{-1mm}
 \noindent In this paper we present \indicns, which consists of novel preprocessing steps - Load Division and Calibration, to reduce the complexity of NILM modeling and improve the disaggregation accuracy. While we take the case of Load Division across two mains (specific to the REDD dataset used for evaluation), this can be easily extended for disaggregation across larger number of circuits. While our calibration only involved calibrating the appliance power with corresponding main, this can be further extended for calibration when the grid voltage fluctuates. This is particularly useful in the context of developing countries, e.g. India where we have personally observed high voltage fluctuations from 180 Volts to 250 Volts. Application of \indicns, together with Combinatorial Optimization, on the data from a real home from REDD dataset showed significant improvement in disaggregation accuracy as compared to when no pre-processing step is used. We further release our code as open source implementation and believe that this is the first extensive release of a generic NILM code base that can be used across many of the publicly available datasets and across several existing NILM modeling and inference approaches. 
@@ -716,9 +716,12 @@ Kitchen 2    & 93  &246 & 83 & 100& 92  &218 &83 &100\\
 
 
 % % % % % Acknowledgment- Commented in this draft
-%\section*{Acknowledgment}
-%The authors would like to thank TCS Research and Development for supporting the first author through PhD. fellowship. We would also like to thank NSF- DEITy for funding the project.
-\vspace{-6mm}
+\vspace{-3mm}
+\section*{Acknowledgment}
+\vspace{-1.5mm}
+The authors would like to thank TCS Research and Development for supporting the first author through PhD fellowship. We would also like to thank Department of Electronic and Information Technology (DEITy), Government of India for funding the project (Grant Number DeitY/R\&D/ITEA/4(2)/2012).
+
+\vspace{-3mm}
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,references}
 
