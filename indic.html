@@ -844,8 +844,7 @@ Scikit-learn version: 0.12.1
 <div class="input hbox">
 <div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="input_area box-flex1">
-<div class="highlight"><pre><span class="n">CONFIG_PATH</span><span class="o">=</span><span class="s">&quot;/home/nipun/&quot;</span>
-<span class="n">DATA_PATH</span><span class="o">=</span><span class="s">&quot;/home/nipun/study/datasets/MIT/low_freq/house_2/&quot;</span>
+<div class="highlight"><pre><span class="n">DATA_PATH</span><span class="o">=</span><span class="s">&quot;/home/nipun/study/datasets/MIT/low_freq/house_2/&quot;</span>
 </pre></div>
 
 </div>
@@ -858,14 +857,14 @@ Scikit-learn version: 0.12.1
 <div class="input hbox">
 <div class="prompt input_prompt">In&nbsp;[21]:</div>
 <div class="input_area box-flex1">
-<div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">bmh_matplotlibrc.json&quot;</span> <span class="o">%</span><span class="k">CONFIG_PATH</span><span class="p">)</span> <span class="p">)</span>
+<div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;bmh_matplotlibrc.json&quot;</span><span class="p">)</span> <span class="p">)</span>
 <span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
 <span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;font.size&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">})</span>
 
 <span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="kn">import</span> <span class="n">HTML</span>
 <span class="k">def</span> <span class="nf">css_styling</span><span class="p">():</span>
-    <span class="n">styles</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">custom.css&quot;</span> <span class="o">%</span><span class="k">CONFIG_PATH</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">styles</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&quot;custom.css&quot;</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">styles</span><span class="p">)</span>
 <span class="n">css_styling</span><span class="p">()</span>
 </pre></div>
